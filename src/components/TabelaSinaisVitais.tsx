@@ -1,3 +1,4 @@
+import { formatDateBR } from "@/utils/Functions";
 import Link from "next/link";
 import React from "react";
 import { FaSearch } from 'react-icons/fa'
@@ -11,15 +12,6 @@ type SinaisVitais = {
 type Props = {
   SinaisVitais: SinaisVitais[];
 };
-
-function formatDateBR(data: any) {
-  const date = new Date(data);
-
-  const options = { timeZone: "America/Sao_Paulo", year: "numeric", month: "numeric", day: "numeric" };
-
-  const formattedDate = date.toLocaleString("pt-BR", options);
-  return formattedDate;
-}
 
 const TabelaSinaisVitais: React.FC<Props> = ({ SinaisVitais }) => {
   console.log(SinaisVitais)

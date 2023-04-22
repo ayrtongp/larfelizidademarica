@@ -35,7 +35,7 @@ export default async function handler(
       try {
         const collection = db.collection(db_lar);
         await collection.updateOne(
-          { _id: req.query.id },
+          { _id: new ObjectId(req.query.id) },
           { $set: req.body },
         );
         res.status(200).json({ message: 'Document updated' });
