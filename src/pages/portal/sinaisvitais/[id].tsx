@@ -7,7 +7,6 @@ import BotaoPadrao from '@/components/BotaoPadrao';
 
 
 export async function getServerSideProps(context: any) {
-  console.log("OI")
   const id = context.query.id;
   const { db, client } = await connect();
   const collection = db.collection('sinaisvitais');
