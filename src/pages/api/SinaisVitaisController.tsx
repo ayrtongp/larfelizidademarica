@@ -34,8 +34,9 @@ export default async function handler(
     case 'PUT':
       try {
         const collection = db.collection(db_lar);
+        const myObjectId = req.query.id as unknown as ObjectId;
         await collection.updateOne(
-          { _id: new ObjectId(req.query.id) },
+          { _id: myObjectId },
           { $set: req.body },
         );
         res.status(200).json({ message: 'Document updated' });
@@ -47,7 +48,8 @@ export default async function handler(
     case 'DELETE':
       try {
         const collection = db.collection(db_lar);
-        const id = new ObjectId(req.query.id);
+        const myObjectId = req.query.id as unknown as ObjectId;
+        const id = new ObjectId(myObjectId);
         await collection.deleteOne({ _id: id });
         res.status(200).json({ message: 'Document deleted' });
       } catch (err) {
