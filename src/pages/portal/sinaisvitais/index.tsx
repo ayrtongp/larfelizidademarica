@@ -4,7 +4,7 @@ import BotaoPadrao from '@/components/BotaoPadrao'
 import TabelaSinaisVitais from '@/components/TabelaSinaisVitais'
 
 
-const index = () => {
+const Index = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -33,4 +33,4 @@ const index = () => {
   )
 }
 
-export default index
+export default Index
