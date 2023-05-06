@@ -1,12 +1,15 @@
+import LarImagem1 from '../../public/images/LarImagem1.jpg'
+import LarImagem2 from '../../public/images/LarImagem2.jpg'
+import LarImagem3 from '../../public/images/LarImagem3.jpg'
 
 export const SliderData = [
   {
-    image: '../../public/images/LarImagem1.jpg'
+    image: LarImagem1
   },
   {
-    image: '../../public/images/LarImagem2.jpg'
+    image: LarImagem2
   },
   {
-    image: '../../public/images/LarImagem3.jpg'
+    image: LarImagem3
   },
 ]
