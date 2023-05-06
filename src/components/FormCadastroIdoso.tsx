@@ -21,7 +21,6 @@ const FormCadastroIdoso = () => {
     setContatos(newContatos);
     setResponsavel("");
     setContato("");
-    console.log(newContatos)
   };
 
   const handleDeleteContato = (index: number) => (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -32,7 +31,6 @@ const FormCadastroIdoso = () => {
   };
 
   const handleSubmit = async (event: any) => {
-    event.preventDefault();
     const obj = {
       nome: formData.nomeIdoso,
       dataNascimento: formData.dataNascimento,

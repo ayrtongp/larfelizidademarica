@@ -4,7 +4,7 @@ import BotaoPadrao from '@/components/BotaoPadrao'
 import Navportal from '@/components/Navportal'
 import PermissionWrapper from '@/components/PermissionWrapper'
 
-const cadastro_sinaisvitais = () => {
+const editar_sinaisvitais = () => {
   return (
     <PermissionWrapper href='/portal'>
       <div>
@@ -16,4 +16,4 @@ const cadastro_sinaisvitais = () => {
   )
 }
 
-export default cadastro_sinaisvitais
+export default editar_sinaisvitais

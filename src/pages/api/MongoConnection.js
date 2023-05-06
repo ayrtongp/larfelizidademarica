@@ -7,7 +7,8 @@ export default async function handler(req, res) {
 
   const client = new MongoClient(uri, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useCreateIndex: true
   });
 
   // try {

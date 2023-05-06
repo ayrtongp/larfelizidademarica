@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { listaEnfermagem, listaIdosos } from '../utils/Listas'
+import { ToastContainer } from "react-toastify";
+import { notifySuccess } from "@/utils/Functions";
+import { getUserID } from "@/utils/Login";
 
 function formatarTexto(texto: string) {
   // Remove acentos e converte para minúsculo
@@ -11,26 +14,14 @@ function formatarTexto(texto: string) {
   return texto;
 }
 
-const nomesIdosos = listaIdosos.map((idoso) => {
-  const nomeCompleto = idoso.nome_idoso.split(' ');
-  const primeiroNome = nomeCompleto[0];
-  const ultimoNome = nomeCompleto[nomeCompleto.length - 1];
-
-  return { id: idoso.id, nome: `${primeiroNome} ${ultimoNome}` };
-});
-
 const FormSinaisVitais = () => {
   const [formData, setFormData] = useState({
-    "idoso": "", "data": "", "datalancamento": Date.now(),
+    "idoso": "", "idoso_id": "", "data": "", "datalancamento": Date.now(),
     "consciencia": "", "hemodinamico": "", "cardiovascular": "", "pressaoarterial": "",
     "respiratorio": "", "mucosas": "", "integridadecutanea": "", "mmss": "",
     "mmii": "", "aceitacaodadieta": "", "abdomen": "", "eliminacoes": "",
-    "eliminacoesintestinais": "", "auscultapulmonar": "",
-
-    "consciencia_obs": "", "hemodinamico_obs": "", "cardiovascular_obs": "", "pressaoarterial_obs": "",
-    "respiratorio_obs": "", "mucosas_obs": "", "integridadecutanea_obs": "", "mmss_obs": "",
-    "mmii_obs": "", "aceitacaodadieta_obs": "", "abdomen_obs": "", "eliminacoes_obs": "",
-    "eliminacoesintestinais_obs": "", "auscultapulmonar_obs": "",
+    "eliminacoesintestinais": "", "auscultapulmonar": "", "observacoes": "",
+    "id_usuario_cadastro": "", "nome_usuario": "", "registro_usuario": "", "funcao_usuario": "",
   })
 
   useEffect(() => {
@@ -40,12 +31,43 @@ const FormSinaisVitais = () => {
     selectedOption.selected = true;
   }, []);
 
+
   const handleSubmit = async (event: any) => {
-    const res = await fetch("/api/SinaisVitaisController", {
+    event.preventDefault()
+
+    if (!formData.idoso || !formData.idoso_id) {
+      event.preventDefault()
+      alert('Selecione o nome do idoso');
+      return
+    }
+
+    const getRegistro = await fetch(`/api/Controller/UsuarioController?registro=getRegistro&id=${getUserID()}`, {
+      method: "GET",
+    });
+    const registoJson = await getRegistro.json()
+    console.log(registoJson)
+
+    const teste = async () => {
+      setFormData((prevState) => ({
+        ...prevState,
+        id_usuario_cadastro: registoJson.usuario._id,
+        nome_usuario: registoJson.usuario.nome + " " + registoJson.usuario.sobrenome,
+        registro_usuario: registoJson.usuario.registro,
+        funcao_usuario: registoJson.usuario.funcao,
+      }));
+    }
+
+    await teste()
+
+    console.log(formData)
+    const res = await fetch("/api/Controller/SinaisVitaisController", {
       method: "POST",
       body: JSON.stringify(formData),
     });
     const data = await res.json();
+    if (res.ok) {
+      notifySuccess("Formulário cadastrado com sucesso!")
+    }
   };
 
   const handleChange = (e: any) => {
@@ -55,18 +77,32 @@ const FormSinaisVitais = () => {
     }));
   };
 
+  const handleChangeIdoso = (e: any) => {
+    const IdosoListElement = document.getElementById('idoso') as HTMLSelectElement
+    const idosoId = IdosoListElement.selectedOptions[0].getAttribute('id')
+    if (idosoId !== null) {
+      setFormData((prevState) => ({
+        ...prevState,
+        [e.target.name]: e.target.value,
+        idoso_id: idosoId
+      }))
+    }
+
+  };
+
   return (
     <div>
+      <ToastContainer />
       <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
 
         <div className="mt-4 mb-4 border rounded p-2 flex flex-wrap">
           <div>
             <label className="block font-bold mb-2" htmlFor="idoso">Nome do idoso:</label>
-            <select name="idoso" id="idoso" required onChange={handleChange}
+            <select name="idoso" id="idoso" required onChange={handleChangeIdoso}
               className="max-w-[250px] bg-gray-200 text-gray-700 border border-gray-400 rounded px-1 py-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
               <option disabled value="Escolha o nome do idoso">Escolha o nome do idoso</option>
               {listaIdosos.sort((a, b) => (a.nome_idoso > b.nome_idoso) ? 1 : -1).map(idoso => (
-                <option key={idoso.id} value={`${idoso.nome_idoso}`}>{idoso.nome_idoso}</option>
+                <option id={idoso.id.toString()} key={idoso.id} value={`${idoso.nome_idoso}`}>{idoso.nome_idoso}</option>
               ))}
             </select>
           </div>
@@ -91,19 +127,19 @@ const FormSinaisVitais = () => {
                 })
                 }
               </div>
-              <div className="mt-2">
-                <label className="block text-sm">Observações:</label>
-                <textarea onChange={handleChange}
-                  className="text-sm shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  name={formatarTexto(item['label']) + '_obs'}
-                  placeholder="Digite as observações aqui"
-                />
-              </div>
             </div>
           )
         }
         )}
 
+        <div className="mt-2">
+          <label className="block font-bold text-center text-xl">Observações:</label>
+          <textarea onChange={handleChange}
+            className="text-sm shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            name='observacoes'
+            placeholder="(OPCIONAL): Digite alguma observação aqui caso tenha "
+          />
+        </div>
 
         <div className="flex items-center justify-center m-2">
           <button
