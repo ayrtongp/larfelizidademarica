@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
-import { ObjectId } from 'mongodb'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
