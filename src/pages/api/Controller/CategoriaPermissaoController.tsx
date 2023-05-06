@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse,) {
 
@@ -14,7 +13,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'POST':
 
       // -------------------------
-      // Realizar o LOGIN
+      // CADASTRO DE PERMISSOES
+      // -------------------------
+
+      // idosos: 1, sinaisVitais: 2, livroOcorrencias: 3, insumos: 4,
+
+      if (req.query.tipo === 'register' && req.query.tipo_permissao === 'portal_servicos') {
+        const userId = req.query.id
+        const { idosos, sinaisVitais, livroOcorrencias, insumos } = JSON.parse(req.body);
+        const toInsert = [];
+
+        if (idosos) { toInsert.push({ usuario_id: userId, tipo_permissao: "portal_servicos", id_servico: "1" }); }
+
+        if (sinaisVitais) { toInsert.push({ usuario_id: userId, tipo_permissao: "portal_servicos", id_servico: "2" }); }
+
+        if (livroOcorrencias) { toInsert.push({ usuario_id: userId, tipo_permissao: "portal_servicos", id_servico: "3" }); }
+
+        if (insumos) { toInsert.push({ usuario_id: userId, tipo_permissao: "portal_servicos", id_servico: "4" }); }
+
+        if (toInsert.length > 0) {
+          const insertedDocuments = await mainCollection.insertMany(toInsert);
+          return res.status(201).json({ message: 'Categorias Registradas', method: 'POST' });
+        } else {
+          return res.status(201).json({ message: 'Nenhuma categoria registrada', method: 'POST' });
+        }
+      }
+
+      // -------------------------
+      // Busca as permissoes para o usuario
       // -------------------------
 
       try {

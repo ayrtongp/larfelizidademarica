@@ -66,26 +66,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // -------------------------
 
       try {
-        const novoUsuario = req.body
+        const novoUsuario = JSON.parse(req.body)
+        console.log(novoUsuario)
 
         if (!novoUsuario.nome || !novoUsuario.sobrenome || !novoUsuario.usuario || !novoUsuario.senha
-          || !novoUsuario.admin || !novoUsuario.email || !novoUsuario.confirmaSenha) {
-          res.status(400).json({ message: 'Faltam campos para continuar a ação, favor verificar!', method: 'POST', url: `UsuarioController` });
+          || !novoUsuario.admin || !novoUsuario.email || !novoUsuario.repetirSenha) {
+          console.log(1)
+          return res.status(400).json({ message: 'Faltam campos para continuar a ação, favor verificar!', method: 'POST', url: `UsuarioController` });
         }
 
         const isUser = await mainCollection.findOne({ usuario: novoUsuario.usuario })
         if (isUser) {
-          res.status(400).json({ message: `Este usuário já existe: ${novoUsuario.usuario}.`, method: 'POST', url: `UsuarioController` });
+          console.log(2)
+          return res.status(400).json({ message: `Este usuário já existe: ${novoUsuario.usuario}.`, method: 'POST', url: `UsuarioController` });
         }
 
         const isEmail = await mainCollection.findOne({ email: novoUsuario.email })
         if (isEmail) {
-          res.status(400).json({ message: `Este email já está cadastrado: ${novoUsuario.email}.`, method: 'POST', url: `UsuarioController` });
+          console.log(3)
+          return res.status(400).json({ message: `Este email já está cadastrado: ${novoUsuario.email}.`, method: 'POST', url: `UsuarioController` });
         }
 
-        const passMatch = novoUsuario.senha === novoUsuario.confirmaSenha
+        const passMatch = novoUsuario.senha === novoUsuario.repetirSenha
         if (!passMatch) {
-          res.status(400).json({ message: `As senhas informadas não são idênticas`, method: 'POST', url: `UsuarioController` });
+          return res.status(400).json({ message: `As senhas informadas não são idênticas`, method: 'POST', url: `UsuarioController` });
         }
 
         if (novoUsuario.senha.length < 6) {
@@ -98,10 +102,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           "nome": novoUsuario.nome,
           "sobrenome": novoUsuario.sobrenome,
           "usuario": novoUsuario.usuario,
+          "dataNascimento": novoUsuario.dataNascimento,
           "email": novoUsuario.email,
+          "funcao": novoUsuario.funcao,
+          "registro": novoUsuario.registro,
           "senha": hashedPassword,
-          "tipo": novoUsuario.admin,
-          "status": novoUsuario.status,
+          "ativo": novoUsuario.ativo,
+          "admin": novoUsuario.admin,
           "createdAt": Date.now(),
           "updatedAt": Date.now(),
         }
@@ -109,9 +116,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         const newUser = await mainCollection.insertOne(userObj);
         const message = `Novo usuário: ${novoUsuario.usuario}`
         const url = `UsuarioController?id=${newUser.insertedId}`
-        return res.status(201).json({ message: message, url: url, method: 'POST' });
+        return res.status(201).json({ message: message, url: url, method: 'POST', userId: newUser.insertedId });
       } catch (err) {
-        res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        console.log(err)
+        return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
 
@@ -122,22 +130,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'PUT':
       try {
         const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
+        const bodyObject = JSON.parse(req.body)
 
-        if (req.query.tipo === 'alteraFoto' && req.body.foto_base64) {
-          const novaFoto = req.body.foto_base64
+        if (req.query.tipo === 'alteraFoto' && bodyObject.foto_base64) {
+          const novaFoto = bodyObject.foto_base64
           await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
           res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
-        else if (req.query.tipo === 'alteraSenha' && req.body.senha) {
-          const novaSenha = req.body.senha
+        else if (req.query.tipo === 'alteraSenha' && (bodyObject.newPass === bodyObject.repPass)) {
+          const novaSenha = await bcrypt.hash(bodyObject.newPass, 10);
           await mainCollection.updateOne({ _id: myObjectId }, { $set: { senha: novaSenha } },);
           res.status(201).json({ message: 'Senha do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
         else if (req.query.tipo === 'alteraDados') {
-          await mainCollection.updateOne({ _id: myObjectId }, { $set: req.body },);
+          await mainCollection.updateOne({ _id: myObjectId }, { $set: bodyObject },);
           res.status(201).json({ message: 'Senha do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
         else {
+          console.log('teste')
           res.status(409).json({ message: 'Condição inválida, verificar a requisição!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
       } catch (err) {

@@ -1,8 +1,13 @@
+import { notifyError, notifySuccess } from '@/utils/Functions'
+import { getUserID } from '@/utils/Login'
 import React, { useEffect, useState } from 'react'
 
 const FormNovoUsuario = () => {
   const [categorias, setCategorias] = useState({ idosos: false, sinaisVitais: false, livroOcorrencias: false, insumos: false, })
-  const [formData, setFormData] = useState({ nome: '', sobrenome: '', usuario: '', dataNascimento: '', senha: '', repetirSenha: '' })
+  const [formData, setFormData] = useState({
+    nome: '', sobrenome: '', usuario: '', dataNascimento: '', senha: '',
+    repetirSenha: '', funcao: '', registro: '', email: (Math.random() * 1000 + 1).toFixed(2), admin: 'N', ativo: 'N'
+  })
   const [isAdmin, setIsAdmin] = useState(false)
   const [isAtivo, setIsAtivo] = useState(false)
 
@@ -18,28 +23,44 @@ const FormNovoUsuario = () => {
   }
 
   const handleChangeIsAdmin = (event: any) => {
-    setIsAdmin(event.target.value === 'sim')
+    setIsAdmin(!isAdmin)
+    setFormData((prevState) => ({ ...prevState, admin: event.target.checked ? 'S' : 'N' }));
   }
 
   const handleChangeIsAtivo = (event: any) => {
-    setIsAtivo(event.target.value === 'sim')
+    setIsAtivo(!isAtivo)
+    setFormData((prevState) => ({ ...prevState, ativo: event.target.checked ? 'S' : 'N' }));
   }
 
   const handleSubmit = async (event: any) => {
+    console.log(isAdmin)
+    console.log(formData)
     event.preventDefault()
 
     if (formData.senha === formData.repetirSenha) {
-      const obj = {
-        categorias,
-        formData,
-        isAdmin,
-        isAtivo
-      }
       const res = await fetch("/api/Controller/UsuarioController", {
         method: "POST",
-        body: JSON.stringify(obj),
+        body: JSON.stringify(formData),
       });
-      const data = await res.json();
+      console.log(res)
+      if (res.ok) {
+        const data = await res.json();
+        notifySuccess('Usuário Cadastrado')
+
+        const userId = await data.userId
+        const res2 = await fetch(`/api/Controller/CategoriaPermissaoController?tipo=register&tipo_permissao=portal_servicos&id=${userId}`, {
+          method: "POST",
+          body: JSON.stringify(categorias),
+        });
+        if (res2.ok) {
+          notifySuccess('Categorias Cadastradas')
+
+        }
+      }
+      else if (res.status === 400) {
+        const { message } = await res.json()
+        notifyError(message)
+      }
     }
   };
 
@@ -56,6 +77,16 @@ const FormNovoUsuario = () => {
             <div className="w-full md:w-1/2 px-3">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="sobrenome">Sobrenome</label>
               <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white" name="sobrenome" type="text" placeholder="Insira o sobrenome" />
+            </div>
+          </div>
+          <div className="flex flex-wrap -mx-3 mb-6">
+            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="funcao">Função</label>
+              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="funcao" type="text" placeholder="Insira o cargo" />
+            </div>
+            <div className="w-full md:w-1/2 px-3">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="registro">Núm. Registro</label>
+              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white" name="registro" type="text" placeholder="Núm. registro" />
             </div>
           </div>
           <div className="flex flex-wrap -mx-3 mb-6">

@@ -1,6 +1,5 @@
-import CategoryMenu from '@/components/CategoryMenu'
-import CheckToken from '@/components/CheckToken';
 import Navportal from '@/components/Navportal';
+import PerfilFotoUpload from '@/components/PerfilFotoUpload';
 import PermissionWrapper from '@/components/PermissionWrapper';
 import React from 'react'
 
@@ -10,8 +9,7 @@ const index = () => {
       <PermissionWrapper href='/portal'>
         <Navportal />
         <div className='flex flex-col justify-center items-center h-screen w-max mx-auto'>
-          <h1 className='mb-20 text-4xl font-bold'>Portal do Lar Felizidade Maricá</h1>
-          <CategoryMenu />
+          <PerfilFotoUpload />
         </div>
       </PermissionWrapper>
     </div>

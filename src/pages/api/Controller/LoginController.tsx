@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(401).json({ message: 'A senha fornecida não confere.' });
         }
 
-        if (response.status !== 'S') {
+        if (response.ativo !== 'S') {
           return res.status(401).json({ message: 'O usuário está desativado' });
         }
 
