@@ -6,6 +6,7 @@ import Instagram from '@/components/Instagram'
 import AboutUs from '@/components/AboutUs'
 import Contact from '@/components/Contact'
 import Navbar from '@/components/Navbar'
+import Servicos from '@/components/Servicos'
 
 export default function Home() {
   return (
@@ -19,7 +20,7 @@ export default function Home() {
       <Hero heading='Lar Felizidade' message='O lugar para o idoso chamar de seu' />
 
       <Slider slides={SliderData} />
-      <Instagram />
+      <Servicos />
       <AboutUs />
       <Contact />
     </div>

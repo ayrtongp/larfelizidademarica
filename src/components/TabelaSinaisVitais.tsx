@@ -1,6 +1,6 @@
 import { formatDateBR, notifyError } from "@/utils/Functions";
 import React, { useEffect, useState } from "react";
-import { FaSearch } from 'react-icons/fa'
+import { FaSearch, FaEdit } from 'react-icons/fa'
 import DeleteButton from "./ModalDelete";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -14,6 +14,7 @@ const TabelaSinaisVitais = () => {
   const [data, setData] = useState<SinaisVitais[]>([]);
   const [nomeIdoso, setNomeIdoso] = useState('')
   const [dataIdoso, setDataIdoso] = useState('')
+  const [excludePermission, setExcludePermission] = useState(false)
 
   const fetchData = async () => {
     const response = await fetch('/api/Controller/SinaisVitaisController', { method: "GET", });
@@ -22,7 +23,15 @@ const TabelaSinaisVitais = () => {
       setData(json.sinaisVitais);
     }
   }
-console.log(data)
+  console.log(data)
+
+  const isAdmin = async () => {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') as string)
+    const userId = userInfo.id
+    const response = await fetch(`/api/Controller/UsuarioController?id=${userId}&registro=admin`, { method: "GET", });
+    const data = await response.json()
+    data.usuario.admin === "S" ? setExcludePermission(true) : setExcludePermission(false)
+  }
 
   const handleNameChange = (e: any) => {
     console.log(e.target.value)
@@ -52,6 +61,7 @@ console.log(data)
 
   useEffect(() => {
     fetchData()
+    isAdmin()
   }, []);
 
   return (
@@ -93,9 +103,15 @@ console.log(data)
                   <a href={`/portal/sinaisvitais/${obj._id}`}>
                     <span className="cursor-pointer hover:text-blue-500"><FaSearch /></span>
                   </a>
-                  <span className="cursor-pointer hover:text-red-500">
-                    <DeleteButton onConfirm={fetchData} idosoData={`Sinais Vitais: ${obj.idoso} | ${obj.data}`} id={obj._id} url={'/api/Controller/SinaisVitaisController'} />
-                  </span>
+                  <a href={`/portal/sinaisvitais/edit_${obj._id}`}>
+                    <span className="cursor-pointer hover:text-blue-500"><FaEdit /></span>
+                  </a>
+                  {excludePermission ?
+                    <span className="cursor-pointer hover:text-red-500">
+                      <DeleteButton onConfirm={fetchData} idosoData={`Sinais Vitais: ${obj.idoso} | ${obj.data}`} id={obj._id} url={'/api/Controller/SinaisVitaisController'} />
+                    </span>
+                    : null
+                  }
                 </div>
               </td>
             </tr>

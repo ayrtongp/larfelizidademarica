@@ -10,7 +10,7 @@ const editar_sinaisvitais = () => {
       <div>
         <Navportal />
         <BotaoPadrao href='/portal' text='Voltar ao Portal' />
-        <FormSinaisVitais />
+        {/* <FormSinaisVitais /> */}
       </div>
     </PermissionWrapper>
   )

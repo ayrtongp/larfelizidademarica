@@ -22,7 +22,7 @@ const Slider = ({ slides }: { slides: any[] }) => {
 
   return (
 
-    <div id='gallery' className='max-w-[1240px] mx-auto'>
+    <div id='gallery' className='max-w-[540px] mx-auto'>
       <h1 className='text-2xl font-bold text-center p-4'>Galeria de Imagens</h1>
       <div className='relative flex justify-center p-4'>
         {slides.map((slide: any, index: number) => {
@@ -34,7 +34,7 @@ const Slider = ({ slides }: { slides: any[] }) => {
                 className='absolute top-[50%] left-[30px] text-white cursor-pointer select-none z-[2]' size={50} />
               {
                 index === current && (
-                  <Image src={slide.image} alt="/" width="1440" height="600" />
+                  <Image src={slide.image} alt="/" width="540" height="300" />
                 )
               }
               <FaArrowAltCircleRight onClick={nextSlide}

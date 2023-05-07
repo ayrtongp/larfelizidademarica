@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai'
+import logoLar from "../../public/images/lar felizidade logo transparente.png";
 
 const Navbar = () => {
 
@@ -32,8 +34,8 @@ const Navbar = () => {
   return (
     <div style={{ backgroundColor: `${color}` }} className="fixed left-0 top-0 w-full z-10 ease-in duration-300"> {/** FIRST DIV */}
       <div className="max-w-[1240px] m-auto flex justify-between items-center text-white p-4"> {/** SECOND DIV */}
-        <Link href='/'>
-          <h1 style={{ color: `${textColor}` }} className="font-bold text-4xl">Lar Felizidade</h1>
+        <Link href='/' className="flex">
+          <Image alt='logo lar' src={logoLar} width={108} height={108} />
         </Link>
         <ul style={{ color: `${textColor}` }} className="hidden sm:flex">
           <li className="p-4">

@@ -24,6 +24,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             usuario = await mainCollection.findOne({ _id: new ObjectId(userId) },
               { projection: { nome: 1, sobrenome: 1, funcao: 1, registro: 1 } })
           }
+          else if (req.query.registro === "admin") {
+            usuario = await mainCollection.findOne({ _id: new ObjectId(userId) },
+              { projection: { admin: 1 } })
+          }
           else {
             usuario = await mainCollection.findOne({ _id: new ObjectId(userId) },)
           }
