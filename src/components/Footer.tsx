@@ -42,7 +42,7 @@ const Footer = () => {
         </div>
       </div>
       <div className='flex justify-center items-center w-full bg-purple-800 h-10 text-white text-center text-sm'>
-        <span className='border-r-2 border-gray-400 mx-2 px-2'>Lar Felizidade - "O lugar para o idoso chamar de seu."</span>
+        <span className='border-r-2 border-gray-400 mx-2 px-2'>Lar Felizidade - O lugar para o idoso chamar de seu.</span>
         <span className=''>© Todos os direitos reservados. 2013 - {(new Date()).getFullYear()}</span>
       </div>
     </footer>
