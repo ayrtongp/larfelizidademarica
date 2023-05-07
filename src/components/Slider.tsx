@@ -21,30 +21,30 @@ const Slider = ({ slides }: { slides: any[] }) => {
   }
 
   return (
+    <div className='bg-[#b98fb9]'>
+      <div id='gallery' className='max-w-[540px] mx-auto'>
+        <h1 className='text-2xl font-bold text-center p-4'>Galeria de Imagens</h1>
+        <div className='relative flex justify-center p-4'>
+          {slides.map((slide: any, index: number) => {
+            return (
 
-    <div id='gallery' className='max-w-[540px] mx-auto'>
-      <h1 className='text-2xl font-bold text-center p-4'>Galeria de Imagens</h1>
-      <div className='relative flex justify-center p-4'>
-        {slides.map((slide: any, index: number) => {
-          return (
+              <div key={index} className={index === current ? 'opacity-[1] ease-in duration-1000' : 'opacity-0'}>
 
-            <div key={index} className={index === current ? 'opacity-[1] ease-in duration-1000' : 'opacity-0'}>
+                <FaArrowAltCircleLeft onClick={previousSlide}
+                  className='absolute top-[50%] left-[30px] text-white cursor-pointer select-none z-[2]' size={50} />
+                {
+                  index === current && (
+                    <Image src={slide.image} alt="/" width="360" height="200" className='rounded-lg' />
+                  )
+                }
+                <FaArrowAltCircleRight onClick={nextSlide}
+                  className='absolute top-[50%] right-[30px] text-white cursor-pointer select-none z-[2]' size={50} />
+              </div>
 
-              <FaArrowAltCircleLeft onClick={previousSlide}
-                className='absolute top-[50%] left-[30px] text-white cursor-pointer select-none z-[2]' size={50} />
-              {
-                index === current && (
-                  <Image src={slide.image} alt="/" width="540" height="300" />
-                )
-              }
-              <FaArrowAltCircleRight onClick={nextSlide}
-                className='absolute top-[50%] right-[30px] text-white cursor-pointer select-none z-[2]' size={50} />
-            </div>
-
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
-
     </div>
   )
 }

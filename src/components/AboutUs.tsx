@@ -2,9 +2,9 @@ import React from 'react'
 
 const AboutUs = () => {
   return (
-    <div id='aboutus' className='max-w-[1240px] mx-auto'>
+    <div id='aboutus' className='w-full bg-[#b98fb9] mx-auto'>
       <h1 className='text-2xl font-bold text-center p-4'>Sobre Nós</h1>
-      <div className='p-8 border m-4 bg-[#b98fb9]'>
+      <div className='p-4'>
         <p className='mt-3'>O Lar da Felizidade é uma Instituição de Longa Permanência para Idosos que garante os cuidados necessários de saúde e qualidade de vida para esta fase tão importante da vida. 👴👵</p>
         <p className='mt-3'> Somos uma casa acolhedora, em que o trabalho humanizado torna-se prioridade. 💚🙏🏻🏡</p>
         <p className='mt-3'>Acreditamos que somos a extensão do lar dos residentes que vêm complementar nossa família e, por isso, estamos prontos para acolher as suas necessidades.</p>

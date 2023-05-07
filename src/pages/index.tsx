@@ -7,6 +7,7 @@ import AboutUs from '@/components/AboutUs'
 import Contact from '@/components/Contact'
 import Navbar from '@/components/Navbar'
 import Servicos from '@/components/Servicos'
+import Footer from '@/components/Footer'
 
 export default function Home() {
   return (
@@ -22,7 +23,7 @@ export default function Home() {
       <Slider slides={SliderData} />
       <Servicos />
       <AboutUs />
-      <Contact />
+      <Footer />
     </div>
   )
 }
