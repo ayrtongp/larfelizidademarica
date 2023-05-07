@@ -1,5 +1,4 @@
 import { MongoClient, ObjectId } from 'mongodb';
-import { stringify } from 'querystring';
 
 export default async function handler(req, res) {
   const uri = process.env.DATABASE_URI
