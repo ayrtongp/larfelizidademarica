@@ -1,8 +1,7 @@
 import React from 'react'
 import LogoLar from '../../public/images/lar felizidade logo transparente.png'
-import Localizacao from '../../public/images/LocationLarFelizidade.jpg'
 import Image from 'next/image'
-import { FaWhatsapp, FaPhone, FaMailBulk, FaSearchLocation } from 'react-icons/fa'
+import { FaWhatsapp, FaPhone, FaMailBulk} from 'react-icons/fa'
 import { MdLocationOn } from 'react-icons/md'
 
 const Footer = () => {
