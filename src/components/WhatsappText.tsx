@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
-import queryString from "query-string";
 
 export default function WhatsAppTextarea() {
   const [message, setMessage] = useState("Olá, bom dia. Vim através do site para buscar mais informações sobre o Lar Felizidade.");
