@@ -10,9 +10,9 @@ import Medico from '../../public/images/servicos/medico.png'
 import Hortoterapia from '../../public/images/servicos/plantar.png'
 import Nutricionista from '../../public/images/servicos/prancheta.png'
 import CCTV from '../../public/images/servicos/cctv-camera.png'
-import Lavanderia from '../../public/images/servicos/psychology.png'
-import Psicologo from '../../public/images/servicos/social-services.png'
-import AssSocial from '../../public/images/servicos/laundry-machine.png'
+import Psicologo from '../../public/images/servicos/psychology.png'
+import AssSocial from '../../public/images/servicos/social-services.png'
+import Lavanderia from '../../public/images/servicos/laundry-machine.png'
 
 const servicosOferecidos = [
   { src: Enfermagem, alt: 'enfermagem', h3: 'Equipe de Enfermagem' },
@@ -25,7 +25,7 @@ const servicosOferecidos = [
   { src: Hortoterapia, alt: 'hortoterapia', h3: 'Hortoterapia' },
   { src: Nutricionista, alt: 'nutricionista', h3: 'Nutricionista' },
   { src: CCTV, alt: 'videomonitoramento', h3: 'VideoMonitoramento' },
-  { src: Lavanderia, alt: 'nutricionista', h3: 'Nutricionista' },
+  { src: Lavanderia, alt: 'lavanderia', h3: 'Lavanderia' },
   { src: Psicologo, alt: 'psicologo', h3: 'Acompanhamento Psicológico' },
   { src: AssSocial, alt: 'assistente social', h3: 'Assistência Social' },
 ]
