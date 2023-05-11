@@ -5,21 +5,12 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useRouter } from "next/router";
 import CheckToken from "@/components/CheckToken";
+import { notifyError, notifySuccess } from "@/utils/Functions";
 
 const LoginPage = () => {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const router = useRouter();
-
-  const notifyError = (error: string) => toast.error(error, {
-    position: "top-right", autoClose: 5000, hideProgressBar: false,
-    closeOnClick: true, pauseOnHover: true, progress: undefined, theme: "light",
-  });
-
-  const notifySuccess = (success: string) => toast.success(success, {
-    position: "top-right", autoClose: 5000, hideProgressBar: false,
-    closeOnClick: true, pauseOnHover: true, progress: undefined, theme: "light",
-  });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -33,7 +24,7 @@ const LoginPage = () => {
         localStorage.setItem('token', token);
         localStorage.setItem('userInfo', JSON.stringify(userInfo));
         if (response.status === 200) {
-          setTimeout(() => { notifySuccess('Logado com sucesso!') }, 500);
+          notifySuccess('Logado com sucesso!')
           router.push('/portal');
         }
       } catch (error) {

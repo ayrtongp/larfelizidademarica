@@ -13,14 +13,14 @@ export function formatDateBR(data) {
 
 export function notifyError(error) {
   toast.error(error, {
-    position: "top-right", autoClose: 5000, hideProgressBar: false,
-    closeOnClick: true, pauseOnHover: true, progress: undefined, theme: "light",
+    position: "top-right", autoClose: 3000, hideProgressBar: false,
+    closeOnClick: true, pauseOnHover: false, progress: undefined, theme: "light",
   });
 }
 
 export function notifySuccess(success) {
   toast.success(success, {
-    position: "top-right", autoClose: 5000, hideProgressBar: false,
-    closeOnClick: true, pauseOnHover: true, progress: undefined, theme: "light",
+    position: "top-right", autoClose: 3000, hideProgressBar: false,
+    closeOnClick: true, pauseOnHover: false, progress: undefined, theme: "light",
   });
 }
