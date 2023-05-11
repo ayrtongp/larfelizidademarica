@@ -3,6 +3,8 @@ import CheckToken from '@/components/CheckToken';
 import Navportal from '@/components/Navportal';
 import PermissionWrapper from '@/components/PermissionWrapper';
 import React from 'react'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const index = () => {
   return (
