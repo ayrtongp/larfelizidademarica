@@ -24,8 +24,9 @@ const LoginPage = () => {
         localStorage.setItem('token', token);
         localStorage.setItem('userInfo', JSON.stringify(userInfo));
         if (response.status === 200) {
-          notifySuccess('Logado com sucesso!')
-          router.push('/portal');
+          await router.push('/portal').then(() => {
+            notifySuccess('Logado com sucesso!')
+          });
         }
       } catch (error) {
         notifyError('Falha ao realizar o login, contate um administrador')
