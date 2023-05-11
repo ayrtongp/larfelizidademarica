@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import { notifySuccess } from "@/utils/Functions";
 import { getUserID } from "@/utils/Login";
 import GridSinaisVitais from "./GridSinaisVitais";
+import { useRouter } from "next/router";
 
 function formatarTexto(texto: string) {
   // Remove acentos e converte para minúsculo
@@ -16,13 +17,14 @@ function formatarTexto(texto: string) {
 }
 
 const FormSinaisVitais = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     "idoso": "", "idoso_id": "", "data": "", "datalancamento": Date.now(),
     "consciencia": "", "hemodinamico": "", "cardiovascular": "", "pressaoarterial": "",
     "respiratorio": "", "mucosas": "", "integridadecutanea": "", "mmss": "",
     "mmii": "", "aceitacaodadieta": "", "abdomen": "", "eliminacoes": "",
     "eliminacoesintestinais": "", "auscultapulmonar": "", "observacoes": "",
-    "id_usuario_cadastro": "", "nome_usuario": "", "registro_usuario": "", "funcao_usuario": "",
+    "id_usuario_cadastro": "", "nome_usuario": "", "registro_usuario": "", "funcao_usuario": "", "lista_sinais": [{}]
   })
 
   useEffect(() => {
@@ -30,34 +32,33 @@ const FormSinaisVitais = () => {
     const optionValue = 'Escolha o nome do idoso';
     const selectedOption = selectElement.querySelector(`option[value="${optionValue}"]`) as HTMLOptionElement;
     selectedOption.selected = true;
+    teste()
   }, []);
+
+  const teste = async () => {
+    const getRegistro = await fetch(`/api/Controller/UsuarioController?registro=getRegistro&id=${getUserID()}`, {
+      method: "GET",
+    });
+    const registoJson = await getRegistro.json()
+    setFormData((prevState) => ({
+      ...prevState,
+      id_usuario_cadastro: registoJson.usuario._id,
+      nome_usuario: registoJson.usuario.nome + " " + registoJson.usuario.sobrenome,
+      registro_usuario: registoJson.usuario.registro,
+      funcao_usuario: registoJson.usuario.funcao,
+    }));
+    console.log(registoJson)
+  }
 
 
   const handleSubmit = async (event: any) => {
     event.preventDefault()
-
+    console.log(formData)
     if (!formData.idoso || !formData.idoso_id) {
       event.preventDefault()
       alert('Selecione o nome do idoso');
       return
     }
-
-    const getRegistro = await fetch(`/api/Controller/UsuarioController?registro=getRegistro&id=${getUserID()}`, {
-      method: "GET",
-    });
-    const registoJson = await getRegistro.json()
-
-    const teste = async () => {
-      setFormData((prevState) => ({
-        ...prevState,
-        id_usuario_cadastro: registoJson.usuario._id,
-        nome_usuario: registoJson.usuario.nome + " " + registoJson.usuario.sobrenome,
-        registro_usuario: registoJson.usuario.registro,
-        funcao_usuario: registoJson.usuario.funcao,
-      }));
-    }
-
-    await teste()
 
     const res = await fetch("/api/Controller/SinaisVitaisController", {
       method: "POST",
@@ -66,6 +67,7 @@ const FormSinaisVitais = () => {
     const data = await res.json();
     if (res.ok) {
       notifySuccess("Formulário cadastrado com sucesso!")
+      router.push('/portal/sinaisvitais')
     }
   };
 

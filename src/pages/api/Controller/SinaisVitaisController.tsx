@@ -97,6 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           "funcao_usuario": novoSinal.funcao_usuario,
           "createdAt": formatDateBR(Date.now()),
           "updatedAt": formatDateBR(Date.now()),
+          "lista_sinais": novoSinal.lista_sinais,
         }
 
         let keey = ""
@@ -112,11 +113,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         if (areAllFieldsFilled(dataFields)) {
         } else {
+          console.log('erro')
           return res.status(400).json({ message: `Faltam campos para serem preenchidos. ${keey}`, method: 'POST', url: `SinaisVitaisController` });
         }
-
+        
         const isUser = await mainCollection.findOne({ idoso_id: dataFields.idoso_id, data: dataFields.data })
         if (isUser) {
+          console.log('erro2')
           return res.status(400).json({ message: `Já existe um sinal cadastrado para o idoso nesta data.: ${dataFields.idoso} na data ${dataFields.data}.`, method: 'POST', url: `SinaisVitaisController` });
         }
 
