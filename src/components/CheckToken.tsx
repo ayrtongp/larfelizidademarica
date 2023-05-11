@@ -3,9 +3,9 @@ import { useRouter } from 'next/router';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const CheckToken = () => {
-  const router = useRouter();
+  const routers = useRouter();
 
-  useEffect(() => { expiredToken(router) }, []);
+  useEffect(() => { expiredToken(routers) }, []);
 
   return (null)
 }

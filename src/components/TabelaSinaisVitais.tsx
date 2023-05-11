@@ -23,10 +23,6 @@ const TabelaSinaisVitais = () => {
       setData(json.sinaisVitais);
     }
   }
-<<<<<<< HEAD
-=======
-  console.log(data)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
 
   const isAdmin = async () => {
     const userInfo = JSON.parse(localStorage.getItem('userInfo') as string)
@@ -37,31 +33,15 @@ const TabelaSinaisVitais = () => {
   }
 
   const handleNameChange = (e: any) => {
-<<<<<<< HEAD
-=======
-    console.log(e.target.value)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
     setNomeIdoso(e.target.value)
   }
 
   const handleDateChange = (e: any) => {
-<<<<<<< HEAD
-=======
-    console.log(e.target.value)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
     setDataIdoso(e.target.value)
   }
 
   const handleFilterClick = async (e: any) => {
-<<<<<<< HEAD
     const response = await fetch(`/api/Controller/SinaisVitaisController?tipo=Buscar&nome=${nomeIdoso}&data=${dataIdoso}`, { method: "GET", });
-=======
-    console.log(e)
-    console.log(`nome idoso: ${nomeIdoso}`)
-    console.log(`data idoso: ${dataIdoso}`)
-    const response = await fetch(`/api/Controller/SinaisVitaisController?tipo=Buscar&nome=${nomeIdoso}&data=${dataIdoso}`, { method: "GET", });
-    console.log(response)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
     if (response.ok) {
       const json = await response.json();
       if (json.length > 0) {
@@ -116,11 +96,7 @@ const TabelaSinaisVitais = () => {
                   <a href={`/portal/sinaisvitais/${obj._id}`}>
                     <span className="cursor-pointer hover:text-blue-500"><FaSearch /></span>
                   </a>
-<<<<<<< HEAD
                   <a href={`/portal/sinaisvitais/edit/${obj._id}`}>
-=======
-                  <a href={`/portal/sinaisvitais/edit_${obj._id}`}>
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
                     <span className="cursor-pointer hover:text-blue-500"><FaEdit /></span>
                   </a>
                   {excludePermission ?

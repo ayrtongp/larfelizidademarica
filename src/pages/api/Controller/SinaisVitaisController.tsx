@@ -18,15 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
       if (req.query.tipo === 'Buscar' && (req.query.nome || req.query.data)) {
         let searchObject = {}
-<<<<<<< HEAD
         if (req.query.nome) {
           const regex = new RegExp(req.query.nome as string, 'i');
           searchObject = Object.assign(searchObject, { idoso: regex });
-=======
-        if (req.query.nome) { 
-          const regex = new RegExp(req.query.nome as string, 'i');
-          searchObject = Object.assign(searchObject, { idoso: regex }); 
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
         }
         if (req.query.data) { searchObject = Object.assign(searchObject, { data: req.query.data }); }
         const documents = await mainCollection.find(searchObject).toArray();
@@ -48,10 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ sinalVital, message: 'Sinal Vital Localizado', url: url, method: 'GET' });
 
         } catch (error) {
-<<<<<<< HEAD
-=======
-          console.log(error)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -67,10 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           return res.status(200).json({ sinaisVitais, message: 'Lista de Sinais Vitais', url: url });
         } catch (err) {
-<<<<<<< HEAD
-=======
-          console.log(err)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -85,10 +71,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
       try {
         const novoSinal = JSON.parse(req.body)
-<<<<<<< HEAD
-=======
-        console.log(novoSinal)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
         const dataFields = {
           "idoso": novoSinal.idoso,
           "idoso_id": novoSinal.idoso_id,
@@ -129,13 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         }
 
         if (areAllFieldsFilled(dataFields)) {
-<<<<<<< HEAD
         } else {
-=======
-          console.log("Todos os campos estão preenchidos.");
-        } else {
-          console.log(`Faltam campos para serem preenchidos. ${keey}`);
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
           return res.status(400).json({ message: `Faltam campos para serem preenchidos. ${keey}`, method: 'POST', url: `SinaisVitaisController` });
         }
 
@@ -149,10 +125,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         const url = `SinaisVitaisController?id=${novoSinalVital.insertedId}`
         return res.status(201).json({ message: message, url: url, method: 'POST' });
       } catch (err) {
-<<<<<<< HEAD
-=======
-        console.log(err)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
@@ -164,13 +136,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'PUT':
       try {
         const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-<<<<<<< HEAD
         const myBody = JSON.parse(req.body)
         await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
-=======
-
-        await mainCollection.updateOne({ _id: myObjectId }, { $set: req.body },);
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
         return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
 
       } catch (err) {

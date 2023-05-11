@@ -71,35 +71,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
       try {
         const novoUsuario = JSON.parse(req.body)
-<<<<<<< HEAD
 
         if (!novoUsuario.nome || !novoUsuario.sobrenome || !novoUsuario.usuario || !novoUsuario.senha
           || !novoUsuario.admin || !novoUsuario.email || !novoUsuario.repetirSenha) {
-=======
-        console.log(novoUsuario)
-
-        if (!novoUsuario.nome || !novoUsuario.sobrenome || !novoUsuario.usuario || !novoUsuario.senha
-          || !novoUsuario.admin || !novoUsuario.email || !novoUsuario.repetirSenha) {
-          console.log(1)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
           return res.status(400).json({ message: 'Faltam campos para continuar a ação, favor verificar!', method: 'POST', url: `UsuarioController` });
         }
 
         const isUser = await mainCollection.findOne({ usuario: novoUsuario.usuario })
         if (isUser) {
-<<<<<<< HEAD
-=======
-          console.log(2)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
           return res.status(400).json({ message: `Este usuário já existe: ${novoUsuario.usuario}.`, method: 'POST', url: `UsuarioController` });
         }
 
         const isEmail = await mainCollection.findOne({ email: novoUsuario.email })
         if (isEmail) {
-<<<<<<< HEAD
-=======
-          console.log(3)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
           return res.status(400).json({ message: `Este email já está cadastrado: ${novoUsuario.email}.`, method: 'POST', url: `UsuarioController` });
         }
 
@@ -134,10 +118,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         const url = `UsuarioController?id=${newUser.insertedId}`
         return res.status(201).json({ message: message, url: url, method: 'POST', userId: newUser.insertedId });
       } catch (err) {
-<<<<<<< HEAD
-=======
-        console.log(err)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
@@ -166,10 +146,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           res.status(201).json({ message: 'Senha do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
         else {
-<<<<<<< HEAD
-=======
-          console.log('teste')
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
           res.status(409).json({ message: 'Condição inválida, verificar a requisição!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
       } catch (err) {

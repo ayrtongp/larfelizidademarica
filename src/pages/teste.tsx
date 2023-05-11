@@ -30,10 +30,6 @@ const generateDocx = async () => {
 const TestePage = () => {
   const handleClick = async () => {
     await generateDocx();
-<<<<<<< HEAD
-=======
-    console.log("Document generated!");
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
   };
 
   return (

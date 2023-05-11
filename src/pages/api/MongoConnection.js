@@ -32,15 +32,8 @@ export default async function handler(req, res) {
     const doc = { name: 'test', age: 'test' }
     const result = await collection.insertOne(doc)
 
-<<<<<<< HEAD
     res.status(200).json(result)
   } catch (err) {
-=======
-    console.log(`${result.insertedCount} documents were inserted with the _id: ${result.insertedId}`)
-    res.status(200).json(result)
-  } catch (err) {
-    console.error(err)
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
     res.status(500).json({ message: 'Internal server error' })
   } finally {
     await client.close()

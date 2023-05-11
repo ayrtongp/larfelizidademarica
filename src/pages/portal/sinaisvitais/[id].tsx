@@ -4,10 +4,6 @@ import axios from "axios";
 import { formatDateBR } from "@/utils/Functions";
 import Navportal from "@/components/Navportal";
 import PermissionWrapper from "@/components/PermissionWrapper";
-<<<<<<< HEAD
-=======
-import Link from "next/link";
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
 import BotaoPadrao from "@/components/BotaoPadrao";
 
 interface Sinal {

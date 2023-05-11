@@ -30,10 +30,6 @@ const PerfilFotoUpload = () => {
       if (reader.result) {
         const base64Image = reader.result.toString();
         setBase64(base64Image)
-<<<<<<< HEAD
-=======
-        console.log('alterado')
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
         let userInfo = localStorage.getItem('userInfo');
         if (userInfo && userInfo !== null) {
           let teste = JSON.parse(userInfo)

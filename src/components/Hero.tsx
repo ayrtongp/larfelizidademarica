@@ -9,11 +9,7 @@ interface HeroProps {
 
 const Hero = ({ heading, message }: HeroProps) => {
   return (
-<<<<<<< HEAD
     <div className="flex items-center justify-center h-screen bg-fixed bg-center bg-cover custom-img">
-=======
-    <div className="flex items-center justify-center h-screen mb-24 bg-fixed bg-center bg-cover custom-img">
->>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
       {/* Overlay */}
       <div className="absolute top-0 left-0 right-0 bottom-0 bg-black/70 z-[2]" />
       <div className="p-0 text-white z-[2] mt-[-8rem]">
