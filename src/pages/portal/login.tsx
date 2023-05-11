@@ -1,9 +1,8 @@
 import { useState } from "react";
 import LogoLar from '../../../public/images/lar felizidade logo transparente.png'
 import Image from "next/image";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import axios from "axios";
-import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/router";
 import CheckToken from "@/components/CheckToken";
 
@@ -34,7 +33,7 @@ const LoginPage = () => {
         localStorage.setItem('token', token);
         localStorage.setItem('userInfo', JSON.stringify(userInfo));
         if (response.status === 200) {
-          notifySuccess('Logado com sucesso!')
+          setTimeout(() => { notifySuccess('Logado com sucesso!') }, 500);
           router.push('/portal');
         }
       } catch (error) {
@@ -45,7 +44,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-purple-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <ToastContainer />
       <CheckToken />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Image className="mx-auto h-28 w-auto" alt="Lar Felizidade Logo" src={LogoLar} />
