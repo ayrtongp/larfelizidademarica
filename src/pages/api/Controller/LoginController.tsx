@@ -15,6 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // -------------------------
       // Realizar o LOGIN
       // -------------------------
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
       try {
         const { usuario, senha } = req.body
         const response = await mainCollection.findOne({ usuario });
@@ -43,6 +47,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         }
       }
       catch (error) {
+<<<<<<< HEAD
+=======
+        console.log(error)
+>>>>>>> 7339cee648b4818c5c69565314a70e00f419a26e
         res.status(500).json({ message: "Ocorreu um erro ao realizar o login", error: error });
       }
       break;
