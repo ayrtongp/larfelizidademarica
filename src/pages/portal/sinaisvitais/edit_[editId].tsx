@@ -1,5 +1,4 @@
 import React from 'react'
-import FormSinaisVitais from '@/components/FormSinaisVitais'
 import BotaoPadrao from '@/components/BotaoPadrao'
 import Navportal from '@/components/Navportal'
 import PermissionWrapper from '@/components/PermissionWrapper'

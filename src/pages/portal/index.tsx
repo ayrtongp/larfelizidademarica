@@ -8,11 +8,11 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const index = () => {
   return (
-    <div>
+    <div className='w-max'>
       <PermissionWrapper href='/portal'>
         <Navportal />
         <div className='flex flex-col justify-center items-center h-screen w-max mx-auto'>
-          <h1 className='mb-20 text-4xl font-bold'>Portal do Lar Felizidade Maricá</h1>
+          <h1 className='mb-20 p-4 text-4xl font-bold'>Portal do Lar Felizidade Maricá</h1>
           <CategoryMenu />
         </div>
       </PermissionWrapper>

@@ -20,10 +20,10 @@ const PermissionWrapper = ({ href, children }: any) => {
 
   if (hasPermission) {
     return (
-      <>
+      <div className='w-screen mx-auto'>
         <CheckToken />
         {children}
-      </>
+      </div>
     )
   } else {
     return (

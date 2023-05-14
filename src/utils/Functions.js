@@ -24,3 +24,16 @@ export function notifySuccess(success) {
     closeOnClick: true, pauseOnHover: false, progress: undefined, theme: "light",
   });
 }
+
+export function saudacao() {
+  const data = new Date();
+  const hora = data.getHours() ; // ajuste para o GMT-3
+
+  if (hora >= 6 && hora < 12) {
+    return "Bom dia";
+  } else if (hora >= 12 && hora < 18) {
+    return "Boa tarde";
+  } else {
+    return "Boa noite";
+  }
+}

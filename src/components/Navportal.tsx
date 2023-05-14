@@ -18,12 +18,12 @@ const Navportal = () => {
                 <Image src={logoLar} alt='/' className='w-full h-full' />
               </Link>
             </div> {/* DIV LOGO */}
-            <div className='hidden items-center xl:text-sm text-lg xl:text-slate-400 text-slate-800 dark:text-slate-300 px-1 space-x-3 space-x-reverse'>
+            <div className='hidden items-center xl:text-sm text-lg xl:text-slate-400 text-slate-800 dark:text-slate-300 px-1'>
               <button><HiSearch width={64} height={64} /></button>
               <span className='xl:inline-block hidden'>Buscar...</span>
             </div>
           </div> {/* DIV LEFT SIDE NAVPORTAL */}
-          <div className='nav-tools flex items-center lg:space-x-6 space-x-3 space-x-reverse'> {/* DIV RIGHT SIDE NAVPORTAL */}
+          <div className='nav-tools flex items-center lg:space-x-6 '> {/* DIV RIGHT SIDE NAVPORTAL */}
             <div className='relative inline-block mx-2'> {/* DIV BUTTON MAIL */}
               <div className='block w-full'>
                 <button>

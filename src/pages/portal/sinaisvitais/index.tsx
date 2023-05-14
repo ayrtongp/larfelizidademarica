@@ -17,10 +17,10 @@ const Index = () => {
 
   return (
     <PermissionWrapper href='/portal'>
-      <div>
+      <div className=''>
         <Navportal />
         <Link href='/portal'>
-          <h1 className="text-3xl text-black py-2 font-bold text-center">Portal do Lar Felizidade Maricá</h1>
+          <h1 className="text-3xl text-black p-4 font-bold text-center">Portal do Lar Felizidade Maricá</h1>
         </Link>
         <div className='flex justify-center items-center flex-wrap'>
           <BotaoPadrao href='/portal' text='Voltar ao Portal' />
