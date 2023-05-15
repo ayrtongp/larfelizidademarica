@@ -1,8 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { saudacao } from '../../utils/Functions'
+import { Versiculos } from '../../utils/versiculos'
 
 const WelcomeBanner = () => {
-  const [nomeSobrenome, setNomeSobrenome] = useState()
+  const [nomeSobrenome, setNomeSobrenome] = useState();
+  const [verso, setVerso] = useState('');
+  const [texto, setTexto] = useState('');
+
+  function randomVersiculo() {
+    const randomNumber = Math.floor(Math.random() * Versiculos.length);
+    const { verse, text } = Versiculos[randomNumber];
+    setVerso(verse)
+    setTexto(text)
+    return { verse, text };
+  }
+
+  useEffect(() => {
+    randomVersiculo();
+  }, []);
 
   useEffect(() => {
     const storage = localStorage.getItem('userInfo')
@@ -59,7 +74,8 @@ const WelcomeBanner = () => {
       {/* Content */}
       <div className="relative">
         <h1 className="text-2xl md:text-3xl text-slate-800 font-bold mb-1">{saudacao() + ', ' + nomeSobrenome}. 👋</h1>
-        <p>Veja o que anda rolando no Lar Felizidade Maricá hoje:</p>
+        <p>- {texto}</p>
+        <p className='text-sm text-gray-500'>{verso}</p>
       </div>
 
     </div>

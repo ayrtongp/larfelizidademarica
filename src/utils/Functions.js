@@ -27,7 +27,7 @@ export function notifySuccess(success) {
 
 export function saudacao() {
   const data = new Date();
-  const hora = data.getHours() ; // ajuste para o GMT-3
+  const hora = data.getHours(); // ajuste para o GMT-3
 
   if (hora >= 6 && hora < 12) {
     return "Bom dia";
@@ -35,5 +35,17 @@ export function saudacao() {
     return "Boa tarde";
   } else {
     return "Boa noite";
+  }
+}
+
+export function pillsBadge(color, text) {
+  if (color == 'green') {
+    return (<span className="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">{text}</span>)
+  }
+  else if (color == 'red') {
+    return (<span className="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">{text}</span>)
+  }
+  else if (color == 'yellow') {
+    return (<span className="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-yellow-900 dark:text-yellow-300">{text}</span>)
   }
 }
