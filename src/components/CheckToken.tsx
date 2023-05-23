@@ -4,7 +4,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 
 // FUNCTIONS -------------------------------------------------------------
 
-export const checkToken = () => {
+export const CheckToken = () => {
   const [loadingSign, setLoadingSign] = useState(true);
   const [logged, setLogged] = useState(false)
   const routers = useRouter()
@@ -42,4 +42,4 @@ export const checkToken = () => {
   return [loadingSign, logged]
 }
 
-export default checkToken
+export default CheckToken

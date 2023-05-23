@@ -1,6 +1,6 @@
 import { usePermissoes } from '@/hooks/usePermissao'
 import Link from 'next/link';
-import checkToken from './CheckToken';
+import CheckToken from './CheckToken';
 
 interface dataItem {
   portal_servicos: {
@@ -9,7 +9,7 @@ interface dataItem {
 }
 
 const PermissionWrapper = ({ href, children }: any) => {
-  const [loadingSign, logged] = checkToken()
+  const [loadingSign, logged] = CheckToken()
   const [data, loading] = usePermissoes();
   if (logged) {
     const items: dataItem[] = data as dataItem[];
