@@ -17,6 +17,7 @@ export default async function handler(
         res.status(200).json({ documents });
       } catch (err) {
         console.error(err);
+        await client.close();
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -28,6 +29,7 @@ export default async function handler(
         res.status(201).json({ message: 'Document created' });
       } catch (err) {
         console.error(err);
+        await client.close();
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -42,6 +44,7 @@ export default async function handler(
         res.status(200).json({ message: 'Document updated' });
       } catch (err) {
         console.error(err);
+        await client.close();
         res.status(500).json({ message: 'Internal server error' });
       }
       break;
@@ -54,6 +57,7 @@ export default async function handler(
         res.status(200).json({ message: 'Document deleted' });
       } catch (err) {
         console.error(err);
+        await client.close();
         res.status(500).json({ message: 'Internal server error' });
       }
       break;

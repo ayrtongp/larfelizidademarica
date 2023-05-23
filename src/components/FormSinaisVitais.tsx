@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { listaEnfermagem, listaIdosos } from '../utils/Listas'
 import { ToastContainer } from "react-toastify";
-import { notifySuccess } from "@/utils/Functions";
+import { notifyError, notifySuccess } from "@/utils/Functions";
 import { getUserID } from "@/utils/Login";
 import GridSinaisVitais from "./GridSinaisVitais";
 import { useRouter } from "next/router";
@@ -18,6 +18,7 @@ function formatarTexto(texto: string) {
 
 const FormSinaisVitais = () => {
   const router = useRouter();
+  const [sinalData, setSinalData] = useState("");
   const [formData, setFormData] = useState({
     "idoso": "", "idoso_id": "", "data": "", "datalancamento": Date.now(),
     "consciencia": "", "hemodinamico": "", "cardiovascular": "", "pressaoarterial": "",
@@ -47,13 +48,11 @@ const FormSinaisVitais = () => {
       registro_usuario: registoJson.usuario.registro,
       funcao_usuario: registoJson.usuario.funcao,
     }));
-    console.log(registoJson)
   }
 
 
   const handleSubmit = async (event: any) => {
     event.preventDefault()
-    console.log(formData)
     if (!formData.idoso || !formData.idoso_id) {
       event.preventDefault()
       alert('Selecione o nome do idoso');
@@ -67,7 +66,10 @@ const FormSinaisVitais = () => {
     const data = await res.json();
     if (res.ok) {
       notifySuccess("Formulário cadastrado com sucesso!")
+      setSinalData(data)
       router.push('/portal/sinaisvitais')
+    } else {
+      notifyError(data.message)
     }
   };
 
@@ -112,6 +114,10 @@ const FormSinaisVitais = () => {
             <label htmlFor="data" className="block font-bold mb-2">Data:</label>
             <input className="bg-gray-200" type="date" id="data" name="data" onChange={handleChange} required></input>
           </div>
+        </div>
+
+        <div>
+          <GridSinaisVitais sinalData={sinalData} />
         </div>
 
         <div className="mx-auto text-center font-bold p-1 text-lg">

@@ -45,7 +45,7 @@ const MenuDropDown = ({ props }: any) => {
             <div className="px-1 py-1"> {/* HIDDEN */}
               <Menu.Item>
                 {({ active }) => (
-                  <Link href='/portal/perfil'>
+                  <Link href='/portal/configuracoes'>
                     <button className={`${active ? 'bg-violet-500 text-white' : 'text-gray-900'} group flex w-full rounded-md px-2 py-2 text-sm`}>
                       <HiUser className='mr-2 h-5 w-5' aria-hidden='true' fill="#8B5CF6" stroke="#C4B5FD" strokeWidth="2" />
                       Perfil

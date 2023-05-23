@@ -8,6 +8,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
   const { db, client } = await connect();
   const mainCollection = db.collection('sinaisvitais')
 
+  process.env.NODE_ENV === "development" ? console.log("Start: SinaisVitaisController") : null
+  process.env.NODE_ENV === "development" ? console.log(`Method: ${req.method}`) : null
+
   switch (req.method) {
 
     case 'GET':
@@ -31,6 +34,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // LOCALIZAR O SINAL VITAL PELO ID, CASO TENHA NA QUERY
       // -------------------------
 
+      if (req.query.id && req.query.tipo == "getGridSinais") {
+        const sinalId = req.query.id as string
+        try {
+          const sinalVital = await mainCollection.findOne({ _id: new ObjectId(sinalId) }, { projection: { lista_sinais: 1 } })
+          const url = `SinaisVitaisController?id=${sinalId}`
+
+          if (!sinalVital) { return res.status(404).json({ message: 'Sinal Vital não encontrado', id: sinalId, url: url, method: 'GET' }); }
+
+          return res.status(200).json({ sinalVital, message: 'Sinal Vital Localizado', url: url, method: 'GET' });
+
+        } catch (error) {
+          console.log(error)
+          await client.close();
+
+          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
       if (req.query.id) {
         const sinalId = req.query.id as string
         try {
@@ -42,6 +63,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ sinalVital, message: 'Sinal Vital Localizado', url: url, method: 'GET' });
 
         } catch (error) {
+          console.log(error)
+          await client.close();
+          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
+      // CONTAR DOCUMENTOS
+      // -------------------------
+
+      else if (req.query.type == 'countDocuments') {
+        try {
+          const totalDocuments = await mainCollection.countDocuments();
+
+          return res.status(200).json({ count: totalDocuments });
+        } catch (err) {
+          await client.close();
+          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
+      // LISTAR PAGINADO
+      // -------------------------
+
+      else if (req.query.type == 'pages') {
+        try {
+          const skip = parseInt(req.query.skip as unknown as string)
+          const limit = parseInt(req.query.limit as unknown as string)
+          const data = await mainCollection.find().sort({data: -1}).skip(skip).limit(limit).toArray();
+
+          return res.status(200).json({ data: data });
+        } catch (err) {
+          console.log(err)
+          await client.close();
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -57,6 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           return res.status(200).json({ sinaisVitais, message: 'Lista de Sinais Vitais', url: url });
         } catch (err) {
+          await client.close();
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -113,21 +170,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         if (areAllFieldsFilled(dataFields)) {
         } else {
-          console.log('erro')
           return res.status(400).json({ message: `Faltam campos para serem preenchidos. ${keey}`, method: 'POST', url: `SinaisVitaisController` });
         }
-        
+
         const isUser = await mainCollection.findOne({ idoso_id: dataFields.idoso_id, data: dataFields.data })
         if (isUser) {
-          console.log('erro2')
           return res.status(400).json({ message: `Já existe um sinal cadastrado para o idoso nesta data.: ${dataFields.idoso} na data ${dataFields.data}.`, method: 'POST', url: `SinaisVitaisController` });
         }
 
         const novoSinalVital = await mainCollection.insertOne(dataFields);
         const message = `Novo Sinal: ${dataFields.idoso} | Data: ${dataFields.data}`
         const url = `SinaisVitaisController?id=${novoSinalVital.insertedId}`
-        return res.status(201).json({ message: message, url: url, method: 'POST' });
+        return res.status(201).json({ id: novoSinalVital.insertedId, message: message, url: url, method: 'POST' });
       } catch (err) {
+        await client.close();
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
@@ -138,12 +194,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
     case 'PUT':
       try {
+        console.log("##################### LINHA #####################")
+        console.log(req.query.id)
+        console.log(req.body)
+        console.log("##################### LINHA #####################")
         const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
         const myBody = JSON.parse(req.body)
         await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
         return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
 
       } catch (err) {
+        await client.close();
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
@@ -164,6 +225,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         return res.status(201).json({ message: 'Sinal Vital deletado com sucesso', url: url, method: 'DELETE' });
       } catch (err) {
+        await client.close();
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;

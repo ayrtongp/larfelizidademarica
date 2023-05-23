@@ -33,8 +33,6 @@ const FormNovoUsuario = () => {
   }
 
   const handleSubmit = async (event: any) => {
-    console.log(isAdmin)
-    console.log(formData)
     event.preventDefault()
 
     if (formData.senha === formData.repetirSenha) {
@@ -42,7 +40,6 @@ const FormNovoUsuario = () => {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      console.log(res)
       if (res.ok) {
         const data = await res.json();
         notifySuccess('Usuário Cadastrado')
@@ -65,112 +62,106 @@ const FormNovoUsuario = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-md rounded-md px-8 pt-6 pb-8 mb-4">
-        <h2 className="text-2xl font-bold mb-4">Novo Usuário</h2>
-        <form onSubmit={handleSubmit} className="w-full max-w-lg">
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nome">Nome</label>
-              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="nome" type="text" placeholder="Insira o nome" />
-            </div>
-            <div className="w-full md:w-1/2 px-3">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="sobrenome">Sobrenome</label>
-              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white" name="sobrenome" type="text" placeholder="Insira o sobrenome" />
-            </div>
+    <div className="border rounded-sm p-1">
+      <h2 className="text-2xl text-center font-bold mb-4">Novo Usuário</h2>
+      <form onSubmit={handleSubmit} className="">
+        
+        {/* Campos de Texto */}
+        <div className='grid grid-cols-1 sm:grid-cols-2'>
+          <div className="col-span-1 mx-2">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nome">Nome</label>
+            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="nome" type="text" placeholder="Insira o nome" />
           </div>
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="funcao">Função</label>
-              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="funcao" type="text" placeholder="Insira o cargo" />
-            </div>
-            <div className="w-full md:w-1/2 px-3">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="registro">Núm. Registro</label>
-              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white" name="registro" type="text" placeholder="Núm. registro" />
-            </div>
+          <div className="col-span-1 mx-2">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="sobrenome">Sobrenome</label>
+            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white" name="sobrenome" type="text" placeholder="Insira o sobrenome" />
           </div>
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="usuario">Usuário</label>
-              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="usuario" type="text" placeholder="Insira o username" />
-            </div>
-            <div className="w-full md:w-1/2 px-3">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="dataNascimento">Data de Nascimento</label>
-              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="dataNascimento" type="text" placeholder="dd/mm/aaaa" />
-            </div>
+          <div className="col-span-1 mx-2">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="funcao">Função</label>
+            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="funcao" type="text" placeholder="Insira o cargo" />
           </div>
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/2 px-3">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="senha">Senha</label>
-              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="senha" type="password" placeholder="Insira a senha" />
-            </div>
-            <div className="w-full md:w-1/2 px-3">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="repetirSenha">Repita a senha</label>
-              <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="repetirSenha" type="password" placeholder="Confirme a senha" />
-            </div>
+          <div className="col-span-1 mx-2">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="registro">Núm. Registro</label>
+            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white" name="registro" type="text" placeholder="Núm. registro" />
           </div>
+          <div className="col-span-1 mx-2">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="usuario">Usuário</label>
+            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="usuario" type="text" placeholder="Insira o username" />
+          </div>
+          <div className="col-span-1 mx-2">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="dataNascimento">Data de Nascimento</label>
+            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="dataNascimento" type="text" placeholder="dd/mm/aaaa" />
+          </div>
+          <div className="col-span-1 mx-2">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="senha">Senha</label>
+            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="senha" type="password" placeholder="Insira a senha" />
+          </div>
+          <div className="col-span-1 mx-2">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="repetirSenha">Repita a senha</label>
+            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="repetirSenha" type="password" placeholder="Confirme a senha" />
+          </div>
+        </div>
 
-          <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-            <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Permissão Categorias</span>
-            <div className="mt-2">
-              <label className="ml-1 inline-flex items-center">
-                <input type="checkbox" name='idosos' onChange={handleChangeCheckbox} checked={categorias.idosos} className="form-checkbox h-5 w-5 text-gray-600" />
-                <span className="ml-2 text-gray-700">Idosos</span>
-              </label>
-              <label className="ml-1 inline-flex items-center">
-                <input type="checkbox" name='sinaisVitais' onChange={handleChangeCheckbox} checked={categorias.sinaisVitais} className="form-checkbox h-5 w-5 text-gray-600" />
-                <span className="ml-2 text-gray-700">Sinais Vitais</span>
-              </label>
-              <label className="ml-1 inline-flex items-center">
-                <input type="checkbox" name='livroOcorrencias' onChange={handleChangeCheckbox} checked={categorias.livroOcorrencias} className="form-checkbox h-5 w-5 text-gray-600" />
-                <span className="ml-2 text-gray-700">Livro de Ocorrências</span>
-              </label>
-              <label className="ml-1 inline-flex items-center">
-                <input type="checkbox" name='insumos' onChange={handleChangeCheckbox} checked={categorias.insumos} className="form-checkbox h-5 w-5 text-gray-600" />
-                <span className="ml-2 text-gray-700">Insumos</span>
-              </label>
-            </div>
+        <div className="w-full md:w-1/2 px-3 mb-2 md:mb-0">
+          <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Permissão Categorias</span>
+          <div className="mt-2">
+            <label className="ml-1 inline-flex items-center">
+              <input type="checkbox" name='idosos' onChange={handleChangeCheckbox} checked={categorias.idosos} className="form-checkbox h-5 w-5 text-gray-600" />
+              <span className="ml-2 text-gray-700">Idosos</span>
+            </label>
+            <label className="ml-1 inline-flex items-center">
+              <input type="checkbox" name='sinaisVitais' onChange={handleChangeCheckbox} checked={categorias.sinaisVitais} className="form-checkbox h-5 w-5 text-gray-600" />
+              <span className="ml-2 text-gray-700">Sinais Vitais</span>
+            </label>
+            <label className="ml-1 inline-flex items-center">
+              <input type="checkbox" name='livroOcorrencias' onChange={handleChangeCheckbox} checked={categorias.livroOcorrencias} className="form-checkbox h-5 w-5 text-gray-600" />
+              <span className="ml-2 text-gray-700">Livro de Ocorrências</span>
+            </label>
+            <label className="ml-1 inline-flex items-center">
+              <input type="checkbox" name='insumos' onChange={handleChangeCheckbox} checked={categorias.insumos} className="form-checkbox h-5 w-5 text-gray-600" />
+              <span className="ml-2 text-gray-700">Insumos</span>
+            </label>
           </div>
+        </div>
 
-          <div className="mt-3 w-full md:w-1/2 px-3 mb-6 md:mb-0">
-            <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Usuário Admin</span>
-            <div className="mt-2">
-              <label className="inline-flex items-center">
-                <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="admin" checked={isAdmin} onChange={handleChangeIsAdmin} value="sim" />
-                <span className="ml-2 text-gray-700">Sim</span>
-              </label>
-              <label className="inline-flex items-center ml-6">
-                <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="admin" checked={!isAdmin} value="não" onChange={handleChangeIsAdmin} />
-                <span className="ml-2 text-gray-700">Não</span>
-              </label>
-            </div>
+        <div className="mt-3 w-full md:w-1/2 px-3 mb-2 md:mb-0">
+          <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Usuário Admin</span>
+          <div className="mt-2">
+            <label className="inline-flex items-center">
+              <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="admin" checked={isAdmin} onChange={handleChangeIsAdmin} value="sim" />
+              <span className="ml-2 text-gray-700">Sim</span>
+            </label>
+            <label className="inline-flex items-center ml-6">
+              <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="admin" checked={!isAdmin} value="não" onChange={handleChangeIsAdmin} />
+              <span className="ml-2 text-gray-700">Não</span>
+            </label>
           </div>
+        </div>
 
-          <div className="mt-3 w-full md:w-1/2 px-3 mb-6 md:mb-0">
-            <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Usuário Ativo</span>
-            <div className="mt-2">
-              <label className="inline-flex items-center">
-                <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="ativo" checked={isAtivo} onChange={handleChangeIsAtivo} value="sim" />
-                <span className="ml-2 text-gray-700">Sim</span>
-              </label>
-              <label className="inline-flex items-center ml-6">
-                <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="ativo" checked={!isAtivo} value="não" onChange={handleChangeIsAtivo} />
-                <span className="ml-2 text-gray-700">Não</span>
-              </label>
-            </div>
+        <div className="mt-3 w-full md:w-1/2 px-3 mb-2 md:mb-0">
+          <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Usuário Ativo</span>
+          <div className="mt-2">
+            <label className="inline-flex items-center">
+              <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="ativo" checked={isAtivo} onChange={handleChangeIsAtivo} value="sim" />
+              <span className="ml-2 text-gray-700">Sim</span>
+            </label>
+            <label className="inline-flex items-center ml-6">
+              <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="ativo" checked={!isAtivo} value="não" onChange={handleChangeIsAtivo} />
+              <span className="ml-2 text-gray-700">Não</span>
+            </label>
           </div>
+        </div>
 
-          <div className="flex items-center justify-center m-2">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit">
-              Cadastrar Usuário
-            </button>
+        <div className="flex items-center justify-center m-2">
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="submit">
+            Cadastrar Usuário
+          </button>
 
-          </div>
+        </div>
 
-        </form>
-      </div>
+      </form>
     </div>
   )
 }

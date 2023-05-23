@@ -25,6 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
               { projection: { nome: 1, sobrenome: 1, funcao: 1, registro: 1 } })
           }
           else if (req.query.registro === "admin") {
+            process.env.NODE_ENV === "development" ? console.log("Log: UsuarioController") : null
             usuario = await mainCollection.findOne({ _id: new ObjectId(userId) },
               { projection: { admin: 1 } })
           }
@@ -35,10 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const url = `UsuarioController?id=${userId}`
 
           if (!usuario) { return res.status(404).json({ message: 'Usuário não encontrado', id: userId, url: url, method: 'GET' }); }
-
           return res.status(200).json({ usuario, message: 'Usuário Localizado', url: url, method: 'GET' });
 
         } catch (error) {
+          console.log(error)
+          await client.close();
           res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -57,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           res.status(200).json({ usuarios, message: 'Lista de Usuários', url: url });
         } catch (err) {
+          await client.close();
           res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -118,6 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         const url = `UsuarioController?id=${newUser.insertedId}`
         return res.status(201).json({ message: message, url: url, method: 'POST', userId: newUser.insertedId });
       } catch (err) {
+        await client.close();
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
@@ -149,6 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           res.status(409).json({ message: 'Condição inválida, verificar a requisição!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
       } catch (err) {
+        await client.close();
         res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
@@ -169,6 +174,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         return res.status(201).json({ message: 'Usuário deletado com sucesso', url: url, method: 'DELETE' });
       } catch (err) {
+        await client.close();
         res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;

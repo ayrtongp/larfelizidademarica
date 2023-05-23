@@ -1,5 +1,6 @@
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
 
 export function formatDateBR(data) {
@@ -48,4 +49,24 @@ export function pillsBadge(color, text) {
   else if (color == 'yellow') {
     return (<span className="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-yellow-900 dark:text-yellow-300">{text}</span>)
   }
+}
+
+export async function getID(id) {
+  const result = await axios.get(`/api/Controller/SinaisVitaisController?id=${id}`)
+  return result.data.sinalVital
+}
+
+export async function getGridSinaisVitaisByID(id) {
+  const result = await axios.get(`/api/Controller/SinaisVitaisController?id=${id}`)
+  return result.data.sinalVital.lista_sinais
+}
+
+function formatarTexto(texto) {
+  // Remove acentos e converte para minúsculo
+  texto = texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  // Remove espaços em branco no início e fim da string
+  texto = texto.trim();
+  // Remove todos os espaços em branco da string
+  texto = texto.replace(/\s+/g, '');
+  return texto;
 }

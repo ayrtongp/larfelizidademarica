@@ -54,7 +54,7 @@ const Detalhes = () => {
   }
 
   return (
-    <PermissionWrapper href='/portal'>
+    <PermissionWrapper href='/portal/sinaisvitais'>
       <div>
         <Navportal />
         <BotaoPadrao href='/portal/sinaisvitais' text='Voltar' />

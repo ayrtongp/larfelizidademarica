@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { listaEnfermagem, listaIdosos } from '../utils/Listas'
 import { ToastContainer } from "react-toastify";
-import { formatDateBR, notifySuccess } from "@/utils/Functions";
+import { formatDateBR, notifySuccess, getID } from "@/utils/Functions";
 import { getUserID } from "@/utils/Login";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -13,22 +13,6 @@ interface Sinal {
   mucosas: string; integridadecutanea: string; mmss: string; mmii: string; aceitacaodadieta: string;
   abdomen: string; eliminacoes: string; eliminacoesintestinais: string; auscultapulmonar: string; observacoes: string;
   id_usuario_cadastro: string; nome_usuario: string; registro_usuario: string; funcao_usuario: string; createdAt: string;
-}
-
-async function getID(id: string) {
-  const result = await axios.get(`/api/Controller/SinaisVitaisController?id=${id}`)
-  return result.data.sinalVital
-}
-
-
-function formatarTexto(texto: string) {
-  // Remove acentos e converte para minúsculo
-  texto = texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  // Remove espaços em branco no início e fim da string
-  texto = texto.trim();
-  // Remove todos os espaços em branco da string
-  texto = texto.replace(/\s+/g, '');
-  return texto;
 }
 
 const FormSinaisVitais = () => {
@@ -47,7 +31,7 @@ const FormSinaisVitais = () => {
   }
 
   return (
-    <div className="container text-center mx-auto">
+    <div className="text-center mx-auto">
       <div className="flex items-center justify-center flex-col">
         <ToastContainer />
         <div className="mt-4 mb-4 border rounded p-2 flex flex-col">

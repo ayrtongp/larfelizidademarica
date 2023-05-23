@@ -2,7 +2,7 @@ import { formatDateBR, notifyError } from "@/utils/Functions";
 import React, { useEffect, useState } from "react";
 import { FaSearch, FaEdit } from 'react-icons/fa'
 import DeleteButton from "./ModalDelete";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 
 interface SinaisVitais {
   _id: string;
@@ -15,12 +15,27 @@ const TabelaSinaisVitais = () => {
   const [nomeIdoso, setNomeIdoso] = useState('')
   const [dataIdoso, setDataIdoso] = useState('')
   const [excludePermission, setExcludePermission] = useState(false)
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchData = async () => {
-    const response = await fetch('/api/Controller/SinaisVitaisController', { method: "GET", });
-    if (response.ok) {
-      const json = await response.json();
-      setData(json.sinaisVitais);
+
+    const countURL = '/api/Controller/SinaisVitaisController?type=countDocuments'
+    const res = await fetch(countURL)
+    const { count } = await res.json()
+
+    const totalPages = Math.ceil(count / pageSize);
+    setTotalPages(totalPages);
+
+    const skip = (page - 1) * pageSize;
+
+    const docsURL = `/api/Controller/SinaisVitaisController?type=pages&skip=${skip}&limit=${pageSize}`
+    const res2 = await fetch(docsURL)
+    const { data } = await res2.json()
+
+    if (res2.ok) {
+      setData(data);
     }
   }
 
@@ -29,7 +44,7 @@ const TabelaSinaisVitais = () => {
     const userId = userInfo.id
     const response = await fetch(`/api/Controller/UsuarioController?id=${userId}&registro=admin`, { method: "GET", });
     const data = await response.json()
-    data.usuario.admin === "S" ? setExcludePermission(true) : setExcludePermission(false)
+    await data.usuario?.admin === "S" ? setExcludePermission(true) : setExcludePermission(false)
   }
 
   const handleNameChange = (e: any) => {
@@ -39,6 +54,18 @@ const TabelaSinaisVitais = () => {
   const handleDateChange = (e: any) => {
     setDataIdoso(e.target.value)
   }
+
+  const handlePrevPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage(page + 1);
+    }
+  };
 
   const handleFilterClick = async (e: any) => {
     const response = await fetch(`/api/Controller/SinaisVitaisController?tipo=Buscar&nome=${nomeIdoso}&data=${dataIdoso}`, { method: "GET", });
@@ -54,6 +81,9 @@ const TabelaSinaisVitais = () => {
 
   useEffect(() => {
     fetchData()
+  }, [page, pageSize]);
+
+  useEffect(() => {
     isAdmin()
   }, []);
 
@@ -111,6 +141,15 @@ const TabelaSinaisVitais = () => {
           ))}
         </tbody>
       </table>
+      <div className="mt-2 flex justify-center items-center gap-3">
+        <button onClick={handlePrevPage} disabled={page === 1} className="bg-blue-500 disabled:hidden hover:bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded">
+          Página Anterior
+        </button>
+        <button onClick={handleNextPage} disabled={page === totalPages} className="bg-blue-500 disabled:hidden hover:bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded">
+          Próxima Página
+        </button>
+        <span className="text-xs">Página: {page} | Total Páginas: {totalPages} </span>
+      </div>
     </div>
   );
 };

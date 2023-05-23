@@ -1,41 +1,45 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-const CheckToken = () => {
-  const routers = useRouter();
-
-  useEffect(() => { expiredToken(routers) }, []);
-
-  return (null)
-}
-
-export default CheckToken
-
 // FUNCTIONS -------------------------------------------------------------
 
-function expiredToken(router: any) {
-  if (location.pathname.includes('/portal')) {
+export const checkToken = () => {
+  const [loadingSign, setLoadingSign] = useState(true);
+  const [logged, setLogged] = useState(false)
+  const routers = useRouter()
 
-    const token = localStorage.getItem('token')
+  useEffect(() => {
 
-    if (token) {
-      const decoded = jwt.decode(token) as JwtPayload
-      
-      if (decoded?.exp) {
-        const expireDate = new Date(decoded.exp * 1000)
-        const dateNow = new Date(Date.now())
-        
-        if (expireDate < dateNow) {
-          localStorage.removeItem('token')
-          router.push('/portal/login');
+    if (typeof window != undefined && routers.pathname.includes('/portal')) {
+
+      const token = localStorage.getItem('token');
+
+      if (token) {
+        const decoded = jwt.decode(token) as JwtPayload
+
+        if (decoded?.exp) {
+          const expireDate = new Date(decoded.exp * 1000)
+          const dateNow = new Date(Date.now())
+
+          if (expireDate < dateNow) {
+            localStorage.removeItem('token')
+            routers.push('/portal/login');
+          }
+          else if (expireDate > dateNow && routers.pathname.includes('/portal/login')) {
+            routers.push('/portal');
+          }
+          else {
+            setLogged(true)
+          }
         }
-        else if (expireDate > dateNow && location.pathname.includes('/portal/login')) {
-          router.push('/portal');
-        }
+      } else {
+        routers.push('/portal/login');
       }
-    } else {
-      router.push('/portal/login');
     }
-  }
+  }, [])
+
+  return [loadingSign, logged]
 }
+
+export default checkToken

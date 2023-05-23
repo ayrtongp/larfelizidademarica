@@ -2,16 +2,17 @@ import React from 'react'
 import EditFormSinaisVitais from '@/components/EditFormSinaisVitais'
 import BotaoPadrao from '@/components/BotaoPadrao'
 import Navportal from '@/components/Navportal'
+import PortalBase from '@/components/Portal/PortalBase'
 import PermissionWrapper from '@/components/PermissionWrapper'
 
 const cadastro_sinaisvitais = () => {
   return (
-    <PermissionWrapper href='/portal'>
-      <div>
-        <Navportal />
-        <BotaoPadrao href='/portal' text='Voltar ao Portal' />
-        <EditFormSinaisVitais />
-      </div>
+    <PermissionWrapper href='/portal/sinaisvitais'>
+      <PortalBase>
+        <div className='col-span-12'>
+          <EditFormSinaisVitais />
+        </div>
+      </PortalBase>
     </PermissionWrapper>
   )
 }
