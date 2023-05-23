@@ -36,7 +36,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-purple-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <CheckToken />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Image className="mx-auto h-28 w-auto" alt="Lar Felizidade Logo" src={LogoLar} />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Logar na sua conta</h2>
