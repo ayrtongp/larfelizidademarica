@@ -2,7 +2,6 @@ import { formatDateBR, notifyError } from "@/utils/Functions";
 import React, { useEffect, useState } from "react";
 import { FaSearch, FaEdit } from 'react-icons/fa'
 import DeleteButton from "./ModalDelete";
-import { ToastContainer } from "react-toastify";
 
 interface SinaisVitais {
   _id: string;
@@ -89,7 +88,6 @@ const TabelaSinaisVitais = () => {
 
   return (
     <div className="text-sm">
-      <ToastContainer />
       <div className="max-w-md bg-white p-4 rounded-md shadow border mb-4 mx-auto text-center">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-medium">Filtro</h2>
@@ -141,15 +139,21 @@ const TabelaSinaisVitais = () => {
           ))}
         </tbody>
       </table>
-      <div className="mt-2 flex justify-center items-center gap-3">
-        <button onClick={handlePrevPage} disabled={page === 1} className="bg-blue-500 disabled:hidden hover:bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded">
-          Página Anterior
-        </button>
-        <button onClick={handleNextPage} disabled={page === totalPages} className="bg-blue-500 disabled:hidden hover:bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded">
-          Próxima Página
-        </button>
-        <span className="text-xs">Página: {page} | Total Páginas: {totalPages} </span>
-      </div>
+
+      {totalPages > 0 &&
+        <div className="mt-2 flex justify-center items-center gap-3">
+          <button onClick={handlePrevPage} disabled={page === 1} className="bg-blue-500 disabled:hidden hover:bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded">
+            Página Anterior
+          </button>
+          <button onClick={handleNextPage} disabled={page === totalPages} className="bg-blue-500 disabled:hidden hover:bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded">
+            Próxima Página
+          </button>
+          <span className="text-xs">Página: {page} | Total Páginas: {totalPages} </span>
+        </div>
+      }
+      {totalPages < 1 &&
+        <div className="text-center font-bold mt-3 bg-red-300">Nenhum Sinal Cadastrado!</div>
+      }
     </div>
   );
 };

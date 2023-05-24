@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { listaEnfermagem, listaIdosos } from '../utils/Listas'
-import { ToastContainer } from "react-toastify";
 import { notifyError, notifySuccess } from "@/utils/Functions";
 import { getUserID } from "@/utils/Login";
 import GridSinaisVitais from "./GridSinaisVitais";
@@ -95,7 +94,6 @@ const FormSinaisVitais = () => {
 
   return (
     <div>
-      <ToastContainer />
       <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
 
         <div className="mt-4 mb-4 border rounded p-2 flex flex-wrap">

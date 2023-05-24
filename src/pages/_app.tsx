@@ -1,5 +1,7 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Head from 'next/head'
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -9,6 +11,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <title>Lar Felizidade Maricá</title>
       </Head>
       <Component {...pageProps} />
+      <ToastContainer />
     </>
   )
 }

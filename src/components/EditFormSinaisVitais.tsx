@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import { listaEnfermagem, listaIdosos } from '../utils/Listas'
-import { ToastContainer } from "react-toastify";
 import { formatDateBR, notifySuccess, getID } from "@/utils/Functions";
-import { getUserID } from "@/utils/Login";
-import axios from "axios";
 import { useRouter } from "next/router";
 import GridSinaisVitais from "./GridSinaisVitais";
 
@@ -33,7 +29,6 @@ const FormSinaisVitais = () => {
   return (
     <div className="text-center mx-auto">
       <div className="flex items-center justify-center flex-col">
-        <ToastContainer />
         <div className="mt-4 mb-4 border rounded p-2 flex flex-col">
           <div className="flex flex-row">
             <h1 className="mx-2 font-bold">Idoso:</h1><span>{sinal.idoso}</span>

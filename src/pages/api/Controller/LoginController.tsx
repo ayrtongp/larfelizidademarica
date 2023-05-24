@@ -17,7 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // -------------------------
       try {
         const { usuario, senha } = req.body
-        const response = await mainCollection.findOne({ usuario });
+        const formattedUsuario = usuario.toLocaleLowerCase()
+        const response = await mainCollection.findOne({ usuario: formattedUsuario });
 
         if (!response) {
           return res.status(401).json({ message: 'Problema ao realizar login' });
