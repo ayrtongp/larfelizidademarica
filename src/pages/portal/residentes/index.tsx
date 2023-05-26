@@ -6,7 +6,7 @@ import { useIsAdmin } from '@/hooks/useIsAdmin'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 
-const index = () => {
+const Index = () => {
   const [residentes, setResidentes] = useState([]);
   const isAdmin = useIsAdmin();
   
@@ -41,4 +41,4 @@ const index = () => {
   )
 }
 
-export default index
+export default Index
