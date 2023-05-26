@@ -39,6 +39,19 @@ export function saudacao() {
   }
 }
 
+export function calcularIdade(dataDeNascimento) {
+  var hoje = new Date();
+  var dateParaFormatar = new Date(dataDeNascimento);
+  var idade = hoje.getFullYear() - dateParaFormatar.getFullYear();
+  var mes = hoje.getMonth() - dateParaFormatar.getMonth();
+
+  if (mes < 0 || (mes === 0 && hoje.getDate() < dateParaFormatar.getDate())) {
+    idade--;
+  }
+
+  return idade;
+}
+
 export function pillsBadge(color, text) {
   if (color == 'green') {
     return (<span className="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">{text}</span>)

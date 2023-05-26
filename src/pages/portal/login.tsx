@@ -13,7 +13,7 @@ const LoginPage = () => {
   const router = useRouter();
 
   const handleSubmit = async (e: any) => {
-    e.preventDefault();
+    e.preventDefault()
     if (senha.length < 6) { notifyError('A senha deve conter no mínimo 6 caracteres') }
     else if (!senha) { notifyError('Digite uma senha!') }
     else if (!usuario) { notifyError('Digite um usuário') }

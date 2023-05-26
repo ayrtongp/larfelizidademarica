@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PermissionWrapper from '@/components/PermissionWrapper';
 
-import Sidebar from '../../components/Sidebar';
+import Sidebar from '../../components/Sidebar/Sidebar';
 import PortalHeader from '@/components/PortalHeader';
 import WelcomeBanner from '@/components/Dashboard/WelcomeBanner';
 
@@ -22,7 +22,7 @@ function Dashboard({ children }: any) {
         <PortalHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <main>
-          <div className="px-4 sm:px-6 lg:px-8 py-4 w-full max-w-9xl mx-auto">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 w-full mx-auto">
 
             {/* Cards */}
             <div className="grid grid-cols-12 gap-6">

@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
       if (req.query.tipo === 'register' && req.query.tipo_permissao === 'portal_servicos') {
         const userId = req.query.id
-        const { idosos, sinaisVitais, livroOcorrencias, insumos } = JSON.parse(req.body);
+        const { idosos, sinaisVitais, livroOcorrencias, insumos, residentes } = JSON.parse(req.body);
         const toInsert = [];
 
         if (idosos) { toInsert.push({ usuario_id: userId, tipo_permissao: "portal_servicos", id_servico: "1" }); }
@@ -28,6 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         if (livroOcorrencias) { toInsert.push({ usuario_id: userId, tipo_permissao: "portal_servicos", id_servico: "3" }); }
 
         if (insumos) { toInsert.push({ usuario_id: userId, tipo_permissao: "portal_servicos", id_servico: "4" }); }
+
+        if (residentes) { toInsert.push({ usuario_id: userId, tipo_permissao: "portal_servicos", id_servico: "6" }); }
 
         if (toInsert.length > 0) {
           const insertedDocuments = await mainCollection.insertMany(toInsert);
@@ -63,6 +65,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
       res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
-
 
 }

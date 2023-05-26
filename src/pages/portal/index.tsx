@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PermissionWrapper from '@/components/PermissionWrapper';
 
-import Sidebar from '../../components/Sidebar';
+import Sidebar from '../../components/Sidebar/Sidebar';
 import PortalHeader from '@/components/PortalHeader';
 import WelcomeBanner from '@/components/Dashboard/WelcomeBanner';
 import DashboardsSinaisVitais from '@/components/Dashboard/DashboardsSinaisVitais';
