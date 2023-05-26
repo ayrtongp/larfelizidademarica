@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
     case 'GET':
 
-    console.log("OI")
+      console.log("OI")
 
       // -------------------------
       // GET All Residentes
@@ -35,11 +35,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       if (req.query.type === 'getAll') {
         try {
           const documents = await mainCollection.find().sort({ nome: 1 }).toArray();
-          return res.status(200).json(documents);
+          res.status(200).json(documents);
         } catch (err) {
           console.log(err)
           await client.close()
-          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
+          res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
 
@@ -54,14 +54,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const result = await mainCollection.findOne({ _id: new ObjectId(reqID) },)
 
           if (!result) {
-            return res.status(404).json({ message: 'Residente não encontrado', id: reqID, method: 'GET' });
+            res.status(404).json({ message: 'Residente não encontrado', id: reqID, method: 'GET' });
           }
 
-          return res.status(200).json({ result, message: 'Residente Localizado', method: 'GET' });
+          res.status(200).json({ result, message: 'Residente Localizado', method: 'GET' });
 
         } catch (error) {
           await client.close();
-          return res.status(500).json({ message: 'getID: Erro não identificado. Procure um administrador.' });
+          res.status(500).json({ message: 'getID: Erro não identificado. Procure um administrador.' });
         }
       }
 
@@ -89,11 +89,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const limit = parseInt(req.query.limit as unknown as string)
           const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
 
-          return res.status(200).json({ data: data });
+          res.status(200).json({ data: data });
         } catch (err) {
           console.log(err)
           await client.close();
-          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+          res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
 
@@ -102,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // -------------------------
 
       else {
-        return res.status(500).json({ message: 'GET Não encontrou nenhuma condição (IF)' });
+        res.status(500).json({ message: 'GET Não encontrou nenhuma condição (IF)' });
       }
 
       break;
@@ -134,20 +134,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           const isUser = await mainCollection.findOne({ cpf: dataFields.cpf })
           if (isUser) {
-            return res.status(400).json({ message: `CPF Já cadastrado: ${dataFields.cpf} na data ${dataFields.createdAt}.`, method: 'POST', });
+            res.status(400).json({ message: `CPF Já cadastrado: ${dataFields.cpf} na data ${dataFields.createdAt}.`, method: 'POST', });
           }
 
           const novoRegitro = await mainCollection.insertOne(dataFields);
-          return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
+          res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
         } catch (err) {
           console.log(err)
           await client.close();
-          return res.status(500).json({ message: 'new: Erro não identificado. Procure um administrador.' });
+          res.status(500).json({ message: 'new: Erro não identificado. Procure um administrador.' });
         }
       }
 
       else {
-        return res.status(400).json({ message: `Nenhum query.type indetificado`, method: 'POST', });
+        res.status(400).json({ message: `Nenhum query.type indetificado`, method: 'POST', });
       }
       break;
 
@@ -164,11 +164,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
         const myBody = JSON.parse(req.body)
         await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
-        return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
+        res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
 
       } catch (err) {
         await client.close();
-        return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
 
@@ -183,20 +183,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         const result = await mainCollection.deleteOne({ _id: myObjectId });
 
         if (result.deletedCount === 0) {
-          return res.status(404).json({ message: 'Residente não encontrado!', });
+          res.status(404).json({ message: 'Residente não encontrado!', });
         }
 
-        return res.status(201).json({ message: 'Residente deletado com sucesso', method: 'DELETE' });
+        res.status(201).json({ message: 'Residente deletado com sucesso', method: 'DELETE' });
       } catch (err) {
         await client.close();
-        return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;
 
     default:
       res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-      return res.status(405).json({ message: `Method ${req.method} not allowed` });
+      res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
-  await client.close();
+  return await client.close();
 }

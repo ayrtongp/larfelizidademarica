@@ -61,13 +61,13 @@ const ResidenteDetalhes = () => {
                   <div className='flex flex-col px-4'>
                     
                     {/* Item */}
-                    <div className='flex flex-row items-center border border-collapse'>
+                    <div className='flex flex-row items-center border'>
                       <span className='p-2 text-red-600 w-2/12 '><FaHeart /></span>
                       <p className='w-10/12 ml-4'>semiologia</p>
                     </div>
                     
                     {/* Item */}
-                    <div className='flex flex-row items-center border border-collapse'>
+                    <div className='flex flex-row items-center border'>
                       <span className='p-2 text-red-600 w-2/12 '><FaHeart /></span>
                       <p className='w-10/12 ml-4'>semiologia</p>
                     </div>

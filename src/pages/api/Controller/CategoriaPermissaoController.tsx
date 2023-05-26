@@ -33,9 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         if (toInsert.length > 0) {
           const insertedDocuments = await mainCollection.insertMany(toInsert);
-          return res.status(201).json({ message: 'Categorias Registradas', method: 'POST' });
+          res.status(201).json({ message: 'Categorias Registradas', method: 'POST' });
         } else {
-          return res.status(201).json({ message: 'Nenhuma categoria registrada', method: 'POST' });
+          res.status(201).json({ message: 'Nenhuma categoria registrada', method: 'POST' });
         }
       }
 
@@ -66,4 +66,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
+  return await client.close();
 }

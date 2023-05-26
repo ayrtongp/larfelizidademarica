@@ -19,19 +19,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         const { usuario, senha } = req.body
         const formattedUsuario = usuario.toLocaleLowerCase()
         const response = await mainCollection.findOne({ usuario: formattedUsuario });
-
-        if (!response) {
-          return res.status(401).json({ message: 'Problema ao realizar login' });
-        }
-
         const match = await bcrypt.compare(senha, response?.senha);
 
-        if (!match) {
-          return res.status(401).json({ message: 'A senha fornecida não confere.' });
+        if (!response) {
+          res.status(401).json({ message: 'Problema ao realizar login' });
         }
-
-        if (response.ativo !== 'S') {
-          return res.status(401).json({ message: 'O usuário está desativado' });
+        else if (!match) {
+          res.status(401).json({ message: 'A senha fornecida não confere.' });
+        }
+        else if (response.ativo !== 'S') {
+          res.status(401).json({ message: 'O usuário está desativado' });
         }
 
         if (response) {
@@ -54,5 +51,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
-  await client.close();
+  return await client.close();
 }
