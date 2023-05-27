@@ -1,14 +1,22 @@
-import { MongoClient } from "mongodb";
+import { MongoClient, Db, } from "mongodb";
 
-const database_uri = process.env.DATABASE_URI
-
-const client = new MongoClient(database_uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+let db = null
 
 export default async function connect() {
+  if (db) {
+    return { db }
+  }
+
+  const database_uri = process.env.DATABASE_URI
+
+  const client = new MongoClient(database_uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+
   await client.connect()
-  const db = client.db(process.env.DB_LAR)
-  return {db, client}
+  db = client.db(process.env.DB_LAR)
+
+  return { db }
+
 }

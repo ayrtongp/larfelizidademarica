@@ -64,8 +64,6 @@ const ResidenteCard = ({ residenteData }: any) => {
     setDadosResidente(residenteData)
   }, [residenteData])
 
-  console.log(dadosResidente)
-
   return (
     <div className='col-span-12 sm:col-span-6 lg:col-span-4 bg-white border border-slate-200 rounded-sm shadow-lg'>
       <h1 className='hidden'>{vars.id}</h1>
@@ -77,16 +75,16 @@ const ResidenteCard = ({ residenteData }: any) => {
             {/* IMAGEM E NOME */}
             <header>
               <div className="flex mb-2">
-                <a className="relative inline-flex items-start mr-5" href="#0">
+                <div className="relative inline-flex items-start mr-5" >
                   <div className="absolute top-0 right-0 -mr-2 bg-white rounded-full shadow" aria-hidden="true">
                     {vars.icone}
                   </div>
                   <Image src={Imagem} alt='Foto do Residente' className='rounded-full w-[64px] h-[64px]' />
-                </a>
+                </div>
                 <div className="mt-1 pr-1">
-                  <a className="inline-flex text-slate-600 hover:text-slate-900" href="#0">
+                  <div className="inline-flex text-slate-600 hover:text-slate-900" >
                     <h2 className="text-base leading-snug justify-center font-bold">{vars.nomeIdoso}</h2>
-                  </a>
+                  </div>
                   <div className="flex mt-1 flex-row justify-between text-base items-center gap-1 text-gray-400">
                     <span>{vars.idade}</span>
                     <span>{vars.apelido}</span>
@@ -107,14 +105,12 @@ const ResidenteCard = ({ residenteData }: any) => {
         {/* CARD FOOTER */}
         <div className='border-t border-slate-200'>
           <div className="flex divide-x divide-slate-200">
-            <a className="block flex-1 text-center text-sm text-indigo-500 hover:text-indigo-600 font-bold px-3 py-4" href="messages.html">
+            <Link href={`/portal/residentes/${vars.id}`} className="block flex-1 text-center text-sm text-indigo-500 hover:text-indigo-600 font-bold px-3 py-4">
               <div className="flex items-center justify-center">
                 <svg className="w-4 h-4 fill-current shrink-0 mr-2" viewBox="0 0 16 16">{vars.svgPathFooterButtonLeft}</svg>
-                <Link href={`/portal/residentes/${vars.id}`}>
-                  <span>{vars.textFooterButtonLeft}</span>
-                </Link>
+                <span>{vars.textFooterButtonLeft}</span>
               </div>
-            </a>
+            </Link>
             <div className="block flex-1 text-center text-sm text-slate-600 hover:text-slate-800 font-bold px-3 py-4 hover:fill-[#475569]">
               <div className="flex items-center justify-center hover:fill-yellow-500">
                 <ModalAlergias>

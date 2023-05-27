@@ -1,9 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse,) {
 
-  const { db, client } = await connect();
+  const { db } = await connect();
   const mainCollection = db.collection('usuario_permissao')
 
   switch (req.method) {
@@ -33,9 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         if (toInsert.length > 0) {
           const insertedDocuments = await mainCollection.insertMany(toInsert);
-          res.status(201).json({ message: 'Categorias Registradas', method: 'POST' });
+          return res.status(201).json({ message: 'Categorias Registradas', method: 'POST' });
         } else {
-          res.status(201).json({ message: 'Nenhuma categoria registrada', method: 'POST' });
+          return res.status(201).json({ message: 'Nenhuma categoria registrada', method: 'POST' });
         }
       }
 
@@ -52,19 +53,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           { $project: { _id: 1, "portal_servicos.nome": 1, "portal_servicos.href": 1 } }
         ]).toArray();
 
-        res.status(200).json({ message: "ok", response });
+        return res.status(200).json({ message: "ok", response });
 
       }
       catch (error) {
-        await client.close();
-        res.status(500).json({ message: "Ocorreu um erro ao realizar o login", error: error });
+        return res.status(500).json({ message: "Ocorreu um erro ao realizar o login", error: error });
       }
       break;
 
     default:
-      res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-      res.status(405).json({ message: `Method ${req.method} not allowed` });
+      return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
-
-  return await client.close();
 }

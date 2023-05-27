@@ -66,5 +66,4 @@ export default async function handler(
       res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
-  await client.close();
 }

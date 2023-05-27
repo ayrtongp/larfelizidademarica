@@ -45,8 +45,6 @@ const FormNovoResidente = () => {
     if (!hasEmptyValue) {
       const res = await fetch("/api/Controller/ResidentesController?type=new", { method: "POST", body: JSON.stringify(formData), });
       const data = await res.json();
-      console.log(res)
-      console.log(data)
       if (res.ok) {
         notifySuccess("Residente cadastrado com sucesso!")
       } else {

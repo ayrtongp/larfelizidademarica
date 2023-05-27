@@ -2,16 +2,16 @@
 
 const svgHomem = () => {
   return (
-    <svg width="32px" height="32px" viewBox="-51.2 -51.2 614.40 614.40" enable-background="new 0 0 512 512" id="Grandfather" version="1.1" xmlSpace="preserve" 
+    <svg width="32px" height="32px" viewBox="-51.2 -51.2 614.40 614.40" enableBackground="new 0 0 512 512" id="Grandfather" version="1.1" xmlSpace="preserve" 
     xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000">
 
-      <g id="SVGRepo_bgCarrier" stroke-width="0">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0">
 
         <rect x="-51.2" y="-51.2" width="614.40" height="614.40" rx="307.2" fill="#f5f5f5" strokeWidth="0" />
 
       </g>
 
-      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" />
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
 
       <g id="SVGRepo_iconCarrier">
 

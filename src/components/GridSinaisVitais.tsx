@@ -105,7 +105,6 @@ const GridSinaisVitais = ({ sinalData }: any) => {
   const handleSubmit = async () => {
     try {
       const teste = await sinalData
-      console.log(teste)
       const lista_sinais = { lista_sinais: listaSinais }
       const res = await fetch(`/api/Controller/SinaisVitaisController?id=${teste.id}`, {
         method: 'PUT',

@@ -21,7 +21,7 @@ function Dashboard({ children }: any) {
         {/*  Site header */}
         <PortalHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        <main>
+        <main className='bg-sky-50 h-full'>
           <div className="px-4 sm:px-6 lg:px-8 py-4 w-full mx-auto">
 
             {/* Cards */}
