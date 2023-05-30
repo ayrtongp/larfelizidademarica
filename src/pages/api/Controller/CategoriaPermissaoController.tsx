@@ -7,10 +7,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
   const { db } = await connect();
   const mainCollection = db.collection('usuario_permissao')
 
+
   switch (req.method) {
 
     case 'POST':
-
       // -------------------------
       // CADASTRO DE PERMISSOES
       // -------------------------

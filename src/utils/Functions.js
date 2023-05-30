@@ -2,7 +2,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
-
 export function formatDateBR(data) {
   const date = new Date(data);
 
@@ -10,6 +9,29 @@ export function formatDateBR(data) {
 
   const formattedDate = date.toLocaleDateString("pt-BR", options);
   return formattedDate;
+}
+
+export function formatarTexto(texto) {
+  if (texto != undefined && texto != null && texto != '') {
+    // Remove acentos e converte para minúsculo
+    texto = texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    // Remove espaços em branco no início e fim da string
+    texto = texto.trim();
+    // Remove todos os espaços em branco da string
+    texto = texto.replace(/\s+/g, '');
+    return texto;
+  }
+}
+
+export function getCurrentDateTime() {
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const day = String(currentDate.getDate()).padStart(2, '0');
+  const hours = String(currentDate.getHours()).padStart(2, '0');
+  const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
 export function notifyError(error) {
@@ -72,14 +94,4 @@ export async function getID(id) {
 export async function getGridSinaisVitaisByID(id) {
   const result = await axios.get(`/api/Controller/SinaisVitaisController?id=${id}`)
   return result.data.sinalVital.lista_sinais
-}
-
-function formatarTexto(texto) {
-  // Remove acentos e converte para minúsculo
-  texto = texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  // Remove espaços em branco no início e fim da string
-  texto = texto.trim();
-  // Remove todos os espaços em branco da string
-  texto = texto.replace(/\s+/g, '');
-  return texto;
 }

@@ -16,7 +16,7 @@ function Dashboard({ children }: any) {
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Content area */}
-      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden bg-sky-50">
 
         {/*  Site header */}
         <PortalHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />

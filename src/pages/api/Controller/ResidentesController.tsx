@@ -156,12 +156,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'PUT':
       try {
         const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-        const myBody = JSON.parse(req.body)
-        await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
-        return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
+        const bodyObject = JSON.parse(req.body)
+
+        if (req.query.type === 'changePhoto' && bodyObject.foto_base64) {
+          const novaFoto = bodyObject.foto_base64
+          await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
+          return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
+        }
+
+        else if (req.query.type === 'changeData') {
+          const myBody = JSON.parse(req.body)
+          await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
+          return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
+        }
+
+        else {
+          return res.status(404).json({ message: 'Residente não encontrado!', });
+        }
 
       } catch (err) {
-
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
       }
       break;

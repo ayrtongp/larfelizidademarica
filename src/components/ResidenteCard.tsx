@@ -5,6 +5,7 @@ import ModalAlergias from './Residentes/ModalAlergias'
 import { FaInfoCircle } from 'react-icons/fa'
 import { calcularIdade } from '@/utils/Functions'
 import svgMulher from '@/svg/svgMulher'
+import svgHomem from '@/svg/svgHomem'
 import Link from 'next/link'
 
 const svg = () => {
@@ -40,6 +41,8 @@ interface Residente {
   nome: string;
   apelido: string;
   data_nascimento: string;
+  genero: string;
+  foto_base64: string;
 }
 
 const ResidenteCard = ({ residenteData }: any) => {
@@ -50,10 +53,11 @@ const ResidenteCard = ({ residenteData }: any) => {
   const vars = {
     id: dadosResidente?._id,
     nomeIdoso: dadosResidente?.nome,
-    descricaoIdoso: "Fitness Fanatic, Design Enthusiast, Mentor, Meetup Organizer & PHP Lover.",
+    foto_base64: dadosResidente?.foto_base64,
+    descricaoIdoso: "Descrição do idoso...",
     idade: "(" + idadeAnos + " anos)",
     apelido: dadosResidente?.apelido,
-    icone: svgMulher(),
+    icone: dadosResidente?.genero == "feminino" ? svgMulher() : svgHomem(),
     svgPathFooterButtonLeft: <FaInfoCircle />,
     svgPathFooterButtonRight: svgPathPencil(),
     textFooterButtonLeft: "Ver mais...",
@@ -79,7 +83,9 @@ const ResidenteCard = ({ residenteData }: any) => {
                   <div className="absolute top-0 right-0 -mr-2 bg-white rounded-full shadow" aria-hidden="true">
                     {vars.icone}
                   </div>
-                  <Image src={Imagem} alt='Foto do Residente' className='rounded-full w-[64px] h-[64px]' />
+                  {vars.foto_base64 && (
+                    <Image src={vars.foto_base64} width={64} height={64} alt='Foto do Residente' className='rounded-full w-[64px] h-[64px]' />
+                  )}
                 </div>
                 <div className="mt-1 pr-1">
                   <div className="inline-flex text-slate-600 hover:text-slate-900" >
