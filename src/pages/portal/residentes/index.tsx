@@ -13,13 +13,10 @@ const Index = () => {
   const getResidentesAtivos = async () => {
     const url = "/api/Controller/ResidentesController?type=getAll"
     const response = await axios.get(url)
-    console.log(response)
-    if (response.statusText == "OK") {
+    if (response.status == 200) {
       setResidentes(response.data)
     }
   }
-
-  console.log(residentes)
 
   useEffect(() => {
     getResidentesAtivos()
