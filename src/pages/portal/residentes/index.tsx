@@ -9,7 +9,7 @@ import React, { useEffect, useState } from 'react'
 const Index = () => {
   const [residentes, setResidentes] = useState([]);
   const isAdmin = useIsAdmin();
-  
+
   const getResidentesAtivos = async () => {
     const url = "/api/Controller/ResidentesController?type=getAll"
     const response = await axios.get(url)
@@ -17,6 +17,8 @@ const Index = () => {
       setResidentes(response.data)
     }
   }
+
+  console.log(residentes)
 
   useEffect(() => {
     getResidentesAtivos()
