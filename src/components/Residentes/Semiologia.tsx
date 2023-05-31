@@ -20,7 +20,7 @@ const Semiologia = () => {
     if (residente_id) {
       const response = await axios.get(`/api/Controller/SinaisVitaisController?type=getLast&residenteId=${residente_id}`)
 
-      if (response.statusText == "OK") {
+      if (response.status == 200) {
         await setUltimoRegistro(response.data)
       }
     }
