@@ -98,12 +98,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // -------------------------
 
       else if (req.query.type == 'pages') {
+
         try {
           const skip = parseInt(req.query.skip as unknown as string)
           const limit = parseInt(req.query.limit as unknown as string)
-          const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
 
-          return res.status(200).json({ data: data });
+          // -------------------------
+          // FILTRO ID - LISTAR PAGINADO
+          // -------------------------
+
+          if (req.query.residente_id) {
+            const residente_id = req.query.residente_id as string
+            console.log(residente_id)
+            const data = await mainCollection.find({ residente_id: residente_id }).skip(skip).limit(limit).toArray();
+            const count = await mainCollection.countDocuments({ residente_id: residente_id })
+            return res.status(200).json({ count: count, data: data });
+          }
+
+          // -------------------------
+          // TODOS - LISTAR PAGINADO
+          // -------------------------
+
+          else {
+            const data = await mainCollection.find().sort({ createdAt: 1 }).skip(skip).limit(limit).toArray();
+
+            data.forEach((document: any) => {
+              const createdAt = Date.parse(document.createdAt) / 1000;
+              document.createdAt = createdAt;
+            });
+
+            data.sort((a: any, b: any) => {
+              // Sort by another field (e.g., 'fieldName') in ascending order
+              const valueA = a.createdAt;
+              const valueB = b.createdAt;
+
+              // Compare the values and return the comparison result
+              if (valueA > valueB) { return -1; }
+              if (valueA < valueB) { return 1; }
+              return 0;
+            });
+
+            return res.status(200).json({ data: data });
+          }
+
         } catch (err) {
           console.log(err)
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });

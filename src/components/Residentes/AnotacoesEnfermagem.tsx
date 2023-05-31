@@ -9,7 +9,7 @@ const AnotacoesEnfermagem = () => {
   const residente_id = router.query?.id?.[0]
 
   const listaEnfermagem = [
-    { label: 'Consciência', radio: ['Acordado', 'Orientado', 'Sonolento', 'Torporoso'] },
+    { label: 'Consciência', radio: ['Acordado', 'Orientado', 'Sonolento', 'Torporoso', 'Desorientado'] },
     { label: 'Hemodinâmico', radio: ['Afebril', 'Febril', 'Pirexia'] },
     { label: 'Cardiovascular', radio: ['Normocárdico', 'Bradicárdico', 'Taquicárdico'] },
     { label: "Pressão Arterial", radio: ['Normotenso', 'Hipertenso', 'Hipotenso'] },

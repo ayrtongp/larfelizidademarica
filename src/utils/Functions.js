@@ -11,6 +11,15 @@ export function formatDateBR(data) {
   return formattedDate;
 }
 
+export function formatDateBRHora(data) {
+  const date = new Date(data);
+
+  const options = { timeZone: "America/Sao_Paulo", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" };
+
+  const formattedDate = date.toLocaleDateString("pt-BR", options);
+  return formattedDate;
+}
+
 export function formatarTexto(texto) {
   if (texto != undefined && texto != null && texto != '') {
     // Remove acentos e converte para minúsculo

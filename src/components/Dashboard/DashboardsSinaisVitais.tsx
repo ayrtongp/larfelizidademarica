@@ -1,13 +1,27 @@
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import EdimeMaia from '../../../public/images/idosos/EdimeMaia.jpg'
 import CarmemIacovino from '../../../public/images/idosos/CarmemIacovino.jpg'
 import { pillsBadge } from '@/utils/Functions';
 import { FaEye } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css'
+import axios from 'axios';
 
-function DashboardsSinaisVitais() {
+const DashboardsSinaisVitais = () => {
+  const [data, setData] = useState();
+
+  const fetchData = async () => {
+    const response = await axios.get('/api/Controller/SinaisVitaisController?type=pages&skip=0&limit=5')
+    const { data } = response.data
+    console.log(data)
+    setData(data)
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   return (
     <div className="col-span-full xl:col-span-8 bg-white shadow-lg rounded-sm border border-slate-200">
       <header className="px-5 py-4 border-b border-slate-100">
