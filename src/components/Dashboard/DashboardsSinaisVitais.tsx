@@ -8,8 +8,25 @@ import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css'
 import axios from 'axios';
 
+type ResponseData = {
+  createdAt: number;
+  diurese: string;
+  evacuacao: string;
+  frequenciaCardiaca: string;
+  frequenciaRespiratoria: string;
+  glicemiaCapilar: string;
+  pressaoArterial: string;
+  residente_id: string;
+  saturacao: string;
+  temperatura: string;
+  updatedAt: string;
+  usuario_id: string;
+  usuario_nome: string;
+  _id: string;
+}
+
 const DashboardsSinaisVitais = () => {
-  const [data, setData] = useState();
+  const [data, setData] = useState<ResponseData[]>([]);
 
   const fetchData = async () => {
     const response = await axios.get('/api/Controller/SinaisVitaisController?type=pages&skip=0&limit=5')

@@ -34,11 +34,16 @@ export function formatarTexto(texto) {
 
 export function getCurrentDateTime() {
   const currentDate = new Date();
-  const year = currentDate.getFullYear();
-  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-  const day = String(currentDate.getDate()).padStart(2, '0');
-  const hours = String(currentDate.getHours()).padStart(2, '0');
-  const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+  const brazilTimeOffset = -3 * 60; // Brazil time offset in minutes (-3 hours)
+
+  // Apply the offset to the current date
+  const brazilTime = new Date(currentDate.getTime() + brazilTimeOffset * 60 * 1000);
+
+  const year = brazilTime.getFullYear();
+  const month = String(brazilTime.getMonth() + 1).padStart(2, '0');
+  const day = String(brazilTime.getDate()).padStart(2, '0');
+  const hours = String(brazilTime.getHours()).padStart(2, '0');
+  const minutes = String(brazilTime.getMinutes()).padStart(2, '0');
 
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
