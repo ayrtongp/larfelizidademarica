@@ -43,7 +43,7 @@ const RelSinaisVitais = () => {
     <div className='text-center mt-3'>
       <h2 className='font-bold text-xl'>RELATÓRIO SINAIS VITAIS</h2>
       <div className='mt-4 w-full overflow-x-auto'>
-        <table className='text-center text-xs border rounded-md p-2'>
+        <table id='rel-sinais-tabela' className='text-center text-xs border rounded-md p-2'>
           <thead className='bg-gray-200'>
             <tr className="bg-black font-bold text-white">
               <th className='px-2 hidden'>ID</th>

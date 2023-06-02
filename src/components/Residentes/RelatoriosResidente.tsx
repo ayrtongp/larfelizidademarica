@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
 import RelSinaisVitais from './RelSinaisVitais';
 import RelAnotacoes from './RelAnotacoes';
+import dynamic from 'next/dynamic';
 
 const RelatoriosResidente = () => {
   const [relatorio, setRelatorio] = useState('');
-
+  
   const handleChangeRelatorio = (event: any) => {
     setRelatorio(event.currentTarget.id)
   }
-
+  
   return (
     <div>
-
       {/* RELATÓRIOS DISPONÍVEIS */}
       <ul className='flex flex-row flex-wrap gap-2'>
         {/* ITEM */}

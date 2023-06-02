@@ -2,6 +2,7 @@ import { notifyError, notifySuccess } from '@/utils/Functions';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
+import { FiCheck, FiLoader } from "react-icons/fi";
 
 const Semiologia = () => {
 
@@ -11,6 +12,8 @@ const Semiologia = () => {
     temperatura: '', saturacao: '', glicemiaCapilar: '', diurese: '', evacuacao: '',
   }
 
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
   const [ultimoRegistro, setUltimoRegistro] = useState();
   const [linhaSinais, setLinhasSinais] = useState(camposLinhaGrid);
   const router = useRouter();
@@ -48,7 +51,8 @@ const Semiologia = () => {
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: any) => {
+    setLoading(true)
     try {
       const userInfo = localStorage.getItem('userInfo');
       const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
@@ -66,18 +70,40 @@ const Semiologia = () => {
         body: JSON.stringify(linhaSinais),
       });
       if (res.ok) {
+        setResult('success')
         notifySuccess('Sinal(is) Adicionado(s) com sucesso!')
       } else {
+        setResult('error')
         notifyError('Houve um problema ao adicionar os Sinais Vitais')
       }
     } catch (error) {
       notifyError('Erro desconhecido, contate o administrador')
       console.error(error);
     }
+
+    setLoading(false)
   };
 
   return (
     <>
+      {loading ? (
+        <div className='fixed inset-0 flex flex-col justify-center items-center bg-gray-500 bg-opacity-80 z-50'>
+          <div className="text-4xl text-gray-600">
+            <FiLoader className="animate-spin" />
+          </div>
+          <h3 className='animate-pulse text-gray-600 font-bold text-2xl'>Carregando...</h3>
+        </div>
+      ) : result == "success" ? (
+        <div className="text-4xl text-green-500">
+          <FiCheck />
+        </div>
+      ) : result == "error" ? (
+        <div className="text-red-500">An error occurred.</div>
+      ) : (
+        null
+      )
+      }
+
       {/* TÍTULO */}
       <div className='text-center'>
         <h1 className='text-red-500 font-bold mb-2'>Sinais Vitais</h1>
