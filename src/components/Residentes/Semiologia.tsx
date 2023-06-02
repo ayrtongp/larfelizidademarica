@@ -72,7 +72,7 @@ const Semiologia = () => {
       if (res.ok) {
         setResult('success')
         notifySuccess('Sinal(is) Adicionado(s) com sucesso!')
-        camposSinaisVitais.forEach((item) => { item.value = ""; });
+        setLinhasSinais(camposLinhaGrid)
       } else {
         setResult('error')
         notifyError('Houve um problema ao adicionar os Sinais Vitais')
@@ -94,14 +94,6 @@ const Semiologia = () => {
           </div>
           <h3 className='animate-pulse text-gray-600 font-bold text-2xl'>Carregando...</h3>
         </div>
-      ) : result == "success" ? (
-        <div className='fixed inset-0 flex flex-col justify-center items-center bg-gray-500 bg-opacity-80 z-50'>
-          <div className="text-4xl text-green-500">
-            <FiCheck />
-          </div>
-        </div>
-      ) : result == "error" ? (
-        <div className="text-red-500">An error occurred.</div>
       ) : (
         null
       )
@@ -118,7 +110,7 @@ const Semiologia = () => {
         <span>Atualizado Por: {ultimoRegistro?.['usuario_nome']}</span>
       </div>
 
-      <div className="grid grid-cols-1 xs:grid-cols-3 gap-2"> {/* linha para cadastro */}
+      <div id='divFormSinais' className="grid grid-cols-1 xs:grid-cols-3 gap-2"> {/* linha para cadastro */}
         {camposSinaisVitais.map((field, index) => {
           return (
             <div key={index} className="">
