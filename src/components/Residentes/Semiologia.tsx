@@ -72,6 +72,7 @@ const Semiologia = () => {
       if (res.ok) {
         setResult('success')
         notifySuccess('Sinal(is) Adicionado(s) com sucesso!')
+        camposSinaisVitais.forEach((item) => { item.value = ""; });
       } else {
         setResult('error')
         notifyError('Houve um problema ao adicionar os Sinais Vitais')
@@ -94,8 +95,10 @@ const Semiologia = () => {
           <h3 className='animate-pulse text-gray-600 font-bold text-2xl'>Carregando...</h3>
         </div>
       ) : result == "success" ? (
-        <div className="text-4xl text-green-500">
-          <FiCheck />
+        <div className='fixed inset-0 flex flex-col justify-center items-center bg-gray-500 bg-opacity-80 z-50'>
+          <div className="text-4xl text-green-500">
+            <FiCheck />
+          </div>
         </div>
       ) : result == "error" ? (
         <div className="text-red-500">An error occurred.</div>
