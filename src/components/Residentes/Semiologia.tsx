@@ -12,7 +12,6 @@ const Semiologia = () => {
     temperatura: '', saturacao: '', glicemiaCapilar: '', diurese: '', evacuacao: '',
   }
 
-  const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [ultimoRegistro, setUltimoRegistro] = useState();
   const [linhaSinais, setLinhasSinais] = useState(camposLinhaGrid);
@@ -70,11 +69,9 @@ const Semiologia = () => {
         body: JSON.stringify(linhaSinais),
       });
       if (res.ok) {
-        setResult('success')
         notifySuccess('Sinal(is) Adicionado(s) com sucesso!')
         setLinhasSinais(camposLinhaGrid)
       } else {
-        setResult('error')
         notifyError('Houve um problema ao adicionar os Sinais Vitais')
       }
     } catch (error) {

@@ -3,7 +3,7 @@ import { getUserID } from '@/utils/Login'
 import React, { useEffect, useState } from 'react'
 
 const FormNovoUsuario = () => {
-  const [categorias, setCategorias] = useState({ idosos: false, sinaisVitais: false, livroOcorrencias: false, insumos: false, })
+  const [categorias, setCategorias] = useState({ idosos: false, sinaisVitais: false, livroOcorrencias: false, insumos: false, residentes: false})
   const [formData, setFormData] = useState({
     nome: '', sobrenome: '', usuario: '', dataNascimento: '', senha: '',
     repetirSenha: '', funcao: '', registro: '', email: (Math.random() * 1000 + 1).toFixed(2), admin: 'N', ativo: 'N'
@@ -108,6 +108,10 @@ const FormNovoUsuario = () => {
             <label className="ml-1 inline-flex items-center">
               <input type="checkbox" name='idosos' onChange={handleChangeCheckbox} checked={categorias.idosos} className="form-checkbox h-5 w-5 text-gray-600" />
               <span className="ml-2 text-gray-700">Idosos</span>
+            </label>
+            <label className="ml-1 inline-flex items-center">
+              <input type="checkbox" name='residentes' onChange={handleChangeCheckbox} checked={categorias.residentes} className="form-checkbox h-5 w-5 text-gray-600" />
+              <span className="ml-2 text-gray-700">Residentes</span>
             </label>
             <label className="ml-1 inline-flex items-center">
               <input type="checkbox" name='sinaisVitais' onChange={handleChangeCheckbox} checked={categorias.sinaisVitais} className="form-checkbox h-5 w-5 text-gray-600" />
