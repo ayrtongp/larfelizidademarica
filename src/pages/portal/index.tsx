@@ -8,6 +8,7 @@ import DashboardsSinaisVitais from '@/components/Dashboard/DashboardsSinaisVitai
 import { useRouter } from 'next/router';
 import SinaisNaoRegistradosHoje from '@/components/Dashboard/SinaisNaoRegistradosHoje';
 import AnotacoesNaoRegistradasHoje from '@/components/Dashboard/AnotacoesNaoRegistradasHoje';
+import EvolucaoResidente from '@/components/Dashboard/EvolucaoResidente';
 // import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 // import DashboardAvatars from '../partials/dashboard/DashboardAvatars';
 // import FilterButton from '../partials/actions/FilterButton';
@@ -29,8 +30,7 @@ function Index() {
               <div className="sm:flex sm:justify-between sm:items-center mb-8">
               </div>
               <div className="grid grid-cols-12 gap-6">
-                <SinaisNaoRegistradosHoje />
-                <AnotacoesNaoRegistradasHoje />
+                <EvolucaoResidente />
               </div>
             </div>
           </main>

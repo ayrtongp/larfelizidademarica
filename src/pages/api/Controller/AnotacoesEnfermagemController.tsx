@@ -94,8 +94,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         try {
           const skip = parseInt(req.query.skip as unknown as string)
           const limit = parseInt(req.query.limit as unknown as string)
-          const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
 
+          // -------------------------
+          // FILTRO ID - LISTAR PAGINADO
+          // -------------------------
+
+          if (req.query.residente_id) {
+            const residente_id = req.query.residente_id as string
+            console.log(residente_id)
+            const data = await mainCollection.find({ residente_id: residente_id }).sort({ data: 1 }).skip(skip).limit(limit).toArray();
+            const count = await mainCollection.countDocuments({ residente_id: residente_id })
+            return res.status(200).json({ count: count, data: data });
+          }
+
+          const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
           return res.status(200).json({ data: data });
         } catch (err) {
           console.log(err)
