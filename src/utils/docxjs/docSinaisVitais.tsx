@@ -1,9 +1,7 @@
 import { saveAs } from 'file-saver';
 import { AlignmentType, BorderStyle, Document, Header, HeadingLevel, ImageRun, Media, Packer, PageOrientation, Paragraph, Table, TableCell, TableRow, TextRun, TextWrappingSide, TextWrappingType, VerticalAlign, WidthType } from 'docx';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
 
-const generateDocx = async (data: any, responsaveis: any) => {
+async function generateDocx(data: any, responsaveis: any, nome: string, cpf: string, dataInicio: string, dataFim: string, nomeDoc: string) {
   console.log(data)
   console.log(responsaveis)
 
@@ -196,6 +194,45 @@ const generateDocx = async (data: any, responsaveis: any) => {
     ]
   })
 
+  const tableInfoRelatorio = new Table({
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 10000, type: WidthType.DXA, },
+            children: [paragrafoInformacoes('Nome do Residente:', nome)],
+            borders: {
+              top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+            },
+          }),
+          new TableCell({
+            width: { size: 10000, type: WidthType.DXA, },
+            children: [paragrafoInformacoes('CPF:', cpf)],
+            borders: {
+              top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+            },
+          }),
+          new TableCell({
+            width: { size: 10000, type: WidthType.DXA, },
+            children: [paragrafoInformacoes('Data do Relatório:', `${dataInicio} à ${dataFim}`)],
+            borders: {
+              top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+              right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+            },
+          }),
+        ]
+      }),
+    ]
+  })
+
   const doc = new Document(
     {
       sections: [
@@ -205,13 +242,11 @@ const generateDocx = async (data: any, responsaveis: any) => {
           children: [
             _heading1("Relatório de Sinais Vitais"),
             espacoEmBranco,
-            paragrafoInformacoes('Nome do Residente:', "Alex Correia"),
-            paragrafoInformacoes('Data do Relatório:', "05/06/2023 à 12/06/2023"),
+            tableInfoRelatorio,
             espacoEmBranco,
             table,
             espacoEmBranco,
             _heading2("Assinaturas"),
-            espacoEmBranco,
             table2,
           ],
 
@@ -220,39 +255,8 @@ const generateDocx = async (data: any, responsaveis: any) => {
     });
 
   Packer.toBlob(doc).then((blob) => {
-    saveAs(blob, 'example.docx');
+    saveAs(blob, `${nomeDoc}.docx`);
   });
 }
 
-// Done! A file called 'My Document.docx' will be in your file system.
-
-const TestePage = () => {
-  const [arrayData, setArrayData] = useState([]);
-  const [responsaveis, setResponsaveis] = useState([]);
-
-  async function fetchData() {
-    const result = await axios.get('api/Controller/SinaisVitaisController?type=report&id=6475443e621d1604edb0c4c3&dataInicio=2023-06-05&dataFim=2023-06-12')
-    if (result.status > 199 && result.status < 300) {
-      const names = result.data.map((item: any) => item.usuario_nome);
-      const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
-      setArrayData(result.data)
-      setResponsaveis(uniqueNames)
-      console.log('fetched')
-    }
-  }
-
-  useEffect(() => { fetchData() }, [])
-
-  const handleClick = async () => {
-    await generateDocx(arrayData, responsaveis);
-  };
-
-  return (
-    <div>
-      <h1>Teste Page</h1>
-      <button onClick={handleClick}>Generate Document</button>
-    </div>
-  );
-};
-
-export default TestePage;
+export default generateDocx;

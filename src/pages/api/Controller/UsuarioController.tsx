@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         try {
           const usuarios = await mainCollection.find(
             {},
-            { projection: { _id: 1, usuario: 1, nome: 1, sobrenome: 1, email: 1, tipo: 1, status: 1 } })
+            { projection: { _id: 1, usuario: 1, nome: 1, sobrenome: 1, email: 1, foto_base64: 1, ativo: 1, admin: 1, dataNascimento: 1, funcao: 1, registro: 1 } })
             .toArray();
           const url = `UsuarioController`
 

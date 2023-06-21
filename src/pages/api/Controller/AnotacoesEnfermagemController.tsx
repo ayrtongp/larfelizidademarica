@@ -90,6 +90,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // LISTAR PAGINADO
       // -------------------------
 
+      
+      // -------------------------
+      // RELATÓRIO SINAIS VITAIS ENTRE DATAS E POR IDOSO
+      // -------------------------
+
+      else if (req.query.type == "report") {
+        console.log('oiiiii')
+
+        const dataInicio = (req.query.dataInicio as string).split(",")[0];
+        const dataFim = (req.query.dataFim as string).split(",")[0];
+
+        const documents = await mainCollection.find({
+          residente_id: req.query.id,
+          createdAt: {
+            $gte: dataInicio,
+            $lte: dataFim,
+          }
+        }).toArray();
+        console.log(documents)
+        return res.status(200).json(documents);
+      }
+
       else if (req.query.type == 'pages') {
         try {
           const skip = parseInt(req.query.skip as unknown as string)

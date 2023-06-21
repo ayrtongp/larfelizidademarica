@@ -31,6 +31,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
+      // RELATÓRIO SINAIS VITAIS ENTRE DATAS E POR IDOSO
+      // -------------------------
+
+      if (req.query.type == "report") {
+        console.log('oiiiii')
+
+        const dataInicio = (req.query.dataInicio as string).split(",")[0];
+        const dataFim = (req.query.dataFim as string).split(",")[0];
+
+        const documents = await mainCollection.find({
+          residente_id: req.query.id,
+          createdAt: {
+            $gte: dataInicio,
+            $lte: dataFim,
+          }
+        }).toArray();
+        console.log(documents)
+        return res.status(200).json(documents);
+      }
+
+      // -------------------------
       // BUSCAR O ÚLTIMO REGISTRO COM BASE NO ID DO RESIDENTE
       // -------------------------
 
@@ -110,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           if (req.query.residente_id) {
             const residente_id = req.query.residente_id as string
             console.log(residente_id)
-            const data = await mainCollection.find({ residente_id: residente_id }).skip(skip).limit(limit).toArray();
+            const data = await mainCollection.find({ residente_id: residente_id }).sort({$natural: -1}).skip(skip).limit(limit).toArray();
             const count = await mainCollection.countDocuments({ residente_id: residente_id })
             return res.status(200).json({ count: count, data: data });
           }

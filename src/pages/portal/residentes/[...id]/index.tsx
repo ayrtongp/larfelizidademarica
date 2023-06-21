@@ -218,7 +218,7 @@ const ResidenteDetalhes = () => {
                 {/* RELATÓRIOS */}
                 {classeAtiva == "menuRelatorios" && (
                   <div className='p-3'>
-                    <RelatoriosResidente />
+                    <RelatoriosResidente residenteData={residenteData} />
                   </div>
                 )}
 

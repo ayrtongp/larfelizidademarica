@@ -33,7 +33,7 @@ const MenuDropDown = ({ props }: any) => {
             <div className='lg:h-8 lg:w-8 h-7 w-7 rounded-full'>
               <Image src={foto ? foto : profilephoto} width={64} height={64} alt='/' id='foto_perfil' className='block w-full h-full object-cover rounded-full' />
             </div>
-            <span className='ml-2 sm:block hidden'>{nome}</span>
+            <span className='ml-2 text-black font-bold sm:block hidden'>{nome}</span>
             <HiChevronDown className="sm:block hidden ml-2 -mr-1 h-5 w-5 text-violet-200 hover:text-violet-100" aria-hidden="true" />
           </Menu.Button>
         </div>
