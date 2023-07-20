@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import RelSinaisVitais from './RelSinaisVitais';
 import RelAnotacoes from './RelAnotacoes';
+import RelEvolucoes from './RelEvolucoes';
 
 const RelatoriosResidente = ({residenteData}: any) => {
   const [relatorio, setRelatorio] = useState('');
@@ -27,6 +28,13 @@ const RelatoriosResidente = ({residenteData}: any) => {
             Anotações Enf.
           </button>
         </li>
+
+        {/* ITEM */}
+        <li id='rel-evolucoes' onClick={handleChangeRelatorio}>
+          <button className='text-white bg-indigo-500 px-3 py-2 text-xs rounded-md shadow-md'>
+            Evolução
+          </button>
+        </li>
       </ul>
 
       {/* DADOS RELATÓRIO */}
@@ -43,6 +51,13 @@ const RelatoriosResidente = ({residenteData}: any) => {
         {relatorio == "rel-anotacoes" && (
           <div className='p-3'>
             <RelAnotacoes residenteData={residenteData} />
+          </div>
+        )}
+
+        {/* CONTEÚDO RELATÓRIO EVOLUÇÃO */}
+        {relatorio == "rel-evolucoes" && (
+          <div className='p-3'>
+            <RelEvolucoes residenteData={residenteData} />
           </div>
         )}
 

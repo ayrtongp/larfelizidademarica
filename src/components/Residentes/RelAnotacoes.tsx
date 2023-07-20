@@ -1,4 +1,4 @@
-import { formatDateBRHora } from '@/utils/Functions';
+import { formatDateBRHora, formatStringDate } from '@/utils/Functions';
 import axios from 'axios'
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
@@ -47,6 +47,10 @@ const RelAnotacoes = ({ residenteData }: any) => {
     const { count, data } = await response.data
     setTotal(count)
     setRelatorioData(data)
+
+    const names = await data.map((item: any) => item.usuario_nome);
+    const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
+    setNomesResponsaveis(uniqueNames)
   }
 
   useEffect(() => {
@@ -54,7 +58,7 @@ const RelAnotacoes = ({ residenteData }: any) => {
   }, [])
 
   const reportByDate = async () => {
-    const result = await axios.get(`/api/Controller/AnotacoesEnfermagemController?type=report&id=${residente_id}&dataInicio=${dataInicio}&dataFim=${dataFim}`)
+    const result = await axios.get(`/api/Controller/AnotacoesEnfermagemController?type=report&id=${residente_id}&dataInicio=${dataInicio}&dataFim=${incrementDate(dataFim)}`)
     if (result.status > 199 && result.status < 300) {
       const names = await result.data.map((item: any) => item.usuario_nome);
       const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
@@ -75,7 +79,7 @@ const RelAnotacoes = ({ residenteData }: any) => {
       setDataInicio(valorCampo)
     }
     else if (nomeCampo == "rel_data_fim") {
-      setDataFim(incrementDate(valorCampo))
+      setDataFim(valorCampo)
     }
 
   }
@@ -102,12 +106,12 @@ const RelAnotacoes = ({ residenteData }: any) => {
     const cpf = residenteData.cpf;
     const firstFiveNumbers = cpf.replace(/\D/g, "").slice(0, 5);
     const primeiroNome = residenteData.nome.split(' ')[0]
-    const nameOf = `Rel_Sinais_${primeiroNome}${firstFiveNumbers}_${dataInicio}_${dataFim}`
+    const nameOf = `Rel_Evolucao_${primeiroNome}${firstFiveNumbers}_${dataInicio}_${dataFim}`
     return nameOf
   }
 
   const handleGenerateDoc = () => {
-    generateDocx(relatorioData, nomesResponsaveis, residenteData.nome, residenteData.cpf, dataInicio, dataFim, docName())
+    generateDocx(relatorioData, nomesResponsaveis, residenteData.nome, residenteData.cpf, formatStringDate('dd/mm/yy', dataInicio), formatStringDate('dd/mm/yy', dataFim), docName())
   }
 
   return (

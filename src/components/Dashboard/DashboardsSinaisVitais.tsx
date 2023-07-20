@@ -31,7 +31,6 @@ const DashboardsSinaisVitais = () => {
   const fetchData = async () => {
     const response = await axios.get('/api/Controller/SinaisVitaisController?type=pages&skip=0&limit=5')
     const { data } = response.data
-    console.log(data)
     setData(data)
   }
 

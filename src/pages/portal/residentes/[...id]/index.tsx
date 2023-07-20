@@ -9,8 +9,9 @@ import { FaEdit, FaHeart, FaInfo } from 'react-icons/fa'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 import ResidenteAccordion from '@/components/Residentes/ResidenteAccordion'
 import Semiologia from '@/components/Residentes/Semiologia'
+import Evolucao from '@/components/Residentes/Evolucao'
 import AnotacoesEnfermagem from '@/components/Residentes/AnotacoesEnfermagem'
-import { HiAnnotation } from 'react-icons/hi'
+import { HiAnnotation, HiBriefcase } from 'react-icons/hi'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import svgClipboardText from '@/svg/clipboardtext'
 import RelatoriosResidente from '@/components/Residentes/RelatoriosResidente'
@@ -45,6 +46,7 @@ const ResidenteDetalhes = () => {
     if (e.currentTarget.id == 'menuInfo') setNomeClasse("Informações do Residente")
     if (e.currentTarget.id == 'menuSemio') setNomeClasse("Semiologia")
     if (e.currentTarget.id == 'menuAnotacoes') setNomeClasse("Semiologia")
+    if (e.currentTarget.id == 'menuEvolucao') setNomeClasse("Evolução")
     if (e.currentTarget.id == 'menuRelatorios') setNomeClasse("Relatórios")
   }
 
@@ -171,6 +173,13 @@ const ResidenteDetalhes = () => {
                     </li>
 
                     {/* Item */}
+                    <li id='menuEvolucao' onClick={handleMenuClick}
+                      className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuEvolucao" ? efeitoClasseAtiva : null}`}>
+                      <span className='p-2 text-orange-600 w-2/12 '><HiBriefcase /></span>
+                      <p className='w-10/12 ml-4'>Evolução</p>
+                    </li>
+
+                    {/* Item */}
                     <li id='menuRelatorios' onClick={handleMenuClick}
                       className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuRelatorios" ? efeitoClasseAtiva : null}`}>
                       <span className='p-2 text-green-600 w-2/12 '>{svgClipboardText()}</span>
@@ -212,6 +221,13 @@ const ResidenteDetalhes = () => {
                 {classeAtiva == "menuAnotacoes" && (
                   <div className='p-3'>
                     <AnotacoesEnfermagem />
+                  </div>
+                )}
+
+                {/* EVOLUÇÃO */}
+                {classeAtiva == "menuEvolucao" && (
+                  <div className='p-3'>
+                    <Evolucao />
                   </div>
                 )}
 

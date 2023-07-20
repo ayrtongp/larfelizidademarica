@@ -1,72 +1,53 @@
 import { formatDateBRHora, formatStringDate } from '@/utils/Functions';
-import generateDocx from '@/utils/docxjs/docSinaisVitais';
 import axios from 'axios'
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
 import { FaDownload } from 'react-icons/fa';
+import generateDocx from '@/utils/docxjs/docAnotacoesEnfermagem';
+
 
 type RelatorioData = {
-  createdAt: string;
-  diurese: string;
-  evacuacao: string;
-  frequenciaCardiaca: string;
-  frequenciaRespiratoria: string;
-  glicemiaCapilar: string;
-  pressaoArterial: string;
-  residente_id: string;
-  saturacao: string;
-  temperatura: string;
-  updatedAt: string;
-  usuario_id: string;
-  usuario_nome: string;
-  _id: string;
+  _id: string, 
+
+  categoria: string,
+  dataEvolucao: string,
+  descricao: string,
+  area: string,
+
+  residente_id: string,
+  usuario_id: string,
+  usuario_nome: string,
 }
 
-export async function getServerSideProps() {
-  return {
-    props: {}
-  };
-}
-
-const RelSinaisVitais = ({ residenteData }: any) => {
+const RelAnotacoes = ({ residenteData }: any) => {
   const [skip, setSkip] = useState(0);
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
   const [limit, setLimit] = useState(100);
   const [total, setTotal] = useState(0);
   const [relatorioData, setRelatorioData] = useState<RelatorioData[]>([]);
   const router = useRouter();
   const residente_id = router.query?.id?.[0]
   const [nomesResponsaveis, setNomesResponsaveis] = useState();
-  const [idResponsaveis, setIdResponsaveis] = useState([]);
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
 
-  const getSinaisResidente = async () => {
-    const response = await axios.get(`/api/Controller/SinaisVitaisController?type=pages&residente_id=${residente_id}&skip=${skip}&limit=${limit}`)
+  const getAnotacoesResidente = async () => {
+    const response = await axios.get(`/api/Controller/EvolucaoController?type=pages&residente_id=${residente_id}&skip=${skip}&limit=${limit}`)
     const { count, data } = await response.data
     setTotal(count)
     setRelatorioData(data)
+    console.log(data)
 
     const names = await data.map((item: any) => item.usuario_nome);
     const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
-    const ids = await data.map((item: any) => item.usuario_id);
-    const uniqueIds = ids.filter((name: any, index: any) => ids.indexOf(name) === index);
-    setIdResponsaveis(uniqueIds)
     setNomesResponsaveis(uniqueNames)
   }
 
-  async function getResponsaveisData() {
-    const objIds = { "arrayIds": idResponsaveis }
-    const config = { headers: { 'Content-Type': 'application/json' } }
-    const res = await fetch("/api/Controller/UsuarioController?type=arrayIds", {
-      method: "POST",
-      body: JSON.stringify(objIds),
-    });
-    const data = await res.json()
-    return data.result
-  }
+  useEffect(() => {
+    getAnotacoesResidente()
+  }, [])
 
   const reportByDate = async () => {
-    const result = await axios.get(`/api/Controller/SinaisVitaisController?type=report&id=${residente_id}&dataInicio=${dataInicio}&dataFim=${incrementDate(dataFim)}`)
+    const result = await axios.get(`/api/Controller/EvolucaoController?type=report&id=${residente_id}&dataInicio=${dataInicio}&dataFim=${incrementDate(dataFim)}`)
     if (result.status > 199 && result.status < 300) {
       const names = await result.data.map((item: any) => item.usuario_nome);
       const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
@@ -75,9 +56,10 @@ const RelSinaisVitais = ({ residenteData }: any) => {
     }
   }
 
-  useEffect(() => {
-    getSinaisResidente()
-  }, [])
+  const handleSubmit = async (e: any) => {
+    e.preventDefault()
+    await reportByDate()
+  }
 
   const handleChangefiltroData = (e: any) => {
     const nomeCampo = e.target.name
@@ -108,30 +90,25 @@ const RelSinaisVitais = ({ residenteData }: any) => {
     return `${incrementedYear}-${incrementedMonth}-${incrementedDay}`;
   }
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault()
-    await reportByDate()
-  }
 
   function docName() {
     const cpf = residenteData.cpf;
     const firstFiveNumbers = cpf.replace(/\D/g, "").slice(0, 5);
     const primeiroNome = residenteData.nome.split(' ')[0]
-    const nameOf = `Rel_Sinais_${primeiroNome}${firstFiveNumbers}_${dataInicio}_${dataFim}`
+    const nameOf = `Rel_Evolucao_${primeiroNome}${firstFiveNumbers}_${dataInicio}_${dataFim}`
     return nameOf
   }
 
-  const handleGenerateDoc = async () => {
-    const teste = await getResponsaveisData()
-    generateDocx(relatorioData, teste, residenteData.nome, residenteData.cpf, formatStringDate('dd/mm/yy', dataInicio), formatStringDate('dd/mm/yy', dataFim), docName())
+  const handleGenerateDoc = () => {
+    generateDocx(relatorioData, nomesResponsaveis, residenteData.nome, residenteData.cpf, formatStringDate('dd/mm/yy', dataInicio), formatStringDate('dd/mm/yy', dataFim), docName())
   }
 
   return (
     <div className='text-center mt-3'>
       <div className='flex flex-col  md:flex-row justify-between items-center'>
         {/* HEADER */}
-        <h2 className='font-bold text-xl'>RELATÓRIO SINAIS VITAIS</h2>
-        <div onClick={handleGenerateDoc} className='py-2 px-4 rounded-full text-white bg-blue-500'>
+        <h2 className='font-bold text-xl'>RELATÓRIO - ANOTAÇÕES DE ENFERMAGEM</h2>
+        <div onClick={handleGenerateDoc} className='hidden py-2 px-4 rounded-full text-white bg-blue-500'>
           <FaDownload />
         </div>
       </div>
@@ -161,35 +138,23 @@ const RelSinaisVitais = ({ residenteData }: any) => {
               <th className='px-2 hidden'>ID</th>
               <th className='px-2'>Data Registro</th>
               <th className='px-2'>Responsável</th>
-              <th className='px-2'>Pressão Arterial</th>
-              <th className='px-2'>Freq. Cardíaca</th>
-              <th className='px-2'>Freq. Respiratória</th>
-              <th className='px-2'>Temperatura</th>
-              <th className='px-2'>Saturação</th>
-              <th className='px-2'>Glicemia Capilar</th>
-              <th className='px-2'>Diurese</th>
-              <th className='px-2'>Evacuações</th>
+
+              <th className='px-2'>Categoria</th>
+              <th className='px-2'>Setor</th>
+              <th className='px-2'>Descrição</th>
             </tr>
           </thead>
           <tbody>
-            {relatorioData.map((linha, index) => {
-              return (
-                <tr key={linha._id} className={`${index % 2 === 0 ? "bg-gray-100" : "bg-white"}`}>
-                  <td className="hidden px-4 py-1 border">{linha._id}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{formatDateBRHora(linha.createdAt)}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.usuario_nome}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.pressaoArterial}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.frequenciaCardiaca}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.frequenciaRespiratoria}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.temperatura}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.saturacao}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.glicemiaCapilar}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.diurese}</td>
-                  <td className="whitespace-nowrap px-4 py-1 border">{linha.evacuacao}</td>
-                </tr>
-              )
-            }
-            )}
+            {relatorioData.map((linha, index) => (
+              <tr key={linha._id} className={`${index % 2 === 0 ? "bg-gray-100" : "bg-white"}`}>
+                <td className="hidden px-4 py-1 border">{linha._id}</td>
+                <td className="whitespace-nowrap px-4 py-1 border">{formatStringDate('yyyy-mm-dd', linha.dataEvolucao)}</td>
+                <td className="whitespace-nowrap px-4 py-1 border">{linha.usuario_nome}</td>
+                <td className="whitespace-nowrap px-4 py-1 border">{linha.categoria}</td>
+                <td className="whitespace-nowrap px-4 py-1 border">{linha.area}</td>
+                <td className="max-w-xs whitespace-normal px-4 py-1 border">{linha.descricao}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -199,4 +164,4 @@ const RelSinaisVitais = ({ residenteData }: any) => {
   )
 }
 
-export default RelSinaisVitais
+export default RelAnotacoes

@@ -20,6 +20,26 @@ export function formatDateBRHora(data) {
   return formattedDate;
 }
 
+export function formatStringDate(format, data) {
+  if (format == 'yymmdd') {
+    const formattedDate = data.split('-').join('').slice(2);
+    return formattedDate;
+  }
+  else if (format == 'dd/mm/yy') {
+    const [year, month, day] = data.split('-');
+    const formattedDate = `${day}/${month}/${year.slice(2)}`;
+    return formattedDate;
+  }
+  else if (format == 'yyyy-mm-dd') {
+    if (data !== undefined) {
+      console.log(data)
+      const [year, month, day] = data.split('-');
+      const formattedDate = `${day}/${month}/${year.slice(2)}`;
+      return formattedDate;
+    }
+  }
+}
+
 export function formatarTexto(texto) {
   if (texto != undefined && texto != null && texto != '') {
     // Remove acentos e converte para minúsculo

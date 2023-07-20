@@ -26,13 +26,10 @@ const ListaUsuarios = () => {
       if (result.status >= 200 && result.status < 300) {
         setListaUsuarios(result.data.usuarios)
       }
-      console.log('oi')
     }
   }
 
   useEffect(() => { getListaUsuarios() }, [])
-
-  console.log('hey')
 
   return (
     <div className='relative overflow-x-auto shadow-md sm:rounded-lg'>

@@ -2,9 +2,7 @@ import { saveAs } from 'file-saver';
 import { AlignmentType, BorderStyle, Document, Header, HeadingLevel, ImageRun, Media, Packer, PageOrientation, Paragraph, Table, TableCell, TableRow, TextRun, TextWrappingSide, TextWrappingType, VerticalAlign, WidthType } from 'docx';
 
 async function generateDocx(data: any, responsaveis: any, nome: string, cpf: string, dataInicio: string, dataFim: string, nomeDoc: string) {
-  console.log(data)
   console.log(responsaveis)
-
   const espacoEmBranco = new Paragraph({})
 
   function textoLivre(texto: string) {
@@ -89,6 +87,7 @@ async function generateDocx(data: any, responsaveis: any, nome: string, cpf: str
     const size = 30000 / columns
     return (
       new TableRow({
+        tableHeader: true,
         children: [
           celulaCabecalho(size, "Data Registro", true),
           celulaCabecalho(size, "Responsável", true),

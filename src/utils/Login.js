@@ -27,6 +27,11 @@ export function getUserID() {
   return userId
 }
 
+export function getUserFuncao() {
+  const funcao = JSON.parse(localStorage.getItem('userInfo')).funcao
+  return funcao
+}
+
 export function updateProfile() {
   const userIdString = localStorage.getItem('userInfo');
   if (userIdString) {

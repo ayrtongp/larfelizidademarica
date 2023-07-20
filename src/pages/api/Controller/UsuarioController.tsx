@@ -9,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
   const mainCollection = db.collection('usuario')
 
   switch (req.method) {
-
     case 'GET':
 
       // -------------------------
@@ -65,6 +64,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       break;
 
     case 'POST':
+
+      // -------------------------
+      // RETORNAR UM ARRAY DE USUARIOS
+      // -------------------------
+
+      if (req.query.type == 'arrayIds') {
+        try {
+
+          const { arrayIds } = JSON.parse(req.body)
+          const transformedData = arrayIds.map((id: string) => new ObjectId(id));
+          console.log(transformedData)
+          const query = {
+            _id: { $in: transformedData }
+          }
+
+          const fields = {
+            projection: { _id: 1, nome: 1, sobrenome: 1, funcao: 1, registro: 1 }
+          }
+
+          const result = await mainCollection.find(query, fields).toArray()
+
+          return res.status(201).json({ result, method: 'POST', type: 'arrayIds' });
+
+        } catch (error) {
+          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
 
       // -------------------------
       // CRIAR NOVO USUÁRIO
