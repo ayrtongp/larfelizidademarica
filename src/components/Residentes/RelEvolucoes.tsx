@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
 import { FaDownload } from 'react-icons/fa';
-import generateDocx from '@/utils/docxjs/docAnotacoesEnfermagem';
+import generateDocx from '@/utils/docxjs/docEvolucao';
 
 
 type RelatorioData = {
@@ -29,6 +29,8 @@ const RelAnotacoes = ({ residenteData }: any) => {
   const [nomesResponsaveis, setNomesResponsaveis] = useState();
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [idResponsaveis, setIdResponsaveis] = useState([]);
+
 
   const getAnotacoesResidente = async () => {
     const response = await axios.get(`/api/Controller/EvolucaoController?type=pages&residente_id=${residente_id}&skip=${skip}&limit=${limit}`)
@@ -39,6 +41,9 @@ const RelAnotacoes = ({ residenteData }: any) => {
 
     const names = await data.map((item: any) => item.usuario_nome);
     const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
+    const ids = await data.map((item: any) => item.usuario_id);
+    const uniqueIds = ids.filter((name: any, index: any) => ids.indexOf(name) === index);
+    setIdResponsaveis(uniqueIds)
     setNomesResponsaveis(uniqueNames)
   }
 
@@ -47,8 +52,10 @@ const RelAnotacoes = ({ residenteData }: any) => {
   }, [])
 
   const reportByDate = async () => {
+    console.log('hey')
     const result = await axios.get(`/api/Controller/EvolucaoController?type=report&id=${residente_id}&dataInicio=${dataInicio}&dataFim=${incrementDate(dataFim)}`)
     if (result.status > 199 && result.status < 300) {
+      console.log('hey2')
       const names = await result.data.map((item: any) => item.usuario_nome);
       const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
       setRelatorioData(await result.data)
@@ -99,8 +106,20 @@ const RelAnotacoes = ({ residenteData }: any) => {
     return nameOf
   }
 
-  const handleGenerateDoc = () => {
-    generateDocx(relatorioData, nomesResponsaveis, residenteData.nome, residenteData.cpf, formatStringDate('dd/mm/yy', dataInicio), formatStringDate('dd/mm/yy', dataFim), docName())
+  async function getResponsaveisData() {
+    const objIds = { "arrayIds": idResponsaveis }
+    const config = { headers: { 'Content-Type': 'application/json' } }
+    const res = await fetch("/api/Controller/UsuarioController?type=arrayIds", {
+      method: "POST",
+      body: JSON.stringify(objIds),
+    });
+    const data = await res.json()
+    return data.result
+  }
+
+  const handleGenerateDoc = async () => {
+    const teste = await getResponsaveisData()
+    generateDocx(relatorioData, teste, residenteData.nome, residenteData.cpf, formatStringDate('dd/mm/yy', dataInicio), formatStringDate('dd/mm/yy', dataFim), docName())
   }
 
   return (
@@ -108,7 +127,7 @@ const RelAnotacoes = ({ residenteData }: any) => {
       <div className='flex flex-col  md:flex-row justify-between items-center'>
         {/* HEADER */}
         <h2 className='font-bold text-xl'>RELATÓRIO - ANOTAÇÕES DE ENFERMAGEM</h2>
-        <div onClick={handleGenerateDoc} className='hidden py-2 px-4 rounded-full text-white bg-blue-500'>
+        <div onClick={handleGenerateDoc} className='cursor-pointer py-2 px-4 rounded-full text-white bg-blue-500'>
           <FaDownload />
         </div>
       </div>
@@ -131,7 +150,7 @@ const RelAnotacoes = ({ residenteData }: any) => {
         </form>
       </div>
 
-      <div className='mt-4 w-full overflow-x-auto'>
+      <div className='mt-4 overflow-x-auto'>
         <table id='rel-sinais-tabela' className='text-center text-xs border rounded-md p-2'>
           <thead className='bg-gray-200'>
             <tr className="bg-black font-bold text-white">
@@ -152,7 +171,7 @@ const RelAnotacoes = ({ residenteData }: any) => {
                 <td className="whitespace-nowrap px-4 py-1 border">{linha.usuario_nome}</td>
                 <td className="whitespace-nowrap px-4 py-1 border">{linha.categoria}</td>
                 <td className="whitespace-nowrap px-4 py-1 border">{linha.area}</td>
-                <td className="max-w-xs whitespace-normal px-4 py-1 border">{linha.descricao}</td>
+                <td className="whitespace-normal px-4 py-1 border">{linha.descricao}</td>
               </tr>
             ))}
           </tbody>
