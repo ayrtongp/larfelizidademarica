@@ -19,6 +19,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
   const dashboardMenu = [
     { title: 'Início', path: '/portal/dashboard' },
+    { title: 'Evoluções', path: '/portal/dashboard/evolucoes' },
   ]
 
   const pessoalMenu = [

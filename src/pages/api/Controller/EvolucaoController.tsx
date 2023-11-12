@@ -28,6 +28,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // ##########################
+      // GET LAST 50
+      // Recupera os últimos 50 registros a paginado
+      // ##########################
+
+      if (req.query.type == "getLast50") {
+        try {
+          const skip = parseInt(req.query.skip as unknown as string)
+          const limit = parseInt(req.query.limit as unknown as string)
+
+          const documents = await mainCollection.find().sort({ $natural: -1 }).skip(skip).limit(limit).toArray();
+          const count = await mainCollection.countDocuments()
+          return res.status(200).json({count: count, data: documents});
+        } catch (err) {
+          console.log(err)
+          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+
+      // ##########################
       // TYPE - report
       // ##########################
 
