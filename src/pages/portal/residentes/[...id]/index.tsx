@@ -35,6 +35,7 @@ const ResidenteDetalhes = () => {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isAdmin = useIsAdmin();
+  const [funcao, setFuncao] = useState('');
 
   const [classeAtiva, setClasseAtiva] = useState('menuInfo');
   const [nomeClasse, setNomeClasse] = useState("Informações do Residente");
@@ -62,6 +63,10 @@ const ResidenteDetalhes = () => {
       const response = await axios.get(`/api/Controller/ResidentesController?type=getID&id=${router.query.id[0]}`)
       const result = await response.data.result
       setResidenteData(result)
+
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') as any | null)
+      const funcaoUsuario = userInfo.funcao
+      setFuncao(funcaoUsuario)
     }
   }
 
@@ -173,11 +178,13 @@ const ResidenteDetalhes = () => {
                     </li>
 
                     {/* Item */}
-                    <li id='menuEvolucao' onClick={handleMenuClick}
-                      className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuEvolucao" ? efeitoClasseAtiva : null}`}>
-                      <span className='p-2 text-orange-600 w-2/12 '><HiBriefcase /></span>
-                      <p className='w-10/12 ml-4'>Evolução</p>
-                    </li>
+                    {funcao != "Téc. de Enfermagem" && funcao != "Cuidador de Idosos" && (
+                      <li id='menuEvolucao' onClick={handleMenuClick}
+                        className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuEvolucao" ? efeitoClasseAtiva : null}`}>
+                        <span className='p-2 text-orange-600 w-2/12 '><HiBriefcase /></span>
+                        <p className='w-10/12 ml-4'>Evolução</p>
+                      </li>
+                    )}
 
                     {/* Item */}
                     <li id='menuRelatorios' onClick={handleMenuClick}

@@ -23,6 +23,7 @@ const AnotacoesEnfermagem = () => {
     { label: "Eliminações", radio: ['Presente', 'Ausente', 'Fralda', 'Dor', 'Odor'] },
     { label: "Eliminações Intestinais", radio: ['Presente', 'Ausente', 'Constipação'] },
     { label: "Ausculta Pulmonar", radio: ['Normal', 'Anormal'] },
+    { label: "Observações", textarea: "" },
   ]
 
   async function getUltimoRegistro() {
@@ -118,27 +119,59 @@ const AnotacoesEnfermagem = () => {
         <span>Atualizado Por: {ultimoRegistro?.['usuario_nome']}</span>
       </div>
 
+      {/* {PEGAR TODOS OS CAMPOS DO TIPO RADIO, TEXTAREA FICA PRA DEPOIS} */}
       <div className="grid grid-cols-1 xs:grid-cols-3 gap-2"> {/* linha para cadastro */}
         {listaEnfermagem.map((item: any, index: number) => {
           const itemFormatted = formatarTexto(item['label'])
-          return (
-            <div key={index} className="mt-2 mb-2 border rounded-sm shadow-sm p-2">
-              <label className="block font-bold mb-2">{item['label']}:</label>
-              <div className="flex flex-col justify-between">
-                {item['radio'].map((r: string, i: number) => {
-                  return (
-                    <label key={i}>
-                      <input type="radio" name={formatarTexto(item['label'])} value={r} onChange={handleChange} className="mr-1" required />{r}
-                    </label>
-                  )
-                })
-                }
+          if (item.radio != undefined) {
+            return (
+              <div key={index} className="mt-2 mb-2 border rounded-sm shadow-sm p-2">
+                <label className="block font-bold mb-2">{item['label']}:</label>
+                <div className="flex flex-col justify-between">
+                  {item['radio'].map((r: string, i: number) => {
+                    return (
+                      <label key={i}>
+                        <input type="radio" name={formatarTexto(item['label'])} value={r} onChange={handleChange} className="mr-1" required />{r}
+                      </label>
+                    )
+                  })
+                  }
+                </div>
+                <div className='mt-2 text-right text-xs text-blue-500' > Última Atualização: {ultimoRegistro?.[itemFormatted]}</div>
               </div>
-              <div className='mt-2 text-right text-xs text-blue-500' > Última Atualização: {ultimoRegistro?.[itemFormatted]}</div>
-            </div>
-          )
+            )
+          }
         }
         )}
+      </div>
+
+      {/* {AQUI ENTRA O TEXTAREA} */}
+      <div className="grid grid-cols-1 gap-2">
+        {/* linha para cadastro */}
+        {listaEnfermagem.map((item: any, index: number) => {
+          const itemFormatted = formatarTexto(item['label']);
+          if (item.textarea !== undefined) {
+            return (
+              <div key={index} className="mt-2 mb-2 border rounded-sm shadow-sm p-2">
+                <label className="block font-bold mb-2">Evolução do Residente:</label>
+                <div className="flex flex-row justify-between">
+                  {/* Utilize a classe 'w-full' para ocupar toda a largura da div */}
+                  <textarea
+                    name={itemFormatted}
+                    onChange={handleChange}
+                    className="w-full resize-none border rounded-md p-2"
+                    required
+                  />
+                </div>
+                <div className='mt-2 text-right text-xs text-blue-500' > Última Atualização:
+                  <p className='w-full break-words'>
+                    {ultimoRegistro?.[itemFormatted]}
+                  </p>
+                </div>
+              </div>
+            );
+          }
+        })}
       </div>
 
       {/* SALVAR SINAIS */}

@@ -174,13 +174,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             "eliminacoes": parsedData.eliminacoes,
             "eliminacoesintestinais": parsedData.eliminacoesintestinais,
             "auscultapulmonar": parsedData.auscultapulmonar,
-            "observacoes": parsedData.observacoes ? parsedData.observacoes : "Não preenchido",
+            "observacoes": parsedData.observacoes,
           }
 
           let keey = ""
           const areAllFieldsFilled = (obj: any) => {
             for (let key in obj) {
-              if (key !== "observacoes" && (!obj[key] || obj[key].toString().trim() === "")) {
+              // key !== "observacoes" && 
+              if ((!obj[key] || obj[key].toString().trim() === "")) {
                 keey += ` ${key}, `
                 return false;
               }
