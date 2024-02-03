@@ -36,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         if (req.query.type == "getTable") {
           const result = await mainCollection.aggregate([
+            { $match: { is_ativo: "S" } },
             { $addFields: { residente_id: { $toString: "$_id", }, }, },
             { $lookup: { from: "sinaisvitais", localField: "residente_id", foreignField: "residente_id", as: "result", }, },
             { $addFields: { lastEntrySinais: { $arrayElemAt: ["$result", { $subtract: [{ $size: "$result" }, 1] }] } } },

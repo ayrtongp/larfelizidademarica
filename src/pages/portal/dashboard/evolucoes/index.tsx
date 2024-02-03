@@ -29,7 +29,6 @@ const DataTable: React.FC = () => {
   const getLast50Results = async () => {
     try {
       const response = await axios.get(`/api/Controller/AggregateController?type=evolucao_getLast50&skip=${(currentPage - 1) * itemsPerPage}&limit=${itemsPerPage}`);
-      console.log(response.data.data)
       setData(response.data.data); // Assuming the API response is an array of rows
       setTotalCount(response.data.count); // Assuming the API returns total count in the headers
     } catch (error) {

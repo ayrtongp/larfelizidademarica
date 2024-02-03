@@ -2,7 +2,6 @@ import { saveAs } from 'file-saver';
 import { AlignmentType, BorderStyle, Document, Header, HeadingLevel, ImageRun, Media, Packer, PageOrientation, Paragraph, Table, TableCell, TableRow, TextRun, TextWrappingSide, TextWrappingType, VerticalAlign, WidthType } from 'docx';
 
 async function generateDocx(data: any, responsaveis: any, nome: string, cpf: string, dataInicio: string, dataFim: string, nomeDoc: string) {
-  console.log(responsaveis)
   const espacoEmBranco = new Paragraph({})
 
   function textoLivre(texto: string) {

@@ -38,8 +38,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ usuario, message: 'Usuário Localizado', url: url, method: 'GET' });
 
         } catch (error) {
-          console.log(error)
+          console.error(error)
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
+      // GET All Residentes
+      // -------------------------
+
+      else if (req.query.type === 'getProfissionais') {
+        try {
+          const documents = await mainCollection.find(
+            {},
+            { projection: {_id: 1, nome: 1, sobrenome: 1, funcao: 1, registro: 1} })
+            .sort({ nome: 1 }).toArray();
+          return res.status(200).json(documents);
+        } catch (err) {
+          console.error(err)
+          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
 
@@ -74,7 +91,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           const { arrayIds } = JSON.parse(req.body)
           const transformedData = arrayIds.map((id: string) => new ObjectId(id));
-          console.log(transformedData)
           const query = {
             _id: { $in: transformedData }
           }

@@ -3,7 +3,6 @@ import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
 import { useRouter } from 'next/router'
 import axios from 'axios'
-import profilephoto from '../../../../../public/images/idosos/CarmemIacovino.jpg'
 import Image from 'next/image'
 import { FaEdit, FaHeart, FaInfo } from 'react-icons/fa'
 import { notifyError, notifySuccess } from '@/utils/Functions'
@@ -13,8 +12,9 @@ import Evolucao from '@/components/Residentes/Evolucao'
 import AnotacoesEnfermagem from '@/components/Residentes/AnotacoesEnfermagem'
 import { HiAnnotation, HiBriefcase } from 'react-icons/hi'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import svgClipboardText from '@/svg/clipboardtext'
 import RelatoriosResidente from '@/components/Residentes/RelatoriosResidente'
+import { MdLocalGroceryStore } from 'react-icons/md'
+import Suprimentos from '@/components/Residentes/Suprimentos'
 
 interface Residente {
   _id: string;
@@ -29,6 +29,14 @@ interface Residente {
   foto_base64: string;
 }
 
+interface objProps {
+  className: string;
+  label: string;
+  icon: any;
+  component: any;
+  color: string;
+}
+
 const ResidenteDetalhes = () => {
   const [residenteData, setResidenteData] = useState<Residente>();
   const [base64, setBase64] = useState('');
@@ -41,15 +49,25 @@ const ResidenteDetalhes = () => {
   const [nomeClasse, setNomeClasse] = useState("Informações do Residente");
   const efeitoClasseAtiva = `bg-slate-100 border-l-2 border-purple-500`;
 
-  const handleMenuClick = (e: any) => {
-    setClasseAtiva(e.currentTarget.id)
+  const object: objProps[] = [
+    { className: "menuInfo", label: "Informações do Residente", icon: <FaInfo />, component: <ResidenteAccordion />, color: 'text-blue-600' },
+    { className: "menuSemio", label: "Semiologia", icon: <FaHeart />, component: <ResidenteAccordion />, color: 'text-red-600' },
+    { className: "menuAnotacoes", label: "Anotações Enfermagem", icon: <HiAnnotation />, component: <ResidenteAccordion />, color: 'text-green-600' },
+    { className: "menuEvolucao", label: "Evolução", icon: <HiBriefcase />, component: <ResidenteAccordion />, color: 'text-orange-600' },
+    { className: "menuRelatorios", label: "Relatórios", icon: <MdLocalGroceryStore />, component: <ResidenteAccordion />, color: 'text-purple-600' },
+    { className: "menuSuprimentos", label: "Suprimentos", icon: <HiAnnotation />, component: <ResidenteAccordion />, color: 'text-green-600' },
+  ];
 
-    if (e.currentTarget.id == 'menuInfo') setNomeClasse("Informações do Residente")
-    if (e.currentTarget.id == 'menuSemio') setNomeClasse("Semiologia")
-    if (e.currentTarget.id == 'menuAnotacoes') setNomeClasse("Semiologia")
-    if (e.currentTarget.id == 'menuEvolucao') setNomeClasse("Evolução")
-    if (e.currentTarget.id == 'menuRelatorios') setNomeClasse("Relatórios")
-  }
+  const handleMenuClick = (e: React.MouseEvent<HTMLLIElement>) => {
+    const id = e.currentTarget.id;
+    setClasseAtiva(id);
+
+    const clickedItem = object.find(item => item.className === id);
+    if (clickedItem) {
+      setNomeClasse(clickedItem.label);
+    }
+  };
+
 
 
   // ########################################
@@ -156,43 +174,17 @@ const ResidenteDetalhes = () => {
 
                   {/* Funções Residente */}
                   <ul className='flex flex-col gap-1'>
-                    {/* Item */}
-                    <li id='menuInfo' onClick={handleMenuClick}
-                      className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuInfo" ? efeitoClasseAtiva : null}`}>
-                      <span className='p-2 text-blue-600 w-2/12 '><FaInfo /></span>
-                      <p className='w-10/12 ml-4'>Informações do Residente</p>
-                    </li>
-
-                    {/* Item */}
-                    <li id='menuSemio' onClick={handleMenuClick}
-                      className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuSemio" ? efeitoClasseAtiva : null}`}>
-                      <span className='p-2 text-red-600 w-2/12 '><FaHeart /></span>
-                      <p className='w-10/12 ml-4'>Semiologia</p>
-                    </li>
-
-                    {/* Item */}
-                    <li id='menuAnotacoes' onClick={handleMenuClick}
-                      className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuAnotacoes" ? efeitoClasseAtiva : null}`}>
-                      <span className='p-2 text-green-600 w-2/12 '><HiAnnotation /></span>
-                      <p className='w-10/12 ml-4'>Anotações da Enfermagem</p>
-                    </li>
-
-                    {/* Item */}
-                    {funcao != "Téc. de Enfermagem" && funcao != "Cuidador de Idosos" && (
-                      <li id='menuEvolucao' onClick={handleMenuClick}
-                        className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuEvolucao" ? efeitoClasseAtiva : null}`}>
-                        <span className='p-2 text-orange-600 w-2/12 '><HiBriefcase /></span>
-                        <p className='w-10/12 ml-4'>Evolução</p>
-                      </li>
-                    )}
-
-                    {/* Item */}
-                    <li id='menuRelatorios' onClick={handleMenuClick}
-                      className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == "menuRelatorios" ? efeitoClasseAtiva : null}`}>
-                      <span className='p-2 text-green-600 w-2/12 '>{svgClipboardText()}</span>
-                      <p className='w-10/12 ml-4'>Relatórios</p>
-                    </li>
-
+                    {object.map((item: objProps, index: number) => {
+                      {/* Item */ }
+                      return (
+                        <li key={index} id={item.className} onClick={handleMenuClick}
+                          className={`cursor-pointer flex px-2 flex-row items-center ${classeAtiva == `${item.className}` ? efeitoClasseAtiva : null}`
+                          }>
+                          <span className={`p-2 ${item.color} w-2/12`}>{item.icon}</span>
+                          <p className='w-10/12 ml-4'>{item.label}</p>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               </div>
@@ -211,39 +203,23 @@ const ResidenteDetalhes = () => {
                 {/* CONTEÚDO */}
 
                 {/* INFORMAÇÕES DO RESIDENTE */}
-                {classeAtiva == "menuInfo" && (
-                  <div className='p-3'>
-                    <ResidenteAccordion />
-                  </div>
-                )}
+                {classeAtiva == "menuInfo" && (<div className='p-3'><ResidenteAccordion /></div>)}
 
                 {/* SEMIOLOGIA */}
-                {classeAtiva == "menuSemio" && (
-                  <div className='p-3'>
-                    <Semiologia />
-                  </div>
-                )}
+                {classeAtiva == "menuSemio" && (<div className='p-3'><Semiologia /></div>)}
 
                 {/* ANOTAÇÕES DA ENFERMAGEM */}
-                {classeAtiva == "menuAnotacoes" && (
-                  <div className='p-3'>
-                    <AnotacoesEnfermagem />
-                  </div>
-                )}
+                {classeAtiva == "menuAnotacoes" && (<div className='p-3'><AnotacoesEnfermagem /></div>)}
 
                 {/* EVOLUÇÃO */}
-                {classeAtiva == "menuEvolucao" && (
-                  <div className='p-3'>
-                    <Evolucao />
-                  </div>
-                )}
+                {classeAtiva == "menuEvolucao" && (<div className='p-3'><Evolucao /></div>)}
+
+                {/* SUPRIMENTOS */}
+                {classeAtiva == "menuSuprimentos" && router.query.id && (
+                  <div className='p-3'><Suprimentos ResidenteId={router.query.id[0]} /></div>)}
 
                 {/* RELATÓRIOS */}
-                {classeAtiva == "menuRelatorios" && (
-                  <div className='p-3'>
-                    <RelatoriosResidente residenteData={residenteData} />
-                  </div>
-                )}
+                {classeAtiva == "menuRelatorios" && (<div className='p-3'><RelatoriosResidente residenteData={residenteData} /></div>)}
 
               </div>
             </div>
@@ -251,7 +227,7 @@ const ResidenteDetalhes = () => {
         )}
 
       </PortalBase>
-    </PermissionWrapper>
+    </PermissionWrapper >
   )
 }
 

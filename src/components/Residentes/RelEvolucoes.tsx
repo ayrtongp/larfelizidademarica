@@ -4,10 +4,11 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
 import { FaDownload } from 'react-icons/fa';
 import generateDocx from '@/utils/docxjs/docEvolucao';
+import T_Padrao from '../Tabelas/T_Padrao';
 
 
 type RelatorioData = {
-  _id: string, 
+  _id: string,
 
   categoria: string,
   dataEvolucao: string,
@@ -37,7 +38,6 @@ const RelAnotacoes = ({ residenteData }: any) => {
     const { count, data } = await response.data
     setTotal(count)
     setRelatorioData(data)
-    console.log(data)
 
     const names = await data.map((item: any) => item.usuario_nome);
     const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
@@ -52,10 +52,8 @@ const RelAnotacoes = ({ residenteData }: any) => {
   }, [])
 
   const reportByDate = async () => {
-    console.log('hey')
     const result = await axios.get(`/api/Controller/EvolucaoController?type=report&id=${residente_id}&dataInicio=${dataInicio}&dataFim=${incrementDate(dataFim)}`)
     if (result.status > 199 && result.status < 300) {
-      console.log('hey2')
       const names = await result.data.map((item: any) => item.usuario_nome);
       const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
       setRelatorioData(await result.data)
@@ -126,7 +124,7 @@ const RelAnotacoes = ({ residenteData }: any) => {
     <div className='text-center mt-3'>
       <div className='flex flex-col  md:flex-row justify-between items-center'>
         {/* HEADER */}
-        <h2 className='font-bold text-xl'>RELATÓRIO - ANOTAÇÕES DE ENFERMAGEM</h2>
+        <h2 className='font-bold text-xl'>RELATÓRIO - EVOLUÇÕES</h2>
         <div onClick={handleGenerateDoc} className='cursor-pointer py-2 px-4 rounded-full text-white bg-blue-500'>
           <FaDownload />
         </div>

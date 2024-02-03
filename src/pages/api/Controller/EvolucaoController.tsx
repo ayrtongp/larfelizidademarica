@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const documents = await mainCollection.find().sort().toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.log(err)
+          console.error(err)
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -39,9 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           const documents = await mainCollection.find().sort({ $natural: -1 }).skip(skip).limit(limit).toArray();
           const count = await mainCollection.countDocuments()
-          return res.status(200).json({count: count, data: documents});
+          return res.status(200).json({ count: count, data: documents });
         } catch (err) {
-          console.log(err)
+          console.error(err)
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -52,7 +52,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // ##########################
 
       else if (req.query.type == "report") {
-        console.log('oiiiii')
 
         const dataInicio = (req.query.dataInicio as string).split(",")[0];
         const dataFim = (req.query.dataFim as string).split(",")[0];
@@ -64,7 +63,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             $lte: dataFim,
           }
         }).toArray();
-        console.log(documents)
         return res.status(200).json(documents);
       }
 
@@ -83,7 +81,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           if (req.query.residente_id) {
             const residente_id = req.query.residente_id as string
-            console.log(residente_id)
             const data = await mainCollection.find({ residente_id: residente_id }).sort({ dataEvolucao: -1 }).skip(skip).limit(limit).toArray();
             const count = await mainCollection.countDocuments({ residente_id: residente_id })
             return res.status(200).json({ count: count, data: data });
@@ -92,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
           return res.status(200).json({ data: data });
         } catch (err) {
-          console.log(err)
+          console.error(err)
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -113,10 +110,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ result, message: 'Residente Localizado', method: 'GET' });
 
         } catch (error) {
-          console.log(error)
+          console.error(error)
 
           return res.status(500).json({ message: 'getID: Erro não identificado. Procure um administrador.' });
         }
+      }
+
+      // -------------------------
+      // RELATÓRIO  // ANOTAÇÕES ENFERMAGEM // ENTRE DATAS E POR IDOSO
+      // -------------------------
+
+      else if (req.query.type == "getBetweenDates") {
+
+        const dataInicio = (req.query.dataInicio as string).split(",")[0];
+        const dataFim = (req.query.dataFim as string).split(",")[0];
+
+        const documents = await mainCollection.find({
+          createdAt: {
+            $gte: dataInicio,
+            $lte: dataFim,
+          }
+        }).toArray();
+        return res.status(200).json(documents);
       }
 
       // -------------------------
@@ -139,7 +154,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
       if (req.query.type === 'getLast' && (req.query.residenteId)) {
         const residente_id = req.query.residenteId as string
-        console.log(residente_id)
         const documents = await mainCollection.findOne({ residente_id: residente_id }, { sort: { updatedAt: -1 } });
         return res.status(200).json(documents);
       }
@@ -154,7 +168,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
       if (req.query.type == 'new') {
         const novoRegistro = JSON.parse(req.body)
-        console.log(novoRegistro)
         const dataFields = {
 
           categoria: novoRegistro.categoria,

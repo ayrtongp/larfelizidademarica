@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
 import { FaDownload } from 'react-icons/fa';
 import generateDocx from '@/utils/docxjs/docAnotacoesEnfermagem';
+import { MdFirstPage, MdLastPage, MdOutlineChevronLeft, MdOutlineChevronRight } from 'react-icons/md';
 
 
 type RelatorioData = {
@@ -32,7 +33,7 @@ type RelatorioData = {
 }
 
 const RelAnotacoes = ({ residenteData }: any) => {
-  const [skip, setSkip] = useState(0);
+  const [skip, setSkip] = useState(1);
   const [limit, setLimit] = useState(100);
   const [total, setTotal] = useState(0);
   const [relatorioData, setRelatorioData] = useState<RelatorioData[]>([]);
@@ -55,7 +56,7 @@ const RelAnotacoes = ({ residenteData }: any) => {
 
   useEffect(() => {
     getAnotacoesResidente()
-  }, [])
+  }, [total, skip])
 
   const reportByDate = async () => {
     const result = await axios.get(`/api/Controller/AnotacoesEnfermagemController?type=report&id=${residente_id}&dataInicio=${dataInicio}&dataFim=${incrementDate(dataFim)}`)
@@ -65,6 +66,10 @@ const RelAnotacoes = ({ residenteData }: any) => {
       setRelatorioData(await result.data)
       setNomesResponsaveis(uniqueNames)
     }
+  }
+
+  const handlePage = (newPage: number) => {
+    setSkip(newPage);
   }
 
   const handleSubmit = async (e: any) => {
@@ -143,6 +148,32 @@ const RelAnotacoes = ({ residenteData }: any) => {
       </div>
 
       <div className='mt-4 w-full overflow-x-auto'>
+        {/* Paginação (adapte conforme necessário) */}
+        <div className="bg-teal-800 flex flex-col xs:flex-row items-center justify-between w-full">
+          <div className='p-2'>
+            <p className='text-white font-bold text-xs' >
+              REGISTROS ENCONTRADOS: {total} ( MOSTRANDO {skip * limit - limit + 1} ATÉ {Math.min(skip * limit, total)} )
+            </p>
+          </div>
+          <div className="flex items-center p-2 gap-2">
+            <button onClick={() => handlePage(1)} disabled={skip === 1}
+              className={`bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline-gray `}>
+              <MdFirstPage />
+            </button>
+            <button onClick={() => handlePage(skip - 1)} disabled={skip === 1}
+              className={`bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline-gray `}>
+              <MdOutlineChevronLeft />
+            </button>
+            <button onClick={() => handlePage(skip + 1)} disabled={skip * limit >= total}
+              className={`bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline-gray `}>
+              <MdOutlineChevronRight />
+            </button>
+            <button onClick={() => handlePage(Math.ceil(total / limit))} disabled={skip * limit >= total}
+              className={`bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline-gray `}>
+              <MdLastPage />
+            </button>
+          </div>
+        </div>
         <table id='rel-sinais-tabela' className='text-center text-xs border rounded-md p-2'>
           <thead className='bg-gray-200'>
             <tr className="bg-black font-bold text-white">
@@ -193,7 +224,6 @@ const RelAnotacoes = ({ residenteData }: any) => {
           </tbody>
         </table>
       </div>
-      <div className='mt-1 text-xs text-right'>Mostrando: {1} de {total}</div>
 
     </div>
   )

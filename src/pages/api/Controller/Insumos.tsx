@@ -1,57 +1,41 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb'
-import { formatDateBR } from '@/utils/Functions';
+import { formatDateBR, getCurrentDateTime } from '@/utils/Functions';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse,) {
 
   const { db } = await connect();
-  const mainCollection = db.collection('residentes')
-
-  // ###################################
-  // ###################################
-  // ###################################
-
-  // ########## METHODS ##########
-
-  // 1 - GET All Residentes
-  // 2 - GET Count Residentes
-  // 2 - GET Residente ID
-
-  // ###################################
-  // ###################################
-  // ###################################
+  const mainCollection = db.collection('insumos')
 
   switch (req.method) {
-
     case 'GET':
 
-
       // -------------------------
-      // GET All Residentes
+      // GET All 
       // -------------------------
 
       if (req.query.type === 'getAll') {
         try {
-          const documents = await mainCollection.find().sort({ nome: 1 }).toArray();
+          const documents = await mainCollection.find().sort({ nome_insumo: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
           console.error(err)
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
-
       // -------------------------
-      // GET All - ACTIVE
+      // GET CATEGORIA
       // -------------------------
 
-      else if (req.query.type === 'getAllActive') {
+      else if (req.query.type === 'getCategoria') {
         try {
-          const documents = await mainCollection.find({ is_ativo: "S" }).sort({ nome: 1 }).toArray();
+          const { cod_categoria } = req.query
+          const documents = await mainCollection.find({ cod_categoria: cod_categoria }).sort({ nome_insumo: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
           console.error(err)
-          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
+          return res.status(500).json({ message: 'getCategoria: Erro não identificado. Procure um administrador.' });
         }
       }
 
@@ -122,35 +106,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'POST':
 
       // -------------------------
-      // CRIAR NOVO RESIDENTE
+      // CRIAR NOVO 
       // -------------------------
 
       if (req.query.type == 'new') {
         try {
-          const parsedData = JSON.parse(req.body)
+          const data = JSON.parse(req.body)
 
           const dataFields = {
-            apelido: parsedData.apelido,
-            cpf: parsedData.cpf,
-            data_entrada: parsedData.data_entrada,
-            data_nascimento: parsedData.data_nascimento,
-            genero: parsedData.genero,
-            informacoes: parsedData.informacoes,
-            nome: parsedData.nome,
-
-            is_ativo: "S",
-            instituicao_id: 1,
-            createdAt: formatDateBR(Date.now()),
-            updatedAt: formatDateBR(Date.now()),
+            nome_insumo: data['nome_insumo'],
+            unidade: data['unidade'],
+            cod_categoria: data['cod_categoria'],
+            descricao: data['descricao'],
+            createdAt: getCurrentDateTime(),
+            updatedAt: getCurrentDateTime(),
           }
 
-          const isUser = await mainCollection.findOne({ cpf: dataFields.cpf })
-          if (isUser) {
-            return res.status(400).json({ message: `CPF Já cadastrado: ${dataFields.cpf} na data ${dataFields.createdAt}.`, method: 'POST', });
-          }
+          // Verifica se todos os campos necessários estão presentes no req.body
+          const requiredFields = ['nome_insumo', 'unidade', 'cod_categoria', 'descricao'];
+          const missingFields = requiredFields.filter(field => !data[field]);
+          const alreadyExists = await mainCollection.findOne({ nome_insumo: dataFields.nome_insumo })
 
-          const novoRegitro = await mainCollection.insertOne(dataFields);
-          return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
+          if (missingFields.length > 0) {
+            return res.status(400).json({ error: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
+          }
+          else if (alreadyExists) {
+            return res.status(400).json({ message: `Insumo já cadastrado: ${dataFields.nome_insumo} na data ${alreadyExists.createdAt}.`, method: 'POST', });
+          }
+          else {
+            const novoRegitro = await mainCollection.insertOne(dataFields);
+            return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
+          }
         } catch (err) {
           console.error(err)
 

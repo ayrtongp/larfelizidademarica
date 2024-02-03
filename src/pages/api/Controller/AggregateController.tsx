@@ -37,7 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         if (req.query.type == "evolucao_getLast50") {
           const skip = parseInt(req.query.skip as unknown as string)
           const limit = parseInt(req.query.limit as unknown as string)
-          console.log("hei")
           const result = await residentesCollection.aggregate([
             { $addFields: { residente_id: { $toString: "$_id", }, }, },
             { $lookup: { from: "evolucao", localField: "residente_id", foreignField: "residente_id", as: "evolucoes", }, },

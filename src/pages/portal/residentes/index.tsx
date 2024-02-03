@@ -11,7 +11,7 @@ const Index = () => {
   const isAdmin = useIsAdmin();
 
   const getResidentesAtivos = async () => {
-    const url = "/api/Controller/ResidentesController?type=getAll"
+    const url = "/api/Controller/ResidentesController?type=getAllActive"
     const response = await axios.get(url)
     if (response.status == 200) {
       setResidentes(response.data)

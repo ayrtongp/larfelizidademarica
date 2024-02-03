@@ -17,7 +17,7 @@ export async function getAll(collectionName: string, req: NextApiRequest, res: N
     return res.status(200).json(documents);
 
   } catch (err) {
-    console.log(err)
+    console.error(err)
     return res.status(500).json({ method: `GET/getAll`, message: 'Erro não identificado. Procure um administrador.' });
   }
 }
@@ -42,7 +42,7 @@ export async function getById(collectionName: string, req: NextApiRequest, res: 
     return res.status(200).json({ result, message: 'Residente Localizado', method: 'GET' });
 
   } catch (error) {
-    console.log(error)
+    console.error(error)
 
     return res.status(500).json({ method: `GET/getById`, message: 'Erro não identificado. Procure um administrador.' });
   }

@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         }
       }
       catch (error) {
-        console.log(error)
+        console.error(error)
         return res.status(500).json({ message: "Ocorreu um erro ao realizar o login", error: error });
       }
       break;

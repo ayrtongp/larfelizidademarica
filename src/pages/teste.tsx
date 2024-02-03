@@ -4,8 +4,6 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 const generateDocx = async (data: any, responsaveis: any) => {
-  console.log(data)
-  console.log(responsaveis)
 
   const espacoEmBranco = new Paragraph({})
 
@@ -237,7 +235,6 @@ const TestePage = () => {
       const uniqueNames = names.filter((name: any, index: any) => names.indexOf(name) === index);
       setArrayData(result.data)
       setResponsaveis(uniqueNames)
-      console.log('fetched')
     }
   }
 

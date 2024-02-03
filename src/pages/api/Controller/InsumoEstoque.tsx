@@ -1,53 +1,23 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb'
-import { formatDateBR } from '@/utils/Functions';
+import { formatDateBR, getCurrentDateTime } from '@/utils/Functions';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse,) {
 
   const { db } = await connect();
-  const mainCollection = db.collection('residentes')
-
-  // ###################################
-  // ###################################
-  // ###################################
-
-  // ########## METHODS ##########
-
-  // 1 - GET All Residentes
-  // 2 - GET Count Residentes
-  // 2 - GET Residente ID
-
-  // ###################################
-  // ###################################
-  // ###################################
+  const mainCollection = db.collection('insumo_estoque')
 
   switch (req.method) {
-
     case 'GET':
 
-
       // -------------------------
-      // GET All Residentes
+      // GET All 
       // -------------------------
 
       if (req.query.type === 'getAll') {
         try {
-          const documents = await mainCollection.find().sort({ nome: 1 }).toArray();
-          return res.status(200).json(documents);
-        } catch (err) {
-          console.error(err)
-          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
-        }
-      }
-
-      // -------------------------
-      // GET All - ACTIVE
-      // -------------------------
-
-      else if (req.query.type === 'getAllActive') {
-        try {
-          const documents = await mainCollection.find({ is_ativo: "S" }).sort({ nome: 1 }).toArray();
+          const documents = await mainCollection.find().sort({ nome_categoria: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
           console.error(err)
@@ -59,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // GET Residente by ID
       // -------------------------
 
-      else if (req.query.type === 'getID' && req.query.id) {
+      if (req.query.type === 'getID' && req.query.id) {
         const reqID = req.query.id as string
         try {
           const result = await mainCollection.findOne({ _id: new ObjectId(reqID) },)
@@ -110,6 +80,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
+      // getInsumoResidenteLimit
+      // -------------------------
+
+      else if (req.query.type == 'getInsumoResidenteLimit') {
+        try {
+          const page = parseInt(req.query.page as unknown as string)
+          const limit = parseInt(req.query.limit as unknown as string)
+          const skip = (page - 1) * limit;
+          const data = await mainCollection.aggregate([
+            {
+              $match: {
+                residente_id: req.query.residenteId,
+                insumo_id: req.query.insumoId,
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                soma: { $sum: "$quantidade" },
+              },
+            },
+
+          ]).toArray();
+
+          return res.status(200).json(data);
+        } catch (err) {
+          console.error(err)
+
+          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
       // SE NENHUMA CONDIÇÃR BATER DEVE RETORNAR ERRO
       // -------------------------
 
@@ -122,35 +125,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'POST':
 
       // -------------------------
-      // CRIAR NOVO RESIDENTE
+      // CRIAR NOVO 
       // -------------------------
 
-      if (req.query.type == 'new') {
+      if (req.query.type == 'addFraldaResidente') {
         try {
-          const parsedData = JSON.parse(req.body)
-
+          const data = req.body
           const dataFields = {
-            apelido: parsedData.apelido,
-            cpf: parsedData.cpf,
-            data_entrada: parsedData.data_entrada,
-            data_nascimento: parsedData.data_nascimento,
-            genero: parsedData.genero,
-            informacoes: parsedData.informacoes,
-            nome: parsedData.nome,
-
-            is_ativo: "S",
-            instituicao_id: 1,
-            createdAt: formatDateBR(Date.now()),
-            updatedAt: formatDateBR(Date.now()),
+            insumo_id: data['insumo_id'],
+            quantidade: data['quantidade'],
+            residente_id: data['residente_id'],
+            observacoes: data['observacoes'],
+            createdAt: getCurrentDateTime(),
+            updatedAt: getCurrentDateTime(),
           }
+          // Verifica se todos os campos necessários estão presentes no req.body
+          const requiredFields = ['insumo_id', 'quantidade', 'residente_id'];
+          const missingFields = requiredFields.filter(field => !data[field]);
 
-          const isUser = await mainCollection.findOne({ cpf: dataFields.cpf })
-          if (isUser) {
-            return res.status(400).json({ message: `CPF Já cadastrado: ${dataFields.cpf} na data ${dataFields.createdAt}.`, method: 'POST', });
+          if (missingFields.length > 0) {
+            return res.status(400).json({ error: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
           }
-
-          const novoRegitro = await mainCollection.insertOne(dataFields);
-          return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
+          else {
+            const novoRegitro = await mainCollection.insertOne(dataFields);
+            return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
+          }
         } catch (err) {
           console.error(err)
 

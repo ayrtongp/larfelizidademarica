@@ -1,4 +1,5 @@
 import ListaUsuarios from '@/components/Admin/ListaUsuarios'
+import RelZipAnotEnf from '@/components/Admin/RelZipAnotEnf'
 import FormNovoUsuario from '@/components/FormNovoUsuario'
 import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
@@ -31,6 +32,15 @@ const Index = () => {
                 Lista Usuários
               </button>
             </li>
+
+            {/* ITEM */}
+            <li id='fun-AnotEnfV2' onClick={handleChangeFuncao}>
+              <button className='text-white bg-indigo-500 px-3 py-2 text-xs rounded-md shadow-md'>
+                Relatório de Anotações Enfermagem
+              </button>
+            </li>
+
+
           </ul>
         </div>
 
@@ -48,6 +58,13 @@ const Index = () => {
           {funcaoAdmin == "fun-listaUsuarios" && (
             <div className='p-3'>
               <ListaUsuarios />
+            </div>
+          )}
+
+          {/* Baixar ZIP do relatório */}
+          {funcaoAdmin == "fun-AnotEnfV2" && (
+            <div className='p-3'>
+              <RelZipAnotEnf />
             </div>
           )}
 

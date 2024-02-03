@@ -32,7 +32,6 @@ export function formatStringDate(format, data) {
   }
   else if (format == 'yyyy-mm-dd') {
     if (data !== undefined) {
-      console.log(data)
       const [year, month, day] = data.split('-');
       const formattedDate = `${day}/${month}/${year.slice(2)}`;
       return formattedDate;
@@ -54,18 +53,13 @@ export function formatarTexto(texto) {
 
 export function getCurrentDateTime() {
   const currentDate = new Date();
-  const brazilTimeOffset = -3 * 60; // Brazil time offset in minutes (-3 hours)
+  const options = { timeZone: "America/Sao_Paulo", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" };
+  const formattedDate = currentDate.toLocaleDateString("pt-BR", options);
 
-  // Apply the offset to the current date
-  const brazilTime = new Date(currentDate.getTime() + brazilTimeOffset * 60 * 1000);
+  const [date, hour] = formattedDate.replace(',', '').split(' ')
+  const [day, month, year] = date.split('/')
 
-  const year = brazilTime.getFullYear();
-  const month = String(brazilTime.getMonth() + 1).padStart(2, '0');
-  const day = String(brazilTime.getDate()).padStart(2, '0');
-  const hours = String(brazilTime.getHours()).padStart(2, '0');
-  const minutes = String(brazilTime.getMinutes()).padStart(2, '0');
-
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
+  return `${year}-${month}-${day} ${hour}`;
 }
 
 export function notifyError(error) {

@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
-      // LOCALIZAR O SINAL VITAL PELO NOME DO IDOSO OU DATA
+      // LOCALIZAR PELO NOME DO IDOSO OU DATA
       // -------------------------
 
       else if (req.query.type === 'search' && (req.query.nome || req.query.data)) {
@@ -90,13 +90,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       // LISTAR PAGINADO
       // -------------------------
 
-      
+      else if (req.query.type == 'pages') {
+        try {
+          const page = parseInt(req.query.skip as unknown as string)
+          const limit = parseInt(req.query.limit as unknown as string)
+          const skip = (page - 1) * limit;
+
+          // -------------------------
+          // FILTRO ID - LISTAR PAGINADO
+          // -------------------------
+
+          if (req.query.residente_id) {
+            const residente_id = req.query.residente_id as string
+            const data = await mainCollection.find({ residente_id: residente_id }).sort({ data: -1 }).skip(skip).limit(limit).toArray();
+            const count = await mainCollection.countDocuments({ residente_id: residente_id })
+            return res.status(200).json({ count: count, data: data });
+          }
+
+          // const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
+          // return res.status(200).json({ data: data });
+        } catch (err) {
+          console.error(err)
+          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
       // -------------------------
-      // RELATÓRIO SINAIS VITAIS ENTRE DATAS E POR IDOSO
+      // RELATÓRIO  // ANOTAÇÕES ENFERMAGEM // ENTRE DATAS E POR IDOSO
       // -------------------------
 
       else if (req.query.type == "report") {
-        console.log('oiiiii')
 
         const dataInicio = (req.query.dataInicio as string).split(",")[0];
         const dataFim = (req.query.dataFim as string).split(",")[0];
@@ -108,33 +131,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             $lte: dataFim,
           }
         }).toArray();
-        console.log(documents)
         return res.status(200).json(documents);
       }
 
-      else if (req.query.type == 'pages') {
-        try {
-          const skip = parseInt(req.query.skip as unknown as string)
-          const limit = parseInt(req.query.limit as unknown as string)
+      // -------------------------
+      // RELATÓRIO  // ANOTAÇÕES ENFERMAGEM // ENTRE DATAS E POR IDOSO
+      // -------------------------
 
-          // -------------------------
-          // FILTRO ID - LISTAR PAGINADO
-          // -------------------------
+      else if (req.query.type == "getBetweenDates") {
 
-          if (req.query.residente_id) {
-            const residente_id = req.query.residente_id as string
-            console.log(residente_id)
-            const data = await mainCollection.find({ residente_id: residente_id }).sort({ data: 1 }).skip(skip).limit(limit).toArray();
-            const count = await mainCollection.countDocuments({ residente_id: residente_id })
-            return res.status(200).json({ count: count, data: data });
+        const dataInicio = (req.query.dataInicio as string).split(",")[0];
+        const dataFim = (req.query.dataFim as string).split(",")[0];
+
+        const documents = await mainCollection.find({
+          createdAt: {
+            $gte: dataInicio,
+            $lte: dataFim,
           }
-
-          const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
-          return res.status(200).json({ data: data });
-        } catch (err) {
-          console.log(err)
-          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
-        }
+        }).toArray();
+        return res.status(200).json(documents);
       }
 
       break;

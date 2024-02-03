@@ -68,8 +68,6 @@ const Evolucao = () => {
 
       if (!residente_id) { return notifyError('Problema com o cadastro, fale com o administrador') }
 
-      console.log(linhaEvolucao)
-
       const res = await fetch(`/api/Controller/EvolucaoController?type=new`, {
         method: 'POST',
         body: JSON.stringify(linhaEvolucao),

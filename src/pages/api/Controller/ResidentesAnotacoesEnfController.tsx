@@ -21,10 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         try {
 
           const date = req.query.searchDate as string
-          console.log(date)
 
           const regex = new RegExp(date, "i");
-          console.log(regex)
 
           const result = await mainCollection.aggregate([
             { $addFields: { residente_id: { $toString: "$_id", }, }, },
