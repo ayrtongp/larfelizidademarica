@@ -4,7 +4,7 @@ import { AlignmentType, BorderStyle, Document, Header, HeadingLevel, ImageRun, M
 async function generateDocx(data: any, responsaveis: any, nome: string, cpf: string, dataInicio: string, dataFim: string, nomeDoc: string) {
 
   const espacoEmBranco = new Paragraph({})
-  const quebraDePagina = new PageBreak()
+  const quebraDePagina = new Paragraph({ children: [new PageBreak()] })
 
   function textoLivre(texto: string) {
     return new Paragraph(texto)
@@ -200,7 +200,7 @@ async function generateDocx(data: any, responsaveis: any, nome: string, cpf: str
         const firstName = nameParts[0];
         const lastName = nameParts[nameParts.length - 1];
         const abbreviatedName = `${firstName} ${lastName.charAt(0)}.`;
-        
+
         return (tableRowObservacoes(item.createdAt, abbreviatedName, item.observacoes))
       }),
     ],
