@@ -169,19 +169,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
     case 'PUT':
       try {
-        const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-        const bodyObject = JSON.parse(req.body)
 
-        if (req.query.type === 'changePhoto' && bodyObject.foto_base64) {
-          const novaFoto = bodyObject.foto_base64
-          await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
-          return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
+        if (req.query.type === 'changePhoto') {
+          const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
+          const bodyObject = JSON.parse(req.body)
+          if (bodyObject.foto_base64) {
+            const novaFoto = bodyObject.foto_base64
+            await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
+            return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
+          } else {
+            return res.status(404).json({ message: 'ERRO!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
+
+          }
         }
 
         else if (req.query.type === 'changeData') {
+          const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
+          const bodyObject = JSON.parse(req.body)
           const myBody = JSON.parse(req.body)
           await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
           return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
+        }
+
+        else if (req.query.type === 'toggleIsAtivo') {
+          const myBody = req.body
+          const objectId = new ObjectId(myBody.residenteId as unknown as ObjectId);
+          const newIsActive = myBody.is_ativo == "S" ? "N" : "S"
+          const objUpdate = { is_ativo: newIsActive }
+          await mainCollection.updateOne({ _id: objectId }, { $set: objUpdate },);
+          return res.status(201).json({ message: 'Residente "is_ativo" alterado!', method: 'PUT' });
         }
 
         else {

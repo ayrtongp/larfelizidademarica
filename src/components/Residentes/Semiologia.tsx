@@ -29,14 +29,14 @@ const Semiologia = () => {
   }
 
   const camposSinaisVitais = [
-    { name: "pressaoArterial", nameFull: 'Pressão Arterial', type: "text", placeholder: "Pa MmHg", value: linhaSinais.pressaoArterial, },
-    { name: "frequenciaCardiaca", nameFull: 'Freq. Cardíaca', type: "text", placeholder: "FC bpm", value: linhaSinais.frequenciaCardiaca, },
-    { name: "frequenciaRespiratoria", nameFull: 'Freq. Respiratória', type: "text", placeholder: "FR irpm", value: linhaSinais.frequenciaRespiratoria, },
-    { name: "temperatura", nameFull: 'Temperatura', type: "text", placeholder: "TAX ºC", value: linhaSinais.temperatura, },
-    { name: "saturacao", nameFull: 'Saturação', type: "text", placeholder: "SPO2 %", value: linhaSinais.saturacao, },
-    { name: "glicemiaCapilar", nameFull: 'Glicemia Capilar', type: "text", placeholder: "HGT", value: linhaSinais.glicemiaCapilar, },
-    { name: "diurese", nameFull: 'Diurese', type: "text", placeholder: "Diurese", value: linhaSinais.diurese, },
-    { name: "evacuacao", nameFull: 'Evacuações', type: "text", placeholder: "Evacuações", value: linhaSinais.evacuacao, },
+    { name: "pressaoArterial", nameFull: 'Pressão Arterial', type: "text", placeholder: "Pa MmHg", value: linhaSinais.pressaoArterial, maxLength: 7, pattern: "\\d{2,3}\/\\d{2,3}", title: "Formato requerido exemplo: 127/97" },
+    { name: "frequenciaCardiaca", nameFull: 'Freq. Cardíaca', type: "text", placeholder: "FC bpm", value: linhaSinais.frequenciaCardiaca, maxLength: 3, pattern: "\\d+", title: "Apenas números são aceitos." },
+    { name: "frequenciaRespiratoria", nameFull: 'Freq. Respiratória', type: "text", placeholder: "FR irpm", value: linhaSinais.frequenciaRespiratoria, maxLength: 3, pattern: "\\d+", title: "Apenas números são aceitos." },
+    { name: "temperatura", nameFull: 'Temperatura', type: "text", placeholder: "TAX ºC", value: linhaSinais.temperatura, maxLength: 4, pattern: "\\d{2}\\.\\d", title: "Fora do padrão. Exemplo: '36.0'. 2 números, ponto, 1 número" },
+    { name: "saturacao", nameFull: 'Saturação', type: "text", placeholder: "SPO2 %", value: linhaSinais.saturacao, maxLength: 3, pattern: "\\d+", title: "Apenas números são aceitos." },
+    { name: "glicemiaCapilar", nameFull: 'Glicemia Capilar', type: "text", placeholder: "HGT", value: linhaSinais.glicemiaCapilar, maxLength: 3, pattern: "\\d+", title: "Apenas números são aceitos. '0' = Não se Aplica" },
+    { name: "diurese", nameFull: 'Diurese', type: "text", placeholder: "Diurese", value: linhaSinais.diurese, maxLength: 7, pattern: "\\d+", title: "Apenas números são aceitos." },
+    { name: "evacuacao", nameFull: 'Evacuações', type: "text", placeholder: "Evacuações", value: linhaSinais.evacuacao, maxLength: 7, pattern: "\\d+", title: "Apenas números são aceitos." },
   ]
 
   useEffect(() => {
@@ -51,6 +51,7 @@ const Semiologia = () => {
   };
 
   const handleSubmit = async (e: any) => {
+    e.preventDefault()
     setLoading(true)
     try {
       const userInfo = localStorage.getItem('userInfo');
@@ -96,43 +97,33 @@ const Semiologia = () => {
       )
       }
 
-      {/* TÍTULO */}
-      <div className='text-center'>
-        <h1 className='text-red-500 font-bold mb-2'>Sinais Vitais</h1>
-      </div>
-
       {/* ÚLTIMA ATUALIZAÇÃO */}
       <div className='text-xs text-center text-blue-500 my-2 flex flex-col'>
         <span>Última Atualização - {ultimoRegistro?.['updatedAt']}</span>
         <span>Atualizado Por: {ultimoRegistro?.['usuario_nome']}</span>
       </div>
 
-      <div id='divFormSinais' className="grid grid-cols-1 xs:grid-cols-3 gap-2"> {/* linha para cadastro */}
+      <form onSubmit={handleSubmit} id='divFormSinais' className="grid grid-cols-1 xs:grid-cols-3 gap-2"> {/* linha para cadastro */}
         {camposSinaisVitais.map((field, index) => {
           return (
             <div key={index} className="">
               <label className='text-xs font-bold' htmlFor={field.name}>{field.nameFull}</label>
-              <input
-                className="border border-gray-500 rounded-md p-1 w-full"
-                name={field.name}
-                type={field.type}
-                placeholder={field.placeholder}
-                value={field.value}
-                onChange={handleSinais}
-              />
+              <input className="border border-gray-500 rounded-md p-1 w-full" onChange={handleSinais}
+                name={field.name} type={field.type} placeholder={field.placeholder} value={field.value}
+                pattern={field.pattern} maxLength={field.maxLength} required
+                title={field.title} />
               <div className='text-right text-xs text-blue-500'>Última Atualização: {ultimoRegistro?.[field.name]}</div>
             </div>
           )
         })}
-      </div>
 
-      {/* SALVAR SINAIS */}
-      <div className='mx-auto mt-5 text-center'>
-        <hr />
-        <button className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded" onClick={handleSubmit} >
-          Salvar Sinais Vitais
-        </button>
-      </div>
+        {/* SALVAR SINAIS */}
+        <div className='col-span-full mx-auto mt-5 text-center'>
+          <button type='submit' className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
+            Salvar Sinais Vitais
+          </button>
+        </div>
+      </form>
 
     </>
   )

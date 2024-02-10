@@ -29,6 +29,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
   const suprimentosMenu = [
     { title: 'Página Princpal', path: '/portal/suprimentos' },
+    { title: 'Pedidos', path: '/portal/suprimentos/pedidos' },
   ]
 
   const ocorrenciasMenu = [
@@ -176,7 +177,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                 </div>
 
                 {/* Suprimentos */}
-                <Authorization href='/portal/suprimentos'>
                   <SidebarLinkGroup activecondition={suprimentosMenu.some((item) => pathname.includes(item.path))}>
                     {(handleClick: any, open: any) => {
                       return (
@@ -219,7 +219,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                       );
                     }}
                   </SidebarLinkGroup>
-                </Authorization>
                 
               </ul>
 

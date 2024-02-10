@@ -51,9 +51,9 @@ const ResidenteDetalhes = () => {
 
   const object: objProps[] = [
     { className: "menuInfo", label: "Informações do Residente", icon: <FaInfo />, component: <ResidenteAccordion />, color: 'text-blue-600' },
-    { className: "menuSemio", label: "Semiologia", icon: <FaHeart />, component: <ResidenteAccordion />, color: 'text-red-600' },
+    { className: "menuSemio", label: "Sinais Vitais", icon: <FaHeart />, component: <ResidenteAccordion />, color: 'text-red-600' },
     { className: "menuAnotacoes", label: "Anotações Enfermagem", icon: <HiAnnotation />, component: <ResidenteAccordion />, color: 'text-green-600' },
-    { className: "menuEvolucao", label: "Evolução", icon: <HiBriefcase />, component: <ResidenteAccordion />, color: 'text-orange-600' },
+    { className: "menuEvolucao", label: "Evolução Multidisciplinar", icon: <HiBriefcase />, component: <ResidenteAccordion />, color: 'text-orange-600' },
     { className: "menuRelatorios", label: "Relatórios", icon: <MdLocalGroceryStore />, component: <ResidenteAccordion />, color: 'text-purple-600' },
     { className: "menuSuprimentos", label: "Suprimentos", icon: <HiAnnotation />, component: <ResidenteAccordion />, color: 'text-green-600' },
   ];
