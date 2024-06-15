@@ -1,6 +1,9 @@
 import { usePermissoes } from '@/hooks/usePermissao'
 import Link from 'next/link';
 import CheckToken from './CheckToken';
+import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario';
+import { getUserID } from '@/utils/Login';
+import { useEffect, useState } from 'react';
 
 interface dataItem {
   portal_servicos: {
@@ -8,9 +11,29 @@ interface dataItem {
   }
 }
 
-const PermissionWrapper = ({ href, children }: any) => {
+interface Props {
+  href: string;
+  children: any;
+  groups?: string[]
+}
+
+const PermissionWrapper = ({ href, children, groups }: Props) => {
   const [loadingSign, logged] = CheckToken()
   const [data, loading] = usePermissoes();
+  const [hasGroups, setHasGroups] = useState<boolean>(true);
+
+  useEffect(() => {
+    const init = async () => {
+      if (groups != undefined && groups?.length > 0) {
+        const userId = getUserID()
+        const userGroups = await GruposUsuario_getGruposUsuario(userId);
+        const groupPermissions = Array.isArray(userGroups) && userGroups.some((item) => item.id_grupo.includes(groups))
+        setHasGroups(groupPermissions)
+      }
+    };
+    init();
+  }, []);
+
   if (logged) {
     const items: dataItem[] = data as dataItem[];
     if (loading) {
@@ -19,7 +42,9 @@ const PermissionWrapper = ({ href, children }: any) => {
 
     const hasPermission = Array.isArray(items) && items.some((item) => item.portal_servicos.href.includes(href)) && location.pathname.includes(href);
 
-    if (hasPermission) {
+
+
+    if (hasPermission && hasGroups) {
       return (
         <div className='w-screen mx-auto'>
           {children}

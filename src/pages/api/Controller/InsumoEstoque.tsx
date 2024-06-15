@@ -89,25 +89,64 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const limit = parseInt(req.query.limit as unknown as string)
           const skip = (page - 1) * limit;
           const data = await mainCollection.aggregate([
+            { $match: { residente_id: new ObjectId("6475443e621d1604edb0c4c3") } },
+            { $group: { _id: "$insumo_id", soma: { $sum: "$quantidade" } } },
             {
-              $match: {
-                residente_id: req.query.residenteId,
-                insumo_id: req.query.insumoId,
+              $lookup: {
+                from: "Insumos",
+                let: { grupoId: "$_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$grupoId"] } } },
+                  { $project: { unidade: 1, nome: 1 } }
+                ],
+                as: "insumoDetails"
               }
             },
-            {
-              $group: {
-                _id: null,
-                soma: { $sum: "$quantidade" },
-              },
-            },
-
+            { $unwind: "$insumoDetails" },
+            { $project: { _id: 1, soma: 1, "insumoDetails.unidade": 1, "insumoDetails.nome": 1 } }
           ]).toArray();
 
           return res.status(200).json(data);
         } catch (err) {
           console.error(err)
 
+          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      else if (req.query.type == 'getListaInsumosResidente') {
+        try {
+          const data = await mainCollection.aggregate([
+            { $match: { residente_id: req.query.idResidente } },
+            { $lookup: { from: "insumos", let: { insumoId: "$insumo_id" }, pipeline: [{ $addFields: { convertedId: { $toString: "$_id" } } }, { $match: { $expr: { $eq: ["$convertedId", "$$insumoId"] } } },], as: "insumoDetails" } },
+            { $unwind: "$insumoDetails" },
+            { $project: { insumo_id: "$insumo_id", quantidade: "$quantidade", unidade: "$insumoDetails.unidade", nome_insumo: "$insumoDetails.nome_insumo", cod_categoria: "$insumoDetails.cod_categoria", } },
+            { $group: { _id: "$insumo_id", soma: { $sum: "$quantidade" }, unidade: { $first: "$unidade" }, nome_insumo: { $first: "$nome_insumo" }, cod_categoria: { $first: "$cod_categoria" }, } }
+          ]).sort({ cod_categoria: 1, nome_insumo: 1 }).toArray();
+          return res.status(200).json(data);
+        } catch (err) {
+          console.error(err)
+          return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      else if (req.query.type == 'getHistoricoPaginado') {
+        try {
+          const page = parseInt(req.query.page as unknown as string) || 1
+          const limit = parseInt(req.query.limit as unknown as string) || 10
+          const skip = (page - 1) * limit;
+          const residenteId = req.query.residenteId
+          const data = await mainCollection.aggregate([
+            { $match: { residente_id: req.query.residenteId } },
+            { $lookup: { from: "insumos", let: { insumoId: "$insumo_id" }, pipeline: [{ $addFields: { convertedId: { $toString: "$_id" } } }, { $match: { $expr: { $eq: ["$convertedId", "$$insumoId"] } } },], as: "insumoDetails" } },
+            { $unwind: "$insumoDetails" },
+            { $project: { insumo_id: "$insumo_id", quantidade: "$quantidade", unidade: "$insumoDetails.unidade", nome_insumo: "$insumoDetails.nome_insumo", cod_categoria: "$insumoDetails.cod_categoria", createdAt: 1, nomeUsuario: 1, idUsuario: 1 } },
+          ]).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray();
+          const count = await mainCollection.countDocuments({ residente_id: residenteId })
+
+          return res.status(200).json({ data, count });
+        } catch (err) {
+          console.error(err)
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -136,6 +175,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             quantidade: data['quantidade'],
             residente_id: data['residente_id'],
             observacoes: data['observacoes'],
+            nomeUsuario: data['nomeUsuario'],
+            idUsuario: data['idUsuario'],
             createdAt: getCurrentDateTime(),
             updatedAt: getCurrentDateTime(),
           }

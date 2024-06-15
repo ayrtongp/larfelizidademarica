@@ -42,6 +42,7 @@ interface Residente {
   apelido: string;
   data_nascimento: string;
   genero: string;
+  informacoes: string;
   foto_base64: string;
 }
 
@@ -54,7 +55,7 @@ const ResidenteCard = ({ residenteData }: any) => {
     id: dadosResidente?._id,
     nomeIdoso: dadosResidente?.nome,
     foto_base64: dadosResidente?.foto_base64,
-    descricaoIdoso: "Descrição do idoso...",
+    descricaoIdoso: dadosResidente?.informacoes,
     idade: "(" + idadeAnos + " anos)",
     apelido: dadosResidente?.apelido,
     icone: dadosResidente?.genero == "feminino" ? svgMulher() : svgHomem(),

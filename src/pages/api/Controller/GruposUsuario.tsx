@@ -1,39 +1,23 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb'
-import { formatDateBR } from '@/utils/Functions';
+import { getCurrentDateTime } from '@/utils/Functions';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse,) {
 
   const { db } = await connect();
-  const mainCollection = db.collection('residentes')
-
-  // ###################################
-  // ###################################
-  // ###################################
-
-  // ########## METHODS ##########
-
-  // 1 - GET All Residentes
-  // 2 - GET Count Residentes
-  // 2 - GET Residente ID
-
-  // ###################################
-  // ###################################
-  // ###################################
+  const mainCollection = db.collection('grupos_usuario')
 
   switch (req.method) {
-
     case 'GET':
 
-
       // -------------------------
-      // GET All Residentes
+      // GET All 
       // -------------------------
 
       if (req.query.type === 'getAll') {
         try {
-          const documents = await mainCollection.find().sort({ nome: 1 }).toArray();
+          const documents = await mainCollection.find().sort({ id_grupo: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
           console.error(err)
@@ -42,21 +26,53 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
-      // GET All - ACTIVE
+      // GET GRUPOS USUÁRIO
       // -------------------------
 
-      else if (req.query.type === 'getAllActive') {
+      else if (req.query.type === 'getGruposUsuario') {
         try {
-          const documents = await mainCollection.find({ is_ativo: "S" }).sort({ nome: 1 }).toArray();
+          const { id_usuario } = req.query
+          const result = await mainCollection.aggregate([
+            { $match: { id_usuario: `${id_usuario}` } },
+            {
+              $lookup: {
+                from: "grupos",
+                let: { grupoId: "$id_grupo" },
+                pipeline: [
+                  { $addFields: { convertedId: { $toString: "$_id" } } },
+                  { $match: { $expr: { $eq: ["$convertedId", "$$grupoId"] } } }
+                ],
+                as: "grupo_result"
+              }
+            },
+            { $unwind: "$grupo_result" },
+            { $project: { _id: 1, id_grupo: 1, id_usuario: 1, cod_grupo: "$grupo_result.cod_grupo", nome_grupo: "$grupo_result.nome_grupo" } },
+          ]).sort({ nome: 1 }).toArray()
+          return res.status(200).json(result);
+        } catch (err) {
+          console.error(err)
+          return res.status(500).json({ message: 'getCategoria: Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+
+      // -------------------------
+      // GET KEY
+      // -------------------------
+
+      else if (req.query.type === 'getKey') {
+        try {
+          const { cod_categoria } = req.query
+          const documents = await mainCollection.find({ cod_categoria: cod_categoria }).sort({ nome_insumo: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
           console.error(err)
-          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
+          return res.status(500).json({ message: 'getCategoria: Erro não identificado. Procure um administrador.' });
         }
       }
 
       // -------------------------
-      // GET Residente by ID
+      // GET by ID
       // -------------------------
 
       else if (req.query.type === 'getID' && req.query.id) {
@@ -122,35 +138,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'POST':
 
       // -------------------------
-      // CRIAR NOVO RESIDENTE
+      // CRIAR NOVO 
       // -------------------------
 
       if (req.query.type == 'new') {
         try {
-          const parsedData = JSON.parse(req.body)
-
+          const data = JSON.parse(req.body)
           const dataFields = {
-            apelido: parsedData.apelido,
-            cpf: parsedData.cpf,
-            data_entrada: parsedData.data_entrada,
-            data_nascimento: parsedData.data_nascimento,
-            genero: parsedData.genero,
-            informacoes: parsedData.informacoes,
-            nome: parsedData.nome,
-
-            is_ativo: "S",
-            instituicao_id: 1,
-            createdAt: formatDateBR(Date.now()),
-            updatedAt: formatDateBR(Date.now()),
+            id_usuario: data['id_usuario'],
+            id_grupo: data['id_grupo'],
+            createdAt: getCurrentDateTime(),
+            updatedAt: getCurrentDateTime(),
           }
 
-          const isUser = await mainCollection.findOne({ cpf: dataFields.cpf })
-          if (isUser) {
-            return res.status(400).json({ message: `CPF Já cadastrado: ${dataFields.cpf} na data ${dataFields.createdAt}.`, method: 'POST', });
-          }
+          // Verifica se todos os campos necessários estão presentes no req.body
+          const requiredFields = ['id_usuario', 'id_grupo'];
+          const missingFields = requiredFields.filter(field => !data[field]);
+          const alreadyExists = await mainCollection.findOne({ id_usuario: dataFields.id_usuario, id_grupo: dataFields.id_grupo, })
 
-          const novoRegitro = await mainCollection.insertOne(dataFields);
-          return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
+          if (missingFields.length > 0) {
+            return res.status(400).json({ error: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
+          }
+          else if (alreadyExists) {
+            return res.status(400).json({ message: `Grupo já cadastrado: ${dataFields.id_usuario} na data ${alreadyExists.createdAt}.`, method: 'POST', });
+          }
+          else {
+            const novoRegitro = await mainCollection.insertOne(dataFields);
+            return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
+          }
         } catch (err) {
           console.error(err)
 
@@ -169,34 +184,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
     case 'PUT':
       try {
+        const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
+        const bodyObject = JSON.parse(req.body)
 
-        if (req.query.type === 'changePhoto') {
-          const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-          const bodyObject = JSON.parse(req.body)
-          if (bodyObject.foto_base64) {
-            const novaFoto = bodyObject.foto_base64
-            await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
-            return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
-          } else {
-            return res.status(404).json({ message: 'ERRO!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
-
-          }
+        if (req.query.type === 'changePhoto' && bodyObject.foto_base64) {
+          const novaFoto = bodyObject.foto_base64
+          await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
+          return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
         }
 
         else if (req.query.type === 'changeData') {
-          const myObjectId = new ObjectId(req.body.idResidente as unknown as ObjectId);
-          const myBody = req.body.body
+          const myBody = JSON.parse(req.body)
           await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
           return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
-        }
-
-        else if (req.query.type === 'toggleIsAtivo') {
-          const myBody = req.body
-          const objectId = new ObjectId(myBody.residenteId as unknown as ObjectId);
-          const newIsActive = myBody.is_ativo == "S" ? "N" : "S"
-          const objUpdate = { is_ativo: newIsActive }
-          await mainCollection.updateOne({ _id: objectId }, { $set: objUpdate },);
-          return res.status(201).json({ message: 'Residente "is_ativo" alterado!', method: 'PUT' });
         }
 
         else {

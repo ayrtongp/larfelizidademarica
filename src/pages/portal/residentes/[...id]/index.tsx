@@ -15,19 +15,11 @@ import { useIsAdmin } from '@/hooks/useIsAdmin'
 import RelatoriosResidente from '@/components/Residentes/RelatoriosResidente'
 import { MdLocalGroceryStore } from 'react-icons/md'
 import Suprimentos from '@/components/Residentes/Suprimentos'
-
-interface Residente {
-  _id: string;
-  apelido: string;
-  cpf: string;
-  data_entrada: string;
-  data_nascimento: string;
-  genero: string;
-  informacoes: string;
-  nome: string;
-  is_ativo: string;
-  foto_base64: string;
-}
+import { Residente } from '@/types/Residente'
+import Accordion_Modelo1 from '@/components/Accordion_Modelo1'
+import FormDadosIdoso from '@/components/Forms/FormDadosIdoso'
+import { getUserID } from '@/utils/Login'
+import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario'
 
 interface objProps {
   className: string;
@@ -44,6 +36,7 @@ const ResidenteDetalhes = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isAdmin = useIsAdmin();
   const [funcao, setFuncao] = useState('');
+  const [gruposUsuario, setGruposUsuario] = useState<any>([]);
 
   const [classeAtiva, setClasseAtiva] = useState('menuInfo');
   const [nomeClasse, setNomeClasse] = useState("Informações do Residente");
@@ -76,6 +69,15 @@ const ResidenteDetalhes = () => {
   // ########################################
   // ########################################
 
+  async function getGruposUsuario() {
+    const userId = getUserID()
+    const grupos = await GruposUsuario_getGruposUsuario(userId)
+    console.log(grupos)
+    if (grupos.length > 0) {
+      setGruposUsuario(grupos)
+    }
+  }
+
   async function getResidenteDetalhes() {
     if (router.query.id) {
       const response = await axios.get(`/api/Controller/ResidentesController?type=getID&id=${router.query.id[0]}`)
@@ -96,6 +98,7 @@ const ResidenteDetalhes = () => {
 
   useEffect(() => {
     getResidenteDetalhes()
+    getGruposUsuario()
   }, [router.query])
 
   // ########################################
@@ -203,7 +206,10 @@ const ResidenteDetalhes = () => {
                 {/* CONTEÚDO */}
 
                 {/* INFORMAÇÕES DO RESIDENTE */}
-                {classeAtiva == "menuInfo" && (<div className='p-3'><ResidenteAccordion /></div>)}
+                {classeAtiva == "menuInfo" && (
+                  <div className='p-3'>
+                    <FormDadosIdoso residenteData={residenteData} isEGPP={gruposUsuario.some((grupo: any) => grupo?.cod_grupo === "pia")} />
+                  </div>)}
 
                 {/* SEMIOLOGIA */}
                 {classeAtiva == "menuSemio" && (<div className='p-3'><Semiologia /></div>)}

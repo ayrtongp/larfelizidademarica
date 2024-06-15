@@ -6,6 +6,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import CheckToken from "@/components/CheckToken";
 import { notifyError, notifySuccess } from "@/utils/Functions";
+import GruposUsuario_getGruposUsuario from "@/actions/GruposUsuario_getGruposUsuario";
 
 const LoginPage = () => {
   const [usuario, setUsuario] = useState("");
@@ -20,9 +21,12 @@ const LoginPage = () => {
     else {
       try {
         const response = await axios.post('/api/Controller/LoginController', { usuario, senha });
-        const { token, userInfo } = response.data;
+        const { token, userInfo } = await response.data;
+        const grupos = await GruposUsuario_getGruposUsuario(userInfo.id)
+        const mapGroupsId = grupos.map((grupo: any) => grupo.id_grupo)
         localStorage.setItem('token', token);
         localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        localStorage.setItem('sopurg', JSON.stringify(mapGroupsId));
         if (response.status === 200) {
           router.push('/portal').then(() => {
             notifySuccess('Logado com sucesso!')

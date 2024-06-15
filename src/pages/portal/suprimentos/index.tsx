@@ -5,6 +5,7 @@ import ListaCategorias from '@/components/Tabelas/ListaCategorias';
 import CadastroInsumo from '@/components/Cadastros/CadastroInsumo';
 import ListaInsumos from '@/components/Tabelas/ListaInsumos';
 import GerenciarEstoque from '@/components/Gerenciar/GerenciarEstoque';
+import PermissionWrapper from '@/components/PermissionWrapper';
 
 const Index = () => {
 
@@ -63,60 +64,61 @@ const Index = () => {
 
   return (
     <PortalBase>
+      <PermissionWrapper href='/portal' groups={['65cd5232828b75d5308e3315']}>
+        <div className='col-span-full flex flex-wrap gap-2'>
 
-      <div className='col-span-full flex flex-wrap gap-2'>
+          <button onClick={handleButton} name='nova_categoria'
+            className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
+            Nova Categoria
+          </button>
 
-        <button onClick={handleButton} name='nova_categoria'
-          className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
-          Nova Categoria
-        </button>
+          <button onClick={handleButton} name='lista_categorias'
+            className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
+            Lista Categorias
+          </button>
 
-        <button onClick={handleButton} name='lista_categorias'
-          className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
-          Lista Categorias
-        </button>
+          <button onClick={handleButton} name='novo_insumo'
+            className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
+            Novo Insumo
+          </button>
 
-        <button onClick={handleButton} name='novo_insumo'
-          className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
-          Novo Insumo
-        </button>
+          <button onClick={handleButton} name='lista_insumos'
+            className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
+            Lista Insumos
+          </button>
 
-        <button onClick={handleButton} name='lista_insumos'
-          className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
-          Lista Insumos
-        </button>
+          <button onClick={handleButton} name='gerenciar_estoque'
+            className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
+            Gerenciar Estoque
+          </button>
 
-        <button onClick={handleButton} name='gerenciar_estoque'
-          className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>
-          Gerenciar Estoque
-        </button>
+        </div>
 
-      </div>
+        <div className='col-span-full'>
 
-      <div className='col-span-full'>
+          {opcaoAtiva == 'nova_categoria' && (
+            <CadastroCategoria />
+          )}
 
-        {opcaoAtiva == 'nova_categoria' && (
-          <CadastroCategoria />
-        )}
+          {opcaoAtiva == 'lista_categorias' && (
+            <ListaCategorias />
+          )}
 
-        {opcaoAtiva == 'lista_categorias' && (
-          <ListaCategorias />
-        )}
+          {opcaoAtiva == 'novo_insumo' && (
+            <CadastroInsumo listaDeCategorias={listaCategorias} />
+          )}
 
-        {opcaoAtiva == 'novo_insumo' && (
-          <CadastroInsumo listaDeCategorias={listaCategorias} />
-        )}
+          {opcaoAtiva == 'lista_insumos' && (
+            <ListaInsumos />
+          )}
 
-        {opcaoAtiva == 'lista_insumos' && (
-          <ListaInsumos />
-        )}
+          {opcaoAtiva == 'gerenciar_estoque' && (
+            <GerenciarEstoque listaDeInsumos={listaInsumos} />
+          )}
 
-        {opcaoAtiva == 'gerenciar_estoque' && (
-          <GerenciarEstoque listaDeInsumos={listaInsumos} />
-        )}
+        </div>
 
-      </div>
-
+      </PermissionWrapper>
     </PortalBase>
   )
 }

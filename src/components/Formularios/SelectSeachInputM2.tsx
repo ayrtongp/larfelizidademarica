@@ -11,11 +11,12 @@ interface Option {
 interface SelectWithAutocompleteProps {
   options: Option[];
   name: string;
+  valor?: string;
   label2: string;
   onOptionSelect: (option: any) => void;
 }
 
-const SelectSearchInputM2: React.FC<SelectWithAutocompleteProps> = ({ name, label2, options, onOptionSelect }) => {
+const SelectSearchInputM2: React.FC<SelectWithAutocompleteProps> = ({ name, label2, valor, options, onOptionSelect }) => {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 

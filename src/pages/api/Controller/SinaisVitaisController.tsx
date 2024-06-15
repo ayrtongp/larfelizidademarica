@@ -8,9 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
   const { db } = await connect();
   const mainCollection = db.collection('sinaisvitais')
 
-  process.env.NODE_ENV === "development" ? console.log("Start: SinaisVitaisController") : null
-  process.env.NODE_ENV === "development" ? console.log(`Method: ${req.method}`) : null
-
   switch (req.method) {
 
     case 'GET':

@@ -12,7 +12,17 @@ import React, { useEffect, useState } from "react";
 // #########################################################################################################
 // #########################################################################################################
 
-const TabelaPadrao = ({ id, resultData, arrayHeaderNames, arrayRowsNames, handlePageChange, onRowClick }: any) => {
+interface Props {
+  id: string;
+  resultData: any;
+  arrayHeaderNames: any;
+  arrayRowsNames: any;
+  handlePageChange: (e: any) => void;
+  onRowClick: (e: any) => void;
+  esconderPaginacao: boolean
+}
+
+const TabelaPadrao = ({ id, resultData, arrayHeaderNames, arrayRowsNames, handlePageChange, onRowClick, esconderPaginacao }: Props) => {
   const [data, setData] = useState([]);
   const [headerNames, setHeaderNames] = useState([]);
   const [rowNames, setRowNames] = useState([]);
@@ -35,25 +45,29 @@ const TabelaPadrao = ({ id, resultData, arrayHeaderNames, arrayRowsNames, handle
 
   return (
     <div className="overflow-x-auto">
-      <div className="flex justify-between mt-1 mb-2">
-        <p>{`Mostrando ${(currentPage - 1) * itemsPerPage + 1} - ${currentPage * itemsPerPage} evoluções`}</p>
-        <div>
-          <button
-            onClick={() => handlePageChange2(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`bg-blue-500 text-white px-4 py-2 rounded mr-2 ${currentPage === 1 && 'opacity-50 cursor-not-allowed'}`}
-          >
-            Anterior
-          </button>
-          <button
-            onClick={() => handlePageChange2(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`bg-blue-500 text-white px-4 py-2 rounded ${currentPage === totalPages && 'opacity-50 cursor-not-allowed'}`}
-          >
-            Próxima
-          </button>
+
+      {!esconderPaginacao && (
+        <div className="flex justify-between mt-1 mb-2">
+          <p>{`Mostrando ${(currentPage - 1) * itemsPerPage + 1} - ${currentPage * itemsPerPage} evoluções`}</p>
+          <div>
+            <button
+              onClick={() => handlePageChange2(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`bg-blue-500 text-white px-4 py-2 rounded mr-2 ${currentPage === 1 && 'opacity-50 cursor-not-allowed'}`}
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => handlePageChange2(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`bg-blue-500 text-white px-4 py-2 rounded ${currentPage === totalPages && 'opacity-50 cursor-not-allowed'}`}
+            >
+              Próxima
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
       <table id={id} className="min-w-full bg-white border border-gray-300">
         <thead className="bg-gray-100">
           <tr>

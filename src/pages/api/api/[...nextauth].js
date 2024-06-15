@@ -33,11 +33,9 @@ export const authOptions = {
         });
         const user = await resp.json();
         if (user.is_success) {
-          console.log("nextauth daki user: " + user.is_success);
 
           return user;
         } else {
-          console.log("check your credentials");
           return null;
         }
       },

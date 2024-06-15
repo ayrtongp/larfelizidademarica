@@ -24,7 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
               { projection: { nome: 1, sobrenome: 1, funcao: 1, registro: 1 } })
           }
           else if (req.query.registro === "admin") {
-            process.env.NODE_ENV === "development" ? console.log("Log: UsuarioController") : null
             usuario = await mainCollection.findOne({ _id: new ObjectId(userId) },
               { projection: { admin: 1 } })
           }
@@ -51,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         try {
           const documents = await mainCollection.find(
             {},
-            { projection: {_id: 1, nome: 1, sobrenome: 1, funcao: 1, registro: 1} })
+            { projection: { _id: 1, nome: 1, sobrenome: 1, funcao: 1, registro: 1 } })
             .sort({ nome: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {

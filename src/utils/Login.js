@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken'
 export async function Login(router, usuario, senha) {
   try {
     const response = await axios.post('/api/Controller/LoginController', { usuario, senha });
-    const { token, userInfo } = response.data;
+    const { token, userInfo } = await response.data;
     localStorage.setItem('token', token);
     localStorage.setItem('userInfo', JSON.stringify(userInfo));
     toast.success('Logged in successfully!');

@@ -49,7 +49,6 @@ const T_Padrao = ({ tableName, data, columnNames, columnHidden }: Props) => {
         </thead>
         <tbody>
           {data && data.map(([key, value]: any, index: number) => {
-            console.log(data)
             return (
               <tr key={index} className={`${index % 2 === 0 ? "bg-gray-100" : "bg-white"}`}>
                 {key.map((item: any, index3: number) => {
