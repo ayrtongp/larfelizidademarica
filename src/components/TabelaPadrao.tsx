@@ -19,10 +19,10 @@ interface Props {
   arrayRowsNames: any;
   handlePageChange: (e: any) => void;
   onRowClick: (e: any) => void;
-  esconderPaginacao: boolean
+  esconderPaginacao?: boolean
 }
 
-const TabelaPadrao = ({ id, resultData, arrayHeaderNames, arrayRowsNames, handlePageChange, onRowClick, esconderPaginacao }: Props) => {
+const TabelaPadrao = ({ id, resultData, arrayHeaderNames, arrayRowsNames, handlePageChange, onRowClick, esconderPaginacao = false }: Props) => {
   const [data, setData] = useState([]);
   const [headerNames, setHeaderNames] = useState([]);
   const [rowNames, setRowNames] = useState([]);
