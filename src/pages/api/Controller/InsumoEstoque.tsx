@@ -140,7 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             { $match: { residente_id: req.query.residenteId } },
             { $lookup: { from: "insumos", let: { insumoId: "$insumo_id" }, pipeline: [{ $addFields: { convertedId: { $toString: "$_id" } } }, { $match: { $expr: { $eq: ["$convertedId", "$$insumoId"] } } },], as: "insumoDetails" } },
             { $unwind: "$insumoDetails" },
-            { $project: { insumo_id: "$insumo_id", quantidade: "$quantidade", unidade: "$insumoDetails.unidade", nome_insumo: "$insumoDetails.nome_insumo", cod_categoria: "$insumoDetails.cod_categoria", createdAt: 1, nomeUsuario: 1, idUsuario: 1 } },
+            { $project: { insumo_id: "$insumo_id", quantidade: "$quantidade", unidade: "$insumoDetails.unidade", nome_insumo: "$insumoDetails.nome_insumo", cod_categoria: "$insumoDetails.cod_categoria", createdAt: 1, nomeUsuario: 1, idUsuario: 1, observacoes: 1 } },
           ]).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray();
           const count = await mainCollection.countDocuments({ residente_id: residenteId })
 

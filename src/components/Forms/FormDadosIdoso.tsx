@@ -8,6 +8,7 @@ import Textarea_M3 from '../Formularios/TextArea_M3'
 import Accordion_Modelo1 from '../Accordion_Modelo1'
 import Select_M3 from '../Formularios/Select_M3'
 import GridM1 from '../GridM1'
+import Date_M3 from '../Formularios/Date_M3'
 
 interface Props {
   residenteData: Residente;
@@ -56,21 +57,19 @@ const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
     <div className='flex flex-col'>
       <Accordion_Modelo1 titulo='Identificação' initialExpanded={true} child={
         <GridM1 colsNumber={4} >
-          <Text_M3 className={'sm:col-span-3 col-span-full'} name={`nome`} label={`Nome do Residente`} value={formData.nome} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`apelido`} label={`Apelido`} value={formData.apelido} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`estadoCivil`} label={`Estado Civil`} value={formData.estadoCivil} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`nacionalidade`} label={`Nacionalidade`} value={formData.nacionalidade} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`naturalidade`} label={`Naturalidade`} value={formData.naturalidade} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`contatoIdoso`} label={`Núm. Contato (idoso)`} value={formData.contatoIdoso} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`contatoFamiliar`} label={`Núm. Contato (familiar)`} value={formData.contatoFamiliar} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-4 col-span-full'} name={`nome`} label={`Nome do Residente`} value={formData.nome} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Date_M3 className={'sm:col-span-2 col-span-full'} name={`data_nascimento`} label={`Data de Nascimento`} value={formData.data_nascimento} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`apelido`} label={`Apelido`} value={formData.apelido} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`estadoCivil`} label={`Estado Civil`} value={formData.estadoCivil} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`nacionalidade`} label={`Nacionalidade`} value={formData.nacionalidade} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`naturalidade`} label={`Naturalidade`} value={formData.naturalidade} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`contatoIdoso`} label={`Núm. Contato (idoso)`} value={formData.contatoIdoso} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`contatoFamiliar`} label={`Núm. Contato (familiar)`} value={formData.contatoFamiliar} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
           <Select_M3 className={'sm:col-span-2 col-span-full'} name={`idosoInterditado`} label={`Pessoa Idosa Interditada`} value={formData.idosoInterditado} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} options={options_IdosoInterditado} />
           <Textarea_M3 className={'col-span-full'} name={`processoInterdicao`} label={`Dados do Processo Judicial`} value={formData.processoInterdicao} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`nomeCurador`} label={`Nome do Curador`} value={formData.nomeCurador} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`contatoCurador`} label={`Contato do Curador`} value={formData.contatoCurador} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-
-
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`data_nascimento`} label={`Data de Nascimeto`} value={formData.data_nascimento} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`genero`} label={`Gênero`} value={formData.genero} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`nomeCurador`} label={`Nome do Curador`} value={formData.nomeCurador} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`contatoCurador`} label={`Contato do Curador`} value={formData.contatoCurador} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`genero`} label={`Gênero`} value={formData.genero} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
           <Textarea_M3 className={'col-span-full'} name={`informacoes`} label={`Descrição do Idoso`} value={formData.informacoes} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
         </GridM1>
       } />
@@ -89,8 +88,8 @@ const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
 
       <Accordion_Modelo1 titulo='Admissão' initialExpanded={false} child={
         <div className='mt-2 grid grid-cols-1 sm:grid-cols-4 gap-3'>
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`data_entrada`} label={`Data de Entrada`} value={formData.data_entrada} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
-          <Text_M3 className={'sm:col-span-1 col-span-full'} name={`numProntuario`} label={`Número de Prontuário`} value={formData.numProntuario} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Date_M3 className={'sm:col-span-2 col-span-full'} name={`data_entrada`} label={`Data de Entrada`} value={formData.data_entrada} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
+          <Text_M3 className={'sm:col-span-2 col-span-full'} name={`numProntuario`} label={`Número de Prontuário`} value={formData.numProntuario} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
           <Select_M3 className={'sm:col-span-2 col-span-full'} name={`residenciaAntiga`} label={`A Pessoa Idosa Antes de Residir na ILPI`} value={formData.residenciaAntiga} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} options={options_ResidenciaAntiga} />
           <Textarea_M3 className={'col-span-full'} name={`enderecoOrigem`} label={`Endereço de Origem`} value={formData.enderecoOrigem} disabled={!isEGPP} onChange={isEGPP ? handleChangeDados : () => null} />
         </div>

@@ -8,9 +8,11 @@ import { Insumos_GET_getAll } from '@/actions/Insumos';
 import { Insumos_Estoque_GET_getHistoricoPaginado, Insumos_Estoque_GET_getListaInsumosResidente } from '@/actions/InsumosEstoque';
 import { FaPlusSquare } from 'react-icons/fa';
 import HistoricoSuprimentos from './Supri/HistoricoSuprimentos';
+import SearchComponent from '../SearchComponent';
 
 const Suprimentos = ({ ResidenteId }: any) => {
   const [insumos, setInsumos] = useState([]);
+  const [listaInsumos, setListaInsumos] = useState([]);
   const [selectedInsumo, setSelectedInsumo] = useState<string>('');
   const [quantidade, setQuantidade] = useState<number>(0);
   const [listaInsumosEstoque, setListaInsumosEstoque] = useState([]);
@@ -59,11 +61,16 @@ const Suprimentos = ({ ResidenteId }: any) => {
     const fetchData = async () => {
       try {
         const response = await Insumos_GET_getAll();
-        const novoArray = response.map(({ _id, nome_insumo }: any) => ({
+        const novoArray = response.map(({ _id, nome_insumo, unidade }: any) => ({
           option: _id,
-          value: nome_insumo
+          value: nome_insumo + " (" + unidade + ")"
+        }));
+        const novoArray2 = response.map(({ _id, nome_insumo, unidade }: any) => ({
+          id: _id,
+          label: nome_insumo + " (" + unidade + ")"
         }));
         setInsumos(novoArray);
+        setListaInsumos(novoArray2);
       } catch (error) {
         console.error('Erro ao buscar insumos:', error);
       }
@@ -189,6 +196,7 @@ const Suprimentos = ({ ResidenteId }: any) => {
         <div className='border rounded shadow p-3'>
           <h1 className='text-lg font-bold mb-4'>Adicionar Insumo</h1>
           <div>
+            <SearchComponent listObjects={listaInsumos} onChange={(e: any) => console.log(e)} />
             <SelectInputM2 options={insumos} name='insumoSelect' label='Selecionar Insumo' value={selectedInsumo} onChange={(e: any) => setSelectedInsumo(e.target.value)} />
           </div>
 

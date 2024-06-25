@@ -65,7 +65,7 @@ const Index = () => {
   return (
     <PortalBase>
       <PermissionWrapper href='/portal' groups={['65cd5232828b75d5308e3315']}>
-        <div className='col-span-full flex flex-wrap gap-2'>
+        <div className='col-span-full flex flex-wrap gap-2 '>
 
           <button onClick={handleButton} name='nova_categoria'
             className={`px-4 py-2 text-white bg-purple-500 rounded-lg shadow-md text-sm hover:bg-purple-700`}>

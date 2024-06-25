@@ -57,7 +57,7 @@ const CadastroInsumo: React.FC<Props> = ({ listaDeCategorias }) => {
   }
 
   return (
-    <div className='grid grid-cols-12 gap-2 border rounded-md shadow-xl p-2 bg-white'>
+    <div className='grid grid-cols-12 gap-2 border rounded-md shadow-xl p-2 bg-white w-[95%] my-2'>
       <h1 className='font-bold text-xl mx-auto col-span-full'>Cadastro de Insumo</h1>
       <div className='col-span-full sm:col-span-4'>
         <TextInputM2 label='Nome do Insumo' name='nome_insumo' value={formData.nome_insumo} disabled={false} onChange={handleChange} />
