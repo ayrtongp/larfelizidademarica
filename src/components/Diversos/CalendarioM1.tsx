@@ -100,11 +100,12 @@ const CalendarioM1 = ({ eventos }: Props) => {
 
                                             if (dayWeek == renderDia) {
                                                 return (
-                                                    <td key={j} className='pt-2'>
-                                                        <CalendarCurrentDay day={dayWeek} />
+                                                    <td key={j} className=''>
+                                                        <CalendarCurrentDay day={dayWeek} color='indigo' />
                                                     </td>
                                                 )
-                                            } else {
+                                            }
+                                            else {
                                                 return (
                                                     <td key={j} className={`${testeDia ? 'bg-purple-300 rounded-full' : ''}`}>
                                                         <div className={`px-2 py-2 text-center cursor-pointer flex w-full justify-center}`}>
@@ -165,11 +166,11 @@ const ThColName: React.FC<any> = ({ name }) => {
     )
 }
 
-const CalendarCurrentDay: React.FC<{ day: number | string }> = ({ day }) => {
+const CalendarCurrentDay: React.FC<{ day: number | string, color: string }> = ({ day, color }) => {
     return (
         <div className="w-full h-full">
             <div className="flex items-center justify-center w-full rounded-full cursor-pointer">
-                <a role="link" tabIndex={0} className="focus:outline-none  focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 focus:bg-indigo-500 hover:bg-indigo-500 text-base w-8 h-8 flex items-center justify-center font-medium text-white bg-indigo-700 rounded-full">{day}</a>
+                <a role="link" tabIndex={0} className={`focus:outline-none  focus:ring-2 focus:ring-offset-2 focus:ring-${color}-700 focus:bg-${color}-500 hover:bg-${color}-500 text-base w-8 h-8 flex items-center justify-center font-medium text-white bg-${color}-700 rounded-full`}>{day}</a>
             </div>
         </div>
     )
