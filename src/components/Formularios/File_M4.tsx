@@ -37,6 +37,7 @@ const File_M4 = ({ infoProps, folders, triggerEffect }: Props) => {
     };
 
     const handleSalve = async () => {
+        setLoading(true)
         const dadosUsuario = getUserDetails();
         try {
             if (file) {
@@ -59,8 +60,10 @@ const File_M4 = ({ infoProps, folders, triggerEffect }: Props) => {
                 }
             }
         } catch {
+            setLoading(false)
 
         }
+        setLoading(false)
     }
 
     if (loading) {
