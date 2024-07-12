@@ -4,7 +4,7 @@ import PortalBase from '@/components/Portal/PortalBase'
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import Image from 'next/image'
-import { FaEdit, FaHeart, FaInfo } from 'react-icons/fa'
+import { FaBook, FaEdit, FaHeart, FaInfo } from 'react-icons/fa'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 import ResidenteAccordion from '@/components/Residentes/ResidenteAccordion'
 import Semiologia from '@/components/Residentes/Semiologia'
@@ -20,6 +20,7 @@ import Accordion_Modelo1 from '@/components/Accordion_Modelo1'
 import FormDadosIdoso from '@/components/Forms/FormDadosIdoso'
 import { getUserID } from '@/utils/Login'
 import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario'
+import Residente_Files from '@/components/Residentes/Residente_Files'
 
 interface objProps {
   className: string;
@@ -49,6 +50,7 @@ const ResidenteDetalhes = () => {
     { className: "menuEvolucao", label: "Evolução Multidisciplinar", icon: <HiBriefcase />, component: <ResidenteAccordion />, color: 'text-orange-600' },
     { className: "menuRelatorios", label: "Relatórios", icon: <MdLocalGroceryStore />, component: <ResidenteAccordion />, color: 'text-purple-600' },
     { className: "menuSuprimentos", label: "Suprimentos", icon: <HiAnnotation />, component: <ResidenteAccordion />, color: 'text-green-600' },
+    { className: "menuArquivos", label: "Arquivos", icon: <FaBook />, component: <ResidenteAccordion />, color: 'text-fuchsia-600' },
   ];
 
   const handleMenuClick = (e: React.MouseEvent<HTMLLIElement>) => {
@@ -72,7 +74,6 @@ const ResidenteDetalhes = () => {
   async function getGruposUsuario() {
     const userId = getUserID()
     const grupos = await GruposUsuario_getGruposUsuario(userId)
-    console.log(grupos)
     if (grupos.length > 0) {
       setGruposUsuario(grupos)
     }
@@ -226,6 +227,9 @@ const ResidenteDetalhes = () => {
 
                 {/* RELATÓRIOS */}
                 {classeAtiva == "menuRelatorios" && (<div className='p-3'><RelatoriosResidente residenteData={residenteData} /></div>)}
+
+                {/* ARQUIVOS */}
+                {classeAtiva == "menuArquivos" && (<div className='p-3'><Residente_Files residenteData={residenteData} /></div>)}
 
               </div>
             </div>

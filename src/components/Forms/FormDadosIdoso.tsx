@@ -16,7 +16,6 @@ interface Props {
 }
 
 const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
-  console.log(residenteData)
   const [bodyUpdate, setBodyUpdate] = useState({});
   const [formData, setFormData] = useState<Residente>(residenteData);
 

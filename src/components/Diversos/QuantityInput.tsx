@@ -32,7 +32,6 @@ const QuantityInput = () => {
         const pattern = /^-?\d*(,\d*)?$/;
         if (pattern.test(value)) {
             setQuantity(value.toString().replace(".", ","));
-            console.log(value.toString().replace(".", ","));
         }
     };
 

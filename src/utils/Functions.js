@@ -11,6 +11,16 @@ export function formatDateBR(data) {
   return formattedDate;
 }
 
+export function getUserDetails() {
+  const itemExists = localStorage.getItem('userInfo') !== null && localStorage.getItem('userInfo') !== undefined
+  if (itemExists) {
+    const data = JSON.parse(localStorage.getItem('userInfo'))
+    return data
+  } else {
+    return 'problem trying to get details'
+  }
+}
+
 export function formatDateBRHora(data) {
   const date = new Date(data);
 

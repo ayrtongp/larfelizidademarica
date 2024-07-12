@@ -21,7 +21,6 @@ const LoginPage = () => {
     else {
       try {
         const response = await axios.post('/api/Controller/LoginController', { usuario, senha });
-        console.log(response)
         const { token, userInfo } = await response.data;
         const grupos = await GruposUsuario_getGruposUsuario(userInfo.id)
         const mapGroupsId = grupos.map((grupo: any) => grupo.id_grupo)

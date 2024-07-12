@@ -11,7 +11,8 @@ interface Props {
     onChange: (selectedObject: ListObject) => void;
 }
 
-const SearchComponent = ({ listObjects, onChange }: Props) => {
+const 
+SearchComponent = ({ listObjects, onChange }: Props) => {
     const [query, setQuery] = useState("");
     const [filteredFruits, setFilteredFruits] = useState(listObjects);
     const [isFocused, setIsFocused] = useState(false);

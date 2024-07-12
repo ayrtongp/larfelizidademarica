@@ -14,7 +14,6 @@ interface Item {
 
 
 const StatsBanner = ({ title, itemList, bannerColor = 'bg-[#FF6347]' }: Props) => {
-    console.log(bannerColor)
     return (
         <div className="py-10 px-5">
             <div className={`max-w-5xl rounded-xl ${bannerColor} dark:bg-[#4B5563] mx-auto flex flex-col sm:flex-row items-center justify-between md:px-10 gap-x-10 py-10 px-5 lg:px-10 gap-y-5`}>

@@ -16,7 +16,6 @@ interface Select_M3Props {
 }
 
 const Select_M3: React.FC<Select_M3Props> = ({ name, label, value, disabled, options, onChange, className }) => {
-    console.log(name + "|" + value)
     return (
         <div className={`flex flex-col mb-4 ${className}`}>
             <label htmlFor={name} className="text-xs font-bold mb-1 pl-1">

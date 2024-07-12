@@ -28,7 +28,6 @@ const Suprimentos = ({ ResidenteId }: any) => {
   useEffect(() => {
     async function fetchData() {
       const res = await Insumos_Estoque_GET_getListaInsumosResidente(ResidenteId)
-      console.log(res)
       if (res.length > 0) {
         setListaInsumosEstoque(res.filter((r: any) => r.soma != 0))
       }
@@ -43,7 +42,6 @@ const Suprimentos = ({ ResidenteId }: any) => {
   useEffect(() => {
     async function fetchData() {
       const { data, count } = await Insumos_Estoque_GET_getHistoricoPaginado(ResidenteId, page)
-      console.log(data)
       if (data.length > 0) {
         setDataHistorico((prevData: any) => [...prevData, ...data]);
         setCountHistorico(count)
@@ -196,7 +194,7 @@ const Suprimentos = ({ ResidenteId }: any) => {
         <div className='border rounded shadow p-3'>
           <h1 className='text-lg font-bold mb-4'>Adicionar Insumo</h1>
           <div>
-            <SearchComponent listObjects={listaInsumos} onChange={(e: any) => console.log(e)} />
+            {/* <SearchComponent listObjects={listaInsumos} onChange={(e: any) => console.log(e)} /> */}
             <SelectInputM2 options={insumos} name='insumoSelect' label='Selecionar Insumo' value={selectedInsumo} onChange={(e: any) => setSelectedInsumo(e.target.value)} />
           </div>
 
