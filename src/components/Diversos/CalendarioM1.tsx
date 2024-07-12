@@ -13,11 +13,11 @@ interface Props {
 }
 
 const CalendarioM1 = ({ eventos }: Props) => {
-
     const [renderDia, setRenderDia] = useState<number>(0);
     const [renderMes, setRenderMes] = useState<number>(0);
     const [renderAno, setRenderAno] = useState<number>(0);
     const [renderSemanas, setRenderSemanas] = useState<any>([]);
+    const [diasMarcados, setDiasMarcados] = useState<number[]>([]);
 
     const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
@@ -28,6 +28,10 @@ const CalendarioM1 = ({ eventos }: Props) => {
         setRenderMes(month)
         setRenderAno(year)
         setRenderSemanas(weeks)
+
+        const eventosDoMes = filtrarEventosDoMes(eventos, month)
+        const diasParaMarcar = eventosDoMes.map((evento: any) => parseInt(evento.data.split('/')[0]))
+        setDiasMarcados(diasParaMarcar)
     }, [])
 
     // #############################################
@@ -54,6 +58,10 @@ const CalendarioM1 = ({ eventos }: Props) => {
         setRenderMes(month)
         setRenderAno(year)
         setRenderSemanas(weeks)
+
+        const eventosDoMes = filtrarEventosDoMes(eventos, month)
+        const diasParaMarcar = eventosDoMes.map((evento: any) => parseInt(evento.data.split('/')[0]))
+        setDiasMarcados(diasParaMarcar)
     }
 
     // #############################################
@@ -61,10 +69,10 @@ const CalendarioM1 = ({ eventos }: Props) => {
     // #############################################
 
     return (
-        <div className="flex items-center justify-center py-8 px-4">
+        <div className="flex items-center justify-center py-2 px-2">
             <div className="max-w-3xl w-full shadow-lg flex sm:flex-row flex-col justify-center">
                 <div className="md:p-8 p-5 dark:bg-gray-800 bg-white rounded-t max-w-sm">
-                    <div className="px-4 flex items-center justify-between">
+                    <div className="px-2 flex items-center justify-between">
                         <span tabIndex={0} className="focus:outline-none  text-base font-bold dark:text-gray-100 text-gray-800">{getMonthName(renderMes)}, {renderAno}</span>
                         <div className="flex items-center">
                             <button aria-label="calendar backward" className="focus:text-gray-400 hover:text-gray-400 text-gray-800 dark:text-gray-100">
@@ -75,7 +83,7 @@ const CalendarioM1 = ({ eventos }: Props) => {
                             </button>
                         </div>
                     </div>
-                    <div className="flex items-center justify-between pt-12 overflow-x-auto">
+                    <div className="flex items-center justify-between pt-2">
                         <table className="w-full">
                             <thead>
                                 <tr>
@@ -88,17 +96,19 @@ const CalendarioM1 = ({ eventos }: Props) => {
                                 {renderSemanas.map((week: any, i: number) => (
                                     <tr key={i}>
                                         {week.map((dayWeek: any, j: number) => {
+                                            const testeDia = diasMarcados.includes(dayWeek)
+
                                             if (dayWeek == renderDia) {
                                                 return (
-                                                    <td key={j} className='pt-6'>
+                                                    <td key={j} className='pt-2'>
                                                         <CalendarCurrentDay day={dayWeek} />
                                                     </td>
                                                 )
                                             } else {
                                                 return (
-                                                    <td key={j} className="pt-6">
-                                                        <div className={`px-2 py-2 cursor-pointer flex w-full justify-center}`}>
-                                                            <p className="text-base text-gray-500 dark:text-gray-100 font-medium"> {dayWeek || ''}</p>
+                                                    <td key={j} className={`${testeDia ? 'bg-purple-300 rounded-full' : ''}`}>
+                                                        <div className={`px-2 py-2 text-center cursor-pointer flex w-full justify-center}`}>
+                                                            <p className="text-base mx-auto text-gray-500 dark:text-gray-100 font-medium"> {dayWeek || ''}</p>
                                                         </div>
                                                     </td>
                                                 )
@@ -243,3 +253,18 @@ function sortEventsByDate(events: EventosProps[]): EventosProps[] {
         }
     });
 };
+
+function filtrarEventosDoMes(eventos: any, mesAtual: number) {
+
+    // Filtra os eventos do mês atual
+    const eventosDoMes = eventos.filter((evento: any) => {
+        // Converte a data do evento de string para Date
+        const [dia, mes, ano] = evento.data.split('/');
+        const mesComparado = parseInt(mes) - 1
+
+        // Compara o mês e o ano do evento com o mês e o ano atual
+        return mesAtual === mesComparado
+    });
+
+    return eventosDoMes;
+}

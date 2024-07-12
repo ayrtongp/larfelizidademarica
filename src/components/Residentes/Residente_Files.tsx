@@ -51,7 +51,6 @@ const Residente_Files = ({ residenteData }: Props) => {
     async function getArquivosResidente() {
         const result = await Arquivos_GET_getBydbNameAndId('residentes', residenteData._id)
         setListaArquivos(result)
-        console.log(result)
     }
 
     // ---------------------

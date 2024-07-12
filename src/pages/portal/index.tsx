@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PermissionWrapper from '@/components/PermissionWrapper';
 
 import Sidebar from '../../components/Sidebar/Sidebar';
@@ -9,6 +9,10 @@ import { useRouter } from 'next/router';
 import SinaisNaoRegistradosHoje from '@/components/Dashboard/SinaisNaoRegistradosHoje';
 import AnotacoesNaoRegistradasHoje from '@/components/Dashboard/AnotacoesNaoRegistradasHoje';
 import EvolucaoResidente from '@/components/Dashboard/EvolucaoResidente';
+import CalendarioM1 from '@/components/Diversos/CalendarioM1';
+import { Residentes_GET_getAniversarios } from '@/actions/Residentes';
+import { formatDateBR } from '@/utils/Functions';
+import { DatasImportantes_GET_getAll } from '@/actions/DatasImportante';
 // import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 // import DashboardAvatars from '../partials/dashboard/DashboardAvatars';
 // import FilterButton from '../partials/actions/FilterButton';
@@ -17,7 +21,52 @@ import EvolucaoResidente from '@/components/Dashboard/EvolucaoResidente';
 // import Banner from '../partials/Banner';
 
 function Index() {
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [eventos, setEventos] = useState<any>([]);
+
+  // -------------------------
+  // -------------------------
+  // FUNCTIONS
+  // -------------------------
+  // -------------------------
+
+  async function getBirths() {
+    const res = await Residentes_GET_getAniversarios()
+    const resMapped = res.map((item: any) => {
+      const [dia, mes, ano] = formatDateBR(item.data_nascimento).split('/')
+      const anoAtual = (new Date()).getFullYear()
+      const dataFormatada = `${dia}/${mes}/${anoAtual}`
+      return ({
+        data: dataFormatada,
+        titulo: `Aniversário - ${item.apelido}`
+      })
+    });
+    setEventos(resMapped)
+  }
+
+  async function getDatasImportantes() {
+    const res = await DatasImportantes_GET_getAll();
+    setEventos((prevEventos: any) => [...prevEventos, ...res])
+  }
+
+  // -------------------------
+  // -------------------------
+  // USEEFFECT
+  // -------------------------
+  // -------------------------
+
+  useEffect(() => {
+    getBirths()
+    getDatasImportantes()
+  }, [])
+
+  // -------------------------
+  // -------------------------
+  // RETURN
+  // -------------------------
+  // -------------------------
+
   return (
     <PermissionWrapper href='/portal'>
       <div className="flex h-screen overflow-hidden">
@@ -30,6 +79,9 @@ function Index() {
               <div className="sm:flex sm:justify-between sm:items-center mb-8">
               </div>
               <div className="grid grid-cols-12 gap-6">
+                <div className='col-span-full'>
+                  <CalendarioM1 eventos={eventos} />
+                </div>
                 <EvolucaoResidente />
               </div>
             </div>

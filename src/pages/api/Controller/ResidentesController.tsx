@@ -56,6 +56,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
+      // COLETAR DATAS DE ANIVERSÁRIO DOS RESIDENTES
+      // -------------------------
+
+      else if (req.query.type === 'getAniversarios') {
+        try {
+          const documents = await mainCollection.find({ is_ativo: "S" }).project({ apelido: 1, data_nascimento: 1 }).sort({ data_nascimento: -1 }).toArray();
+          return res.status(200).json(documents);
+        } catch (error) {
+          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
       // GET Residente by ID
       // -------------------------
 
