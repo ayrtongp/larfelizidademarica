@@ -1,11 +1,12 @@
+import { sendMessage } from '@/pages/api/WhatsApp';
 import { notifyError, notifySuccess } from '@/utils/Functions';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
 import { FiCheck, FiLoader } from "react-icons/fi";
+import { medicao } from '@/utils/FaixaDeAlerta';
 
-const Semiologia = () => {
-
+const Semiologia = ({ residenteData }: any) => {
   const camposLinhaGrid = {
     residente_id: '', usuario_id: '', usuario_nome: '',
     pressaoArterial: '', frequenciaCardiaca: '', frequenciaRespiratoria: '',
@@ -17,6 +18,16 @@ const Semiologia = () => {
   const [linhaSinais, setLinhasSinais] = useState(camposLinhaGrid);
   const router = useRouter();
   const residente_id = router.query?.id?.[0]
+
+  async function notifyMessage() {
+    const pas = linhaSinais.pressaoArterial.split('/')[0]
+    const pad = linhaSinais.pressaoArterial.split('/')[1]
+    const mensagem = medicao(residenteData.apelido, getCurrentDateTimeBrazilFormat(), linhaSinais.usuario_nome, linhaSinais.temperatura, linhaSinais.frequenciaCardiaca, linhaSinais.frequenciaRespiratoria, linhaSinais.saturacao, pas, pad)
+    if (typeof (mensagem) === 'string') {
+      const mensagemFinal = mensagem as string
+      const messageResult = await sendMessage('120363319721988791@g.us', mensagemFinal);
+    }
+  }
 
   async function getUltimoRegistro() {
     if (residente_id) {
@@ -72,6 +83,7 @@ const Semiologia = () => {
       if (res.ok) {
         notifySuccess('Sinal(is) Adicionado(s) com sucesso!')
         setLinhasSinais(camposLinhaGrid)
+        await notifyMessage()
       } else {
         notifyError('Houve um problema ao adicionar os Sinais Vitais')
       }
@@ -130,3 +142,35 @@ const Semiologia = () => {
 }
 
 export default Semiologia
+
+function getCurrentDateTimeBrazilFormat() {
+  let now = new Date();
+
+  let day: any = now.getDate();
+  let month: any = now.getMonth() + 1; // Months are zero-indexed, so January is 0
+  let year: any = now.getFullYear();
+  let hours: any = now.getHours();
+  let minutes: any = now.getMinutes();
+  let seconds: any = now.getSeconds();
+
+  // Formatting to ensure two digits
+  if (day < 10) {
+    day = '0' + day;
+  }
+  if (month < 10) {
+    month = '0' + month;
+  }
+  if (hours < 10) {
+    hours = '0' + hours;
+  }
+  if (minutes < 10) {
+    minutes = '0' + minutes;
+  }
+  if (seconds < 10) {
+    seconds = '0' + seconds;
+  }
+
+  let formattedDate = day + '/' + month + '/' + year + ' ' + hours + ':' + minutes + ':' + seconds;
+
+  return formattedDate;
+}

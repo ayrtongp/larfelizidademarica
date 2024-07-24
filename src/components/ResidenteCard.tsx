@@ -80,12 +80,12 @@ const ResidenteCard = ({ residenteData }: any) => {
             {/* IMAGEM E NOME */}
             <header>
               <div className="flex mb-2">
-                <div className="relative inline-flex items-start mr-5" >
+                <div className="relative inline-flex items-start mr-5 h-20 w-20" >
                   <div className="absolute top-0 right-0 -mr-2 bg-white rounded-full shadow" aria-hidden="true">
                     {vars.icone}
                   </div>
                   {vars.foto_base64 && (
-                    <Image src={vars.foto_base64} width={64} height={64} alt='Foto do Residente' className='rounded-full w-[64px] h-[64px]' />
+                    <Image src={vars.foto_base64} width={24} height={24} alt='Foto do Residente' className='block w-full h-full object-cover rounded-full' />
                   )}
                 </div>
                 <div className="mt-1 pr-1">

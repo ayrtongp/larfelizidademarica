@@ -2,15 +2,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
-export function formatDateBR(data) {
-  const date = new Date(data);
-
-  const options = { timeZone: "UTC", year: "numeric", month: "numeric", day: "numeric" };
-
-  const formattedDate = date.toLocaleDateString("pt-BR", options);
-  return formattedDate;
-}
-
 export function getUserDetails() {
   const itemExists = localStorage.getItem('userInfo') !== null && localStorage.getItem('userInfo') !== undefined
   if (itemExists) {
@@ -132,4 +123,33 @@ export async function getID(id) {
 export async function getGridSinaisVitaisByID(id) {
   const result = await axios.get(`/api/Controller/SinaisVitaisController?id=${id}`)
   return result.data.sinalVital.lista_sinais
+}
+
+export function formatDateBR(data) {
+  const arrayTest = ['', null, undefined, ' ']
+  if (!arrayTest.includes(data)) {
+    const date = new Date(data);
+
+    const options = { timeZone: "UTC", year: "numeric", month: "numeric", day: "numeric" };
+
+    const formattedDate = date.toLocaleDateString("pt-BR", options);
+    return formattedDate;
+  }
+  else {
+    return ''
+  }
+}
+
+export function formatToBRL(number) {
+  return number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+export function slice3Points(string, qntSlice, startSlice) {
+  if (string.length > qntSlice) {
+    return string.slice(startSlice, (qntSlice + startSlice)) + "..."
+  }
+  else {
+    return string
+  }
+
 }

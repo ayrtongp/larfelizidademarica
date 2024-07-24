@@ -6,6 +6,40 @@ const dbName = 'ResidentesController'
 // ####################################
 // ####################################
 
+export async function Residentes_GET_getAll() {
+    const type = 'getAll'
+    const url = `/api/Controller/${dbName}?type=${type}`
+    try {
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`Erro na solicitação: ${res.status}`);
+        }
+        else {
+            const data = await res.json();
+            return data
+        }
+    } catch (error) {
+        console.error(`Catch Error {${dbName}/${type}}:`, error);
+    }
+}
+
+export async function Residentes_GET_getAllActive() {
+    const type = 'getAllActive'
+    const url = `/api/Controller/${dbName}?type=${type}`
+    try {
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`Erro na solicitação: ${res.status}`);
+        }
+        else {
+            const data = await res.json();
+            return data
+        }
+    } catch (error) {
+        console.error(`Catch Error {${dbName}/${type}}:`, error);
+    }
+}
+
 export async function Residentes_GET_getAniversarios() {
     const type = 'getAniversarios'
     const url = `/api/Controller/${dbName}?type=${type}`

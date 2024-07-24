@@ -213,7 +213,7 @@ const ResidenteDetalhes = () => {
                   </div>)}
 
                 {/* SEMIOLOGIA */}
-                {classeAtiva == "menuSemio" && (<div className='p-3'><Semiologia /></div>)}
+                {classeAtiva == "menuSemio" && (<div className='p-3'><Semiologia residenteData={residenteData} /></div>)}
 
                 {/* ANOTAÇÕES DA ENFERMAGEM */}
                 {classeAtiva == "menuAnotacoes" && (<div className='p-3'><AnotacoesEnfermagem /></div>)}

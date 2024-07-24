@@ -1,14 +1,32 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import logoLar from '../../public/images/lar felizidade logo transparente.png'
 import { HiSearch, HiMail, HiBell } from 'react-icons/hi'
 import MenuDropDown from './MenuDropDown'
+import { FaBell } from 'react-icons/fa'
+import Notifications from './PortalHeader/Notifications'
+import { useRouter } from 'next/router'
+import { Comunicados_GET_countNaoLidosPeloUsuario } from '@/actions/Comunicados'
+import { getUserID } from '@/utils/Login'
 
 const PortalHeader = ({ sidebarOpen, setSidebarOpen }: any) => {
 
   const [searchModalOpen, setSearchModalOpen] = useState(false)
+  const [countNotifications, setCountNotifications] = useState<number>(0)
+  const router = useRouter();
+  async function fetchNotifications() {
+    const result = await Comunicados_GET_countNaoLidosPeloUsuario(getUserID())
+    setCountNotifications(result.count)
+  }
 
+  useEffect(() => {
+    async function fetchData() {
+      fetchNotifications();
+    }
+
+    fetchData()
+  }, [router.pathname])
 
   return (
     <header className="sticky top-0 bg-white border-b border-slate-200 z-30">
@@ -50,10 +68,13 @@ const PortalHeader = ({ sidebarOpen, setSidebarOpen }: any) => {
               </svg>
             </button> */}
             {/* <SearchModal id="search-modal" searchId="search" modalOpen={searchModalOpen} setModalOpen={setSearchModalOpen} /> */}
+
             {/* <Notifications /> */}
-            {/* <Help /> */}
+            <Notifications count={countNotifications} />
+
             {/*  Divider */}
             <hr className="w-px h-6 bg-slate-200 mx-3" />
+
             {/* <UserMenu /> */}
             <MenuDropDown />
 

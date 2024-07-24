@@ -4,6 +4,7 @@ import PermissionWrapper from '@/components/PermissionWrapper';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import PortalHeader from '@/components/PortalHeader';
 import WelcomeBanner from '@/components/Dashboard/WelcomeBanner';
+import BreadCrumb from '../BreadCrumb';
 
 function Dashboard({ children }: any) {
 
@@ -25,8 +26,10 @@ function Dashboard({ children }: any) {
           <div className="px-4 sm:px-6 lg:px-8 py-4 w-full mx-auto">
 
             {/* Cards */}
-            <div className="grid grid-cols-12 gap-6">
-
+            <div className="grid grid-cols-12 gap-3">
+              <div className='col-span-full'>
+                <BreadCrumb />
+              </div>
               {children}
 
             </div>

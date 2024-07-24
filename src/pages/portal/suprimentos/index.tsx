@@ -63,8 +63,8 @@ const Index = () => {
   }, [opcaoAtiva]);
 
   return (
-    <PortalBase>
-      <PermissionWrapper href='/portal' groups={['65cd5232828b75d5308e3315']}>
+    <PermissionWrapper href='/portal' groups={['65cd5232828b75d5308e3315']}>
+      <PortalBase>
         <div className='col-span-full flex flex-wrap gap-2 '>
 
           <button onClick={handleButton} name='nova_categoria'
@@ -118,8 +118,8 @@ const Index = () => {
 
         </div>
 
-      </PermissionWrapper>
-    </PortalBase>
+      </PortalBase>
+    </PermissionWrapper>
   )
 }
 
