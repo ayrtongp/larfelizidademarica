@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useRouter } from 'next/router'
 import React from 'react'
 import { FaChevronRight, FaHome } from 'react-icons/fa'
@@ -10,10 +11,10 @@ const BreadCrumb = () => {
             <nav className="flex mb-5" aria-label="Breadcrumb">
                 <ol className="inline-flex items-center space-x-1 md:space-x-2">
                     <li className="inline-flex items-center">
-                        <a href="/portal" className="text-gray-700 hover:text-gray-900 inline-flex items-center gap-1">
+                        <Link href="/portal" className="text-gray-700 hover:text-gray-900 inline-flex items-center gap-1">
                             <FaHome />
                             portal
-                        </a>
+                        </Link>
                     </li>
                     {splittedRouter.map((segment, index) => {
                         if (index > 0) {
