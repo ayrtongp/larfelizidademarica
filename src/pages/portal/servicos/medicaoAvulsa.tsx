@@ -121,7 +121,7 @@ const MedicaoAvulsa = () => {
         if (foraLimite) {
             const idoso = residentes.find(i => i._id === idosoId)?.nome || "";
             sendMessage(process.env.NEXT_PUBLIC_WPP_GRUPO_TECNICOS as string,
-                `⚠️ Atenção!\nO valor de ${sinalOption?.label} para ${idoso} está fora dos limites: ${valor} ${limites?.unidade || ""} (Aceitável: ${limites?.min} - ${limites?.max})`
+                `⚠️ Atenção!\n\nMedição: ${sinalOption?.label}\nIdoso: ${idoso}\nEstá fora dos limites: ${valor} ${limites?.unidade || ""}\n(Aceitável: ${limites?.min} - ${limites?.max})`
             );
         }
 
