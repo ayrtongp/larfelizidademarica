@@ -148,7 +148,7 @@ const MedicaoAvulsa = () => {
     };
 
     return (
-        <PermissionWrapper href='/portal' groups={['66955f79820cc8004aab9596']}>
+        <PermissionWrapper href='/portal'>
             <PortalBase>
                 <div className="col-span-full max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
                     <button
