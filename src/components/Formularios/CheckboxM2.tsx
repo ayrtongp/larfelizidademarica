@@ -6,19 +6,21 @@ import classnames from 'classnames';
 interface CheckboxProps {
   label: string;
   isChecked: boolean;
-  onChange: () => void;
+  onChange: (e: React.ChangeEvent) => void;
+  id: string;
+  className?: string;
 }
 
-const CheckboxM2: React.FC<CheckboxProps> = ({ label, isChecked, onChange }) => {
+const CheckboxM2: React.FC<CheckboxProps> = ({ label, isChecked, onChange, id, className }) => {
 
   return (
-    <div className="flex items-center">
+    <div className={classnames("flex items-center", className)}>
       <input
         type="checkbox"
-        id={label}
+        id={id}
         checked={isChecked}
         onChange={onChange}
-        className="mr-2"
+        className={classnames('mr-2')}
       />
       <label
         htmlFor={label}

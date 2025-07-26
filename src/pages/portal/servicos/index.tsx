@@ -25,7 +25,7 @@ const Index = () => {
 
 
     return (
-        <PermissionWrapper href='/portal' groups={['66955f79820cc8004aab9596']}>
+        <PermissionWrapper href='/portal' groups={['']}>
             <PortalBase>
                 <div className='col-span-full w-full'>
 

@@ -4,7 +4,7 @@ import PortalBase from '@/components/Portal/PortalBase'
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import Image from 'next/image'
-import { FaBook, FaEdit, FaHeart, FaInfo } from 'react-icons/fa'
+import { FaBook, FaEdit, FaFilePrescription, FaHeart, FaInfo } from 'react-icons/fa'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 import ResidenteAccordion from '@/components/Residentes/ResidenteAccordion'
 import Semiologia from '@/components/Residentes/Semiologia'
@@ -21,6 +21,8 @@ import FormDadosIdoso from '@/components/Forms/FormDadosIdoso'
 import { getUserID } from '@/utils/Login'
 import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario'
 import Residente_Files from '@/components/Residentes/Residente_Files'
+import PrescricaoForm from '@/components/Forms/prescricao.form'
+import Prescricao from '@/components/Residentes/Prescricao'
 
 interface objProps {
   className: string;
@@ -46,6 +48,7 @@ const ResidenteDetalhes = () => {
   const object: objProps[] = [
     { className: "menuInfo", label: "Informações do Residente", icon: <FaInfo />, component: <ResidenteAccordion />, color: 'text-blue-600' },
     { className: "menuSemio", label: "Sinais Vitais", icon: <FaHeart />, component: <ResidenteAccordion />, color: 'text-red-600' },
+    { className: "menuPrescricoes", label: "Prescrições", icon: <FaFilePrescription />, component: <ResidenteAccordion />, color: 'text-gray-600' },
     { className: "menuAnotacoes", label: "Anotações Enfermagem", icon: <HiAnnotation />, component: <ResidenteAccordion />, color: 'text-green-600' },
     { className: "menuEvolucao", label: "Evolução Multidisciplinar", icon: <HiBriefcase />, component: <ResidenteAccordion />, color: 'text-orange-600' },
     { className: "menuRelatorios", label: "Relatórios", icon: <MdLocalGroceryStore />, component: <ResidenteAccordion />, color: 'text-purple-600' },
@@ -204,6 +207,9 @@ const ResidenteDetalhes = () => {
 
                 {/* SEMIOLOGIA */}
                 {classeAtiva == "menuSemio" && (<div className='p-3'><Semiologia residenteData={residenteData} /></div>)}
+
+                {/* PRESCRIÇÕES */}
+                {classeAtiva == "menuPrescricoes" && (<div className='p-3'><Prescricao idosoData={residenteData} /></div>)}
 
                 {/* ANOTAÇÕES DA ENFERMAGEM */}
                 {classeAtiva == "menuAnotacoes" && (<div className='p-3'><AnotacoesEnfermagem /></div>)}

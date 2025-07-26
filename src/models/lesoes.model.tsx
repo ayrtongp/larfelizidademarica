@@ -6,9 +6,10 @@
 
 export type Vista = 'frente' | 'costas' | 'lado-esquerdo' | 'lado-direito';
 
-export type LesaoStatus = 'iniciada' | 'em_tratamento' | 'curada' | 'infectada' | 'encerrada' | 'cancelada';
+export type LesaoStatus = 'iniciada' | 'em_investigacao' | 'em_tratamento' | 'curada' | 'infectada' | 'encerrada' | 'cancelada';
 
 export type TipoLesao =
+    | 'fragilidade_capilar'
     | 'contusao'
     | 'escoriacao'
     | 'corte'
@@ -77,6 +78,7 @@ export interface Lesao {
 // *********************************
 
 export const FERIDA_TYPE_OPTIONS: { label: string; value: TipoLesao }[] = [
+    { label: 'Fragilidade Capilar', value: 'fragilidade_capilar' },
     { label: 'Contusão', value: 'contusao' },
     { label: 'Escoriação', value: 'escoriacao' },
     { label: 'Corte', value: 'corte' },
@@ -112,6 +114,7 @@ export const VISTA_TYPE_OPTIONS = [
 
 export const LESAO_STATUS_OPTIONS: { label: string; value: LesaoStatus }[] = [
     { label: 'Iniciada', value: 'iniciada' },
+    { label: 'Em Investigação', value: 'em_investigacao' },
     { label: 'Em Tratamento', value: 'em_tratamento' },
     { label: 'Curada', value: 'curada' },
     { label: 'Infectada', value: 'infectada' },

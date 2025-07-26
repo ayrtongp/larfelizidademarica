@@ -55,7 +55,6 @@ const ListaResidentesAtivos = () => {
   }
 
   const handleOpenModal = (residente: any) => {
-    console.log(residente)
     setResidenteSelecionado(residente._id);
     // Preenche limites atuais ou vazio
     const limitesObj: { [tipo: string]: { valorMin: string; valorMax: string } } = {};
@@ -105,7 +104,6 @@ const ListaResidentesAtivos = () => {
       }
     }
 
-    console.log(limitesArray)
 
     // Monta array final para envio
     const limitesToSend = limitesArray.map(([tipo, v]) => ({
@@ -114,8 +112,6 @@ const ListaResidentesAtivos = () => {
       valorMax: v.valorMax,
     }));
 
-    console.log(residenteSelecionado)
-    console.log(limitesToSend)
     try {
       const [data, ok] = await Residentes_PUT_alterarLimites({
         idResidente: residenteSelecionado,

@@ -192,7 +192,7 @@ const Index = () => {
     };
 
     const handleAddComentario = async () => {
-        if (!selectedLesao || !novoComentario.trim() || !isComentarioVazio(novoComentario)) return;
+        if (!selectedLesao || !novoComentario.trim() || isComentarioVazio(novoComentario)) return;
         showLoading();
         try {
             // Crie o novo comentário
@@ -202,7 +202,7 @@ const Index = () => {
                 content: novoComentario,
                 createdAt: getCurrentDateTime(),
             };
-
+            
             // Atualize a lesão com o novo comentário (push no array)
             const response = await updateLesao(selectedLesao._id!, {
                 comentarios: [...selectedLesao.comentarios, comentario],

@@ -200,7 +200,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const myObjectId = new ObjectId(req.body.idResidente as unknown as ObjectId);
           const myBody = req.body.body
           const result = await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
-          console.log(result)
           return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
         }
 
