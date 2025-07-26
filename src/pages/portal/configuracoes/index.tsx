@@ -8,7 +8,7 @@ import React, { useState } from 'react'
 import { FaBell, FaLock, FaUser } from 'react-icons/fa'
 import { MdVerified } from 'react-icons/md'
 
-const index = () => {
+const Index = () => {
   const [componentSelected, setComponentSelected] = useState('preferencias')
 
   const itens = [
@@ -50,4 +50,4 @@ const index = () => {
   )
 }
 
-export default index
+export default Index
