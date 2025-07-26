@@ -154,7 +154,7 @@ const AnotacoesEnfermagem = () => {
       </div>
 
       <div>
-        <CheckboxM2 label='Não se aplica' onChange={toggleCheckbox} isChecked={naoSeAplicaCheck} />
+        <CheckboxM2 id='teste' label='Não se aplica' onChange={toggleCheckbox} isChecked={naoSeAplicaCheck} />
       </div>
 
       {/* {PEGAR TODOS OS CAMPOS DO TIPO RADIO, TEXTAREA FICA PRA DEPOIS} */}
