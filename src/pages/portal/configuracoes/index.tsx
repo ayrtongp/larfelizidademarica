@@ -21,7 +21,6 @@ const Index = () => {
   ]
 
   const userInfo = updateProfile();
-  console.log(userInfo)
 
   return (
     <PermissionWrapper href='/portal'>
