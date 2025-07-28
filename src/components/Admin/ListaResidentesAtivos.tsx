@@ -9,6 +9,7 @@ import Modalpadrao from '../ModalPadrao';
 import { SINAL_VITAL_OPTIONS, validarSinalVital } from '@/models/sinaisvitaisv2.model';
 import TextInputM2 from '../Formularios/TextInputM2';
 import { Residentes_PUT_alterarDados, Residentes_PUT_alterarLimites } from '@/actions/Residentes';
+import TabelaGenerica from '../TabelaGenerica';
 
 type ListaData = {
   apelido: string;
@@ -129,39 +130,54 @@ const ListaResidentesAtivos = () => {
   };
 
   return (
-    <div className='relative overflow-x-auto shadow-md sm:rounded-lg'>
-      <table className='table-auto w-full text-xs bg-white'>
-        <thead className='uppercase'>
-          <tr className='bg-black text-white font-bold'>
-            <th className='px-2 py-1'>Apelido</th>
-            <th className='px-2 py-1'>Nome</th>
-            <th className='px-2 py-1'>Ativo</th>
-            <th className='px-2 py-1'>ID</th>
-          </tr>
-        </thead>
-        <tbody >
-          {listaUsuarios.map((linha, index) => {
-            const imagemUsuario = linha.foto_base64
-            if (linha.is_ativo === 'S') {
-              return (
-                <tr onClick={() => handleOpenModal(linha)} key={index} data-id={linha?._id} data-value={linha.is_ativo} className={`border-b ${index % 2 == 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                  <td className='px-2 py-1 whitespace-nowrap min-w-[160px]'>
-                    <div className='flex flex-row items-center gap-1 justify-start'>
-                      <Image className='rounded-full w-10 h-10' width={30} height={30} src={imagemUsuario ? imagemUsuario : ImagemPadrao} alt={linha?.nome} />
-                      {linha?.apelido}
-                    </div>
-                  </td>
-                  <td className='text-center px-2 py-1 whitespace-nowrap'>{linha?.nome}</td>
-                  <td className='text-center px-2 py-1 whitespace-nowrap' onClick={handleChangeIsAtivo}>
-                    <SelectSimNao linha={linha.is_ativo} />
-                  </td>
-                  <td className='text-center px-2 py-1 whitespace-nowrap'>{linha?._id}</td>
-                </tr>
-              )
-            }
-          })}
-        </tbody>
-      </table>
+    <div className='flex flex-col gap-5'>
+      <div className='relative overflow-x-auto shadow-md sm:rounded-lg'>
+        <table className='table-auto w-full text-xs bg-white'>
+          <thead className='uppercase'>
+            <tr className='bg-black text-white font-bold'>
+              <th className='px-2 py-1'>Apelido</th>
+              <th className='px-2 py-1'>Nome</th>
+              <th className='px-2 py-1'>Ativo</th>
+              <th className='px-2 py-1'>ID</th>
+            </tr>
+          </thead>
+          <tbody >
+            {listaUsuarios.map((linha, index) => {
+              const imagemUsuario = linha.foto_base64
+              if (linha.is_ativo === 'S') {
+                return (
+                  <tr onClick={() => handleOpenModal(linha)} key={index} data-id={linha?._id} data-value={linha.is_ativo} className={`border-b ${index % 2 == 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                    <td className='px-2 py-1 whitespace-nowrap min-w-[160px]'>
+                      <div className='flex flex-row items-center gap-1 justify-start'>
+                        <Image className='rounded-full w-10 h-10' width={30} height={30} src={imagemUsuario ? imagemUsuario : ImagemPadrao} alt={linha?.nome} />
+                        {linha?.apelido}
+                      </div>
+                    </td>
+                    <td className='text-center px-2 py-1 whitespace-nowrap'>{linha?.nome}</td>
+                    <td className='text-center px-2 py-1 whitespace-nowrap' onClick={handleChangeIsAtivo}>
+                      <SelectSimNao linha={linha.is_ativo} />
+                    </td>
+                    <td className='text-center px-2 py-1 whitespace-nowrap'>{linha?._id}</td>
+                  </tr>
+                )
+              }
+            })}
+          </tbody>
+        </table>
+
+      </div>
+
+      <div className='p-3 bg-white'>
+        <div className='my-4'>
+          <h2 className='font-bold text-lg'>Residentes Inativos</h2>
+        </div>
+        <TabelaGenerica rowsPerPage={20} dados={listaUsuarios.filter(f => f.is_ativo === "N")} colunas={[
+          { key: 'apelido', label: 'Apelido' },
+          { key: 'nome', label: 'Nome' },
+          { key: 'is_ativo', label: 'Ativo' },
+          { key: '_id', label: 'ID' },
+        ]} />
+      </div>
 
       <Modalpadrao isOpen={modalOpen} onClose={() => setModalOpen(false)}>
         <div className="p-2">
@@ -190,7 +206,6 @@ const ListaResidentesAtivos = () => {
           </div>
         </div>
       </Modalpadrao>
-
     </div>
   )
 }

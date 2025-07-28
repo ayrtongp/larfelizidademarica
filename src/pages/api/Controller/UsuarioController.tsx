@@ -9,6 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
   const mainCollection = db.collection('usuario')
 
   switch (req.method) {
+
     case 'GET':
 
       // -------------------------
@@ -169,21 +170,76 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     // -------------------------
 
     case 'PUT':
+
       try {
         const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
         const bodyObject = JSON.parse(req.body)
-
         if (req.query.tipo === 'alteraFoto' && bodyObject.foto_base64) {
+          const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
+          const bodyObject = JSON.parse(req.body)
           const novaFoto = bodyObject.foto_base64
           await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
           return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
-        else if (req.query.tipo === 'alteraSenha' && (bodyObject.newPass === bodyObject.repPass)) {
-          const novaSenha = await bcrypt.hash(bodyObject.newPass, 10);
-          await mainCollection.updateOne({ _id: myObjectId }, { $set: { senha: novaSenha } },);
-          return res.status(201).json({ message: 'Senha do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
+
+        // ********************************
+        // ********************************
+        // PUT - ALTERA SENHA
+        // ********************************
+        // ********************************
+
+        else if (req.query.tipo === 'alteraSenha') {
+          const { currentPass, newPass, repPass } = bodyObject;
+          if (!currentPass || !newPass || !repPass) {
+            return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
+          }
+
+          // Verifica se nova senha e confirmação batem
+          if (newPass !== repPass) {
+            return res.status(400).json({ message: 'Nova senha e confirmação não coincidem.' });
+          }
+
+          // Validação de força da senha (exemplo: mínimo 8 caracteres, letra maiúscula, número)
+          const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+          if (!passwordRegex.test(newPass)) {
+            return res.status(400).json({
+              message:
+                'A senha deve conter no mínimo 8 caracteres, incluindo pelo menos uma letra maiúscula e um número.',
+            });
+          }
+
+          // Busca usuário
+          const user = await mainCollection.findOne({ _id: myObjectId });
+          if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado.' });
+          }
+
+          // Verifica se a senha atual está correta
+          const match = await bcrypt.compare(currentPass, user.senha);
+          if (!match) {
+            return res.status(401).json({ message: 'Senha atual incorreta.' });
+          }
+
+          // Criptografa e atualiza nova senha
+          const novaSenha = await bcrypt.hash(newPass, 10);
+          await mainCollection.updateOne({ _id: myObjectId }, { $set: { senha: novaSenha } });
+
+          return res.status(200).json({
+            message: 'Senha alterada com sucesso!',
+            method: 'PUT',
+            url: `UsuarioController?tipo=alteraSenha&id=${req.query.id}`
+          });
         }
+
+        // ********************************
+        // ********************************
+        // PUT - ALTERA DADOS
+        // ********************************
+        // ********************************
+
         else if (req.query.tipo === 'alteraDados') {
+          const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
+          const bodyObject = JSON.parse(req.body)
           await mainCollection.updateOne({ _id: myObjectId }, { $set: bodyObject },);
           return res.status(201).json({ message: 'Senha do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
         }

@@ -33,10 +33,11 @@ export function getUserFuncao() {
 }
 
 export function updateProfile() {
-  const userIdString = localStorage.getItem('userInfo');
-  if (userIdString) {
-    const data = JSON.parse(userIdString);
-    return data
+  if (typeof window !== 'undefined') {
+    const userIdString = localStorage.getItem('userInfo');
+    if (userIdString) {
+      const data = JSON.parse(userIdString);
+      return data
+    }
   }
-
 }

@@ -1,9 +1,11 @@
 import FormNovoUsuario from '@/components/FormNovoUsuario'
 import Navportal from '@/components/Navportal'
 import Preferencias from '@/components/Paginas/Configuracoes/Preferencias'
+import Senhas from '@/components/Paginas/Configuracoes/Senhas'
 import PerfilFotoUpload from '@/components/PerfilFotoUpload'
 import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
+import { updateProfile } from '@/utils/Login'
 import React, { useState } from 'react'
 import { FaBell, FaLock, FaUser } from 'react-icons/fa'
 import { MdVerified } from 'react-icons/md'
@@ -14,9 +16,12 @@ const Index = () => {
   const itens = [
     { name: 'Preferências', icon: <FaUser size={20} />, value: 'preferencias' },
     { name: 'Senhas', icon: <FaLock size={20} />, value: 'senhas' },
-    { name: 'Notificações', icon: <FaBell size={20} />, value: 'notificacoes' },
-    { name: 'Verificação', icon: <MdVerified size={20} />, value: 'verificacao' }
+    // { name: 'Notificações', icon: <FaBell size={20} />, value: 'notificacoes' },
+    // { name: 'Verificação', icon: <MdVerified size={20} />, value: 'verificacao' }
   ]
+
+  const userInfo = updateProfile();
+  console.log(userInfo)
 
   return (
     <PermissionWrapper href='/portal'>
@@ -40,7 +45,8 @@ const Index = () => {
           </div>
           <div className='col-span-full md:col-span-10'>
             <div className='bg-white rounded-lg shadow-md py-4'>
-              {componentSelected === 'preferencias' && <Preferencias />}
+              {componentSelected === 'preferencias' && <Preferencias userInfo={userInfo} />}
+              {componentSelected === 'senhas' && <Senhas />}
               {/* <PerfilFotoUpload /> */}
             </div>
           </div>
