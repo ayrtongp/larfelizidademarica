@@ -5,7 +5,7 @@ import { Contrato } from '@/types/Contrato'
 import Date_M3 from '../Formularios/Date_M3'
 import Number_M3 from '../Formularios/Number_M3'
 import Button_M3 from '../Formularios/Button_M3'
-import { Contratos_POST_create } from '@/actions/Contratos'
+// import { Contratos_POST_create } from '@/services/contratos.service'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 
 interface Props {
@@ -75,11 +75,11 @@ const NovoContrato = ({ residentes }: Props) => {
         }
 
         if (objetosDiferentes) {
-            const novoContrato = await Contratos_POST_create(formData)
-            if (novoContrato.message === 'OK') {
-                notifySuccess('Contrato criado com sucesso')
-                setFormData(initialContrato)
-            }
+            // const novoContrato = await Contratos_POST_create(formData)
+            // if (novoContrato.message === 'OK') {
+            //     notifySuccess('Contrato criado com sucesso')
+            //     setFormData(initialContrato)
+            // }
         }
     }
 
