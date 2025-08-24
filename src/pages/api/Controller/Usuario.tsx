@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             usuario = await mainCollection.findOne({ _id: new ObjectId(userId) },)
           }
 
-          const url = `UsuarioController?id=${userId}`
+          const url = `Usuario?id=${userId}`
 
           if (!usuario) { return res.status(404).json({ message: 'Usuário não encontrado', id: userId, url: url, method: 'GET' }); }
           return res.status(200).json({ usuario, message: 'Usuário Localizado', url: url, method: 'GET' });
@@ -61,6 +61,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
+      // GET DADOS PERFIL - Retorna dados do usuário e grupos associados
+      // -------------------------
+
+      else if (req.query.type === 'getDadosPerfil') {
+        const userId = req.query._id as string;
+
+        try {
+
+          const result = await mainCollection.aggregate(pipe_usu_dados_grupos(userId)).toArray();
+
+          if (result.length === 0) {
+            return res.status(404).json({ message: 'Usuário não encontrado', id: userId, method: 'GET' });
+          }
+          return res.status(200).json({ result: result[0], message: 'Usuário Localizado', method: 'GET' });
+
+        } catch (err) {
+          console.error(err)
+          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
       // LISTAR TODOS OS USUÁRIOS
       // -------------------------
 
@@ -70,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             {},
             { projection: { _id: 1, usuario: 1, nome: 1, sobrenome: 1, email: 1, foto_base64: 1, ativo: 1, admin: 1, dataNascimento: 1, funcao: 1, registro: 1 } })
             .toArray();
-          const url = `UsuarioController`
+          const url = `Usuario`
 
           return res.status(200).json({ usuarios, message: 'Lista de Usuários', url: url });
         } catch (err) {
@@ -117,22 +139,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         if (!novoUsuario.nome || !novoUsuario.sobrenome || !novoUsuario.usuario || !novoUsuario.senha
           || !novoUsuario.admin || !novoUsuario.email || !novoUsuario.repetirSenha) {
-          return res.status(400).json({ message: 'Faltam campos para continuar a ação, favor verificar!', method: 'POST', url: `UsuarioController` });
+          return res.status(400).json({ message: 'Faltam campos para continuar a ação, favor verificar!', method: 'POST', url: `Usuario` });
         }
 
         const isUser = await mainCollection.findOne({ usuario: novoUsuario.usuario })
         if (isUser) {
-          return res.status(400).json({ message: `Este usuário já existe: ${novoUsuario.usuario}.`, method: 'POST', url: `UsuarioController` });
+          return res.status(400).json({ message: `Este usuário já existe: ${novoUsuario.usuario}.`, method: 'POST', url: `Usuario` });
         }
 
         const isEmail = await mainCollection.findOne({ email: novoUsuario.email })
         if (isEmail) {
-          return res.status(400).json({ message: `Este email já está cadastrado: ${novoUsuario.email}.`, method: 'POST', url: `UsuarioController` });
+          return res.status(400).json({ message: `Este email já está cadastrado: ${novoUsuario.email}.`, method: 'POST', url: `Usuario` });
         }
 
         const passMatch = novoUsuario.senha === novoUsuario.repetirSenha
         if (!passMatch) {
-          return res.status(400).json({ message: `As senhas informadas não são idênticas`, method: 'POST', url: `UsuarioController` });
+          return res.status(400).json({ message: `As senhas informadas não são idênticas`, method: 'POST', url: `Usuario` });
         }
 
         if (novoUsuario.senha.length < 6) {
@@ -158,7 +180,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         const newUser = await mainCollection.insertOne(userObj);
         const message = `Novo usuário: ${novoUsuario.usuario}`
-        const url = `UsuarioController?id=${newUser.insertedId}`
+        const url = `Usuario?id=${newUser.insertedId}`
         return res.status(201).json({ message: message, url: url, method: 'POST', userId: newUser.insertedId });
       } catch (err) {
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
@@ -179,7 +201,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const bodyObject = JSON.parse(req.body)
           const novaFoto = bodyObject.foto_base64
           await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
-          return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
+          return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `Usuario?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
 
         // ********************************
@@ -227,7 +249,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({
             message: 'Senha alterada com sucesso!',
             method: 'PUT',
-            url: `UsuarioController?tipo=alteraSenha&id=${req.query.id}`
+            url: `Usuario?tipo=alteraSenha&id=${req.query.id}`
           });
         }
 
@@ -241,10 +263,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
           const bodyObject = JSON.parse(req.body)
           await mainCollection.updateOne({ _id: myObjectId }, { $set: bodyObject },);
-          return res.status(201).json({ message: 'Senha do usuário alterada com sucesso!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
+          return res.status(201).json({ message: 'Senha do usuário alterada com sucesso!', method: 'PUT', url: `Usuario?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
         else {
-          return res.status(409).json({ message: 'Condição inválida, verificar a requisição!', method: 'PUT', url: `UsuarioController?tipo=${req.query.tipo}&id=${req.query.id}` });
+          return res.status(409).json({ message: 'Condição inválida, verificar a requisição!', method: 'PUT', url: `Usuario?tipo=${req.query.tipo}&id=${req.query.id}` });
         }
       } catch (err) {
         return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
@@ -258,7 +280,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'DELETE':
       try {
         const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-        const url = `UsuarioController?id=${req.query.id}`
+        const url = `Usuario?id=${req.query.id}`
         const result = await mainCollection.deleteOne({ _id: myObjectId });
 
         if (result.deletedCount === 0) {
@@ -276,4 +298,59 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
+}
+
+
+// ***************************************************
+// ***************************************************
+// ***************************************************
+// ***************************************************
+// PIPELINES
+// ***************************************************
+// ***************************************************
+// ***************************************************
+// ***************************************************
+
+function pipe_usu_dados_grupos(userId: string) { // Retorna os dados do usuário e os grupos associados
+
+  return (
+    [
+      {
+        $match: { _id: new ObjectId(userId) }
+      },
+      {
+        $addFields: {
+          id_usuario_str: { $toString: "$_id" }
+        }
+      },
+      {
+        $lookup: {
+          from: "grupos_usuario",
+          let: { usuarioIdStr: "$id_usuario_str" },
+          pipeline: [{ $match: { $expr: { $eq: ["$id_usuario", "$$usuarioIdStr"] } } }],
+          as: "relacoes"
+        }
+      },
+      {
+        $lookup: {
+          from: "grupos",
+          let: { grupoIds: "$relacoes.id_grupo" },
+          pipeline: [{ $match: { $expr: { $in: [{ $toString: "$_id" }, "$$grupoIds"] } } }],
+          as: "grupos"
+        }
+      },
+      {
+        $project: {
+          relacoes: 0,
+          senha: 0,
+          ativo: 0,
+          id_usuario_str: 0,
+          admin: 0,
+          "grupos.createdAt": 0,
+          "grupos.updatedAt": 0,
+          "grupos._id": 0
+        }
+      }
+    ]
+  )
 }

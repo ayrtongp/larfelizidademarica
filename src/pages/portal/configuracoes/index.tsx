@@ -1,17 +1,21 @@
-import FormNovoUsuario from '@/components/FormNovoUsuario'
-import Navportal from '@/components/Navportal'
+import React, { useEffect, useState } from 'react'
+
+import PortalBase from '@/components/Portal/PortalBase'
+import PermissionWrapper from '@/components/PermissionWrapper'
+
 import Preferencias from '@/components/Paginas/Configuracoes/Preferencias'
 import Senhas from '@/components/Paginas/Configuracoes/Senhas'
-import PerfilFotoUpload from '@/components/PerfilFotoUpload'
-import PermissionWrapper from '@/components/PermissionWrapper'
-import PortalBase from '@/components/Portal/PortalBase'
-import { updateProfile } from '@/utils/Login'
-import React, { useState } from 'react'
-import { FaBell, FaLock, FaUser } from 'react-icons/fa'
-import { MdVerified } from 'react-icons/md'
+
+import { Usuario_getDadosPerfil } from '@/actions/Usuario'
+
+import { FaLock, FaUser } from 'react-icons/fa'
+import { getUserID } from '@/utils/Login'
+
+// ------------------------------------------------------------------------------
 
 const Index = () => {
   const [componentSelected, setComponentSelected] = useState('preferencias')
+  const [userInfo, setUserInfo] = useState({});
 
   const itens = [
     { name: 'Preferências', icon: <FaUser size={20} />, value: 'preferencias' },
@@ -20,7 +24,17 @@ const Index = () => {
     // { name: 'Verificação', icon: <MdVerified size={20} />, value: 'verificacao' }
   ]
 
-  const userInfo = updateProfile();
+  const userId = getUserID();
+
+  useEffect(() => {
+    async function fetchData() {
+      const data = await Usuario_getDadosPerfil(userId);
+      setUserInfo(data.result);
+    };
+
+    fetchData();
+  }, [])
+
 
   return (
     <PermissionWrapper href='/portal'>

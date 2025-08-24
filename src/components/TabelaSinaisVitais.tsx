@@ -41,7 +41,7 @@ const TabelaSinaisVitais = () => {
   const isAdmin = async () => {
     const userInfo = JSON.parse(localStorage.getItem('userInfo') as string)
     const userId = userInfo.id
-    const response = await fetch(`/api/Controller/UsuarioController?id=${userId}&registro=admin`, { method: "GET", });
+    const response = await fetch(`/api/Controller/Usuario?id=${userId}&registro=admin`, { method: "GET", });
     const data = await response.json()
     await data.usuario?.admin === "S" ? setExcludePermission(true) : setExcludePermission(false)
   }

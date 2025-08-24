@@ -36,7 +36,7 @@ const FormNovoUsuario = () => {
     event.preventDefault()
 
     if (formData.senha === formData.repetirSenha) {
-      const res = await fetch("/api/Controller/UsuarioController", {
+      const res = await fetch("/api/Controller/Usuario", {
         method: "POST",
         body: JSON.stringify(formData),
       });

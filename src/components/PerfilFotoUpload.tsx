@@ -54,7 +54,7 @@ const PerfilFotoUpload = () => {
   const handleUpload = async () => {
     try {
       const formData = { foto_base64: base64 }
-      const res = await fetch(`/api/Controller/UsuarioController?tipo=alteraFoto&id=${getUserID()}`, {
+      const res = await fetch(`/api/Controller/Usuario?tipo=alteraFoto&id=${getUserID()}`, {
         method: 'PUT',
         body: JSON.stringify(formData),
       });
@@ -71,7 +71,7 @@ const PerfilFotoUpload = () => {
 
   const handleChangePass = async () => {
     try {
-      const res = await fetch(`/api/Controller/UsuarioController?tipo=alteraSenha&id=${getUserID()}`, {
+      const res = await fetch(`/api/Controller/Usuario?tipo=alteraSenha&id=${getUserID()}`, {
         method: 'PUT',
         body: JSON.stringify(dataPass),
       });

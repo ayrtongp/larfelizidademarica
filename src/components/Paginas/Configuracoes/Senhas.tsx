@@ -35,7 +35,7 @@ const Senhas = () => {
 
         try {
             setLoading(true);
-            const res = await fetch(`/api/Controller/UsuarioController?tipo=alteraSenha&id=${getUserID()}`, {
+            const res = await fetch(`/api/Controller/Usuario?tipo=alteraSenha&id=${getUserID()}`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     currentPass: dataPass.senhaAtual,

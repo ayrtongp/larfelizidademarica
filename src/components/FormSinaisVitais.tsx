@@ -36,7 +36,7 @@ const FormSinaisVitais = () => {
   }, []);
 
   const teste = async () => {
-    const getRegistro = await fetch(`/api/Controller/UsuarioController?registro=getRegistro&id=${getUserID()}`, {
+    const getRegistro = await fetch(`/api/Controller/Usuario?registro=getRegistro&id=${getUserID()}`, {
       method: "GET",
     });
     const registoJson = await getRegistro.json()

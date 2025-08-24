@@ -57,7 +57,7 @@ const RelSinaisVitais = ({ residenteData }: any) => {
   async function getResponsaveisData() {
     const objIds = { "arrayIds": idResponsaveis }
     const config = { headers: { 'Content-Type': 'application/json' } }
-    const res = await fetch("/api/Controller/UsuarioController?type=arrayIds", {
+    const res = await fetch("/api/Controller/Usuario?type=arrayIds", {
       method: "POST",
       body: JSON.stringify(objIds),
     });

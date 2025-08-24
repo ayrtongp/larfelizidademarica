@@ -6,12 +6,15 @@ import CadastroInsumo from '@/components/Cadastros/CadastroInsumo';
 import ListaInsumos from '@/components/Tabelas/ListaInsumos';
 import GerenciarEstoque from '@/components/Gerenciar/GerenciarEstoque';
 import PermissionWrapper from '@/components/PermissionWrapper';
+import { getInsumosWithInventory } from '@/services/insumos.service';
+import { InsumoWithInventory } from '@/models/insumos.model';
 
 const Index = () => {
 
   const [opcaoAtiva, setOpcaoAtiva] = useState('');
   const [listaCategorias, setListaCategorias] = useState([]);
-  const [listaInsumos, setListaInsumos] = useState([]);
+  const [insumos, setInsumos] = useState<InsumoWithInventory[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const handleButton = (e: any) => {
     setOpcaoAtiva(e.target.name)
@@ -39,17 +42,11 @@ const Index = () => {
 
   async function getInsumos() {
     try {
-      const url = '/api/Controller/Insumos?type=getAll';
-      const res = await fetch(url);
-
-      if (!res.ok) {
-        throw new Error(`Erro na solicitação: ${res.status}`);
-      }
-
-      const data = await res.json();
-      setListaInsumos(data)
-    } catch (error) {
-      console.error('Erro ao obter categorias:', error);
+      const res = await getInsumosWithInventory(1, 50)
+      setInsumos(res.data)
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message)
     }
   }
 
@@ -113,7 +110,7 @@ const Index = () => {
           )}
 
           {opcaoAtiva == 'gerenciar_estoque' && (
-            <GerenciarEstoque listaDeInsumos={listaInsumos} />
+            <GerenciarEstoque insumos={insumos} />
           )}
 
         </div>

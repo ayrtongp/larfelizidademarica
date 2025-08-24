@@ -36,7 +36,7 @@ const RelZipAnotEnf = () => {
     const dadosResidentes = response3.data
     const status3 = response3.status
 
-    const response4 = await axios.get(`/api/Controller/UsuarioController?type=getProfissionais`)
+    const response4 = await axios.get(`/api/Controller/Usuario?type=getProfissionais`)
     const dadosUsuario = response4.data
     const status4 = response4.status
 

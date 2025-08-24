@@ -22,9 +22,11 @@ export function Logout(router) {
 }
 
 export function getUserID() {
-  const token = localStorage.getItem('token');
-  const { userId } = jwt.decode(token)
-  return userId
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    const { userId } = jwt.decode(token)
+    return userId
+  }
 }
 
 export function getUserFuncao() {

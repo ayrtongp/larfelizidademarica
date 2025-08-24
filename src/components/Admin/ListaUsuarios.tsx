@@ -21,7 +21,7 @@ const ListaUsuarios = () => {
 
   async function getListaUsuarios() {
     if (listaUsuarios.length < 1) {
-      const result = await axios.get('/api/Controller/UsuarioController')
+      const result = await axios.get('/api/Controller/Usuario')
 
       if (result.status >= 200 && result.status < 300) {
         setListaUsuarios(result.data.usuarios)

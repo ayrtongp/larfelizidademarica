@@ -16,7 +16,7 @@ const TabelaUsuarios = () => {
   const [data, setData] = useState<Idoso[]>([]);
 
   const fetchData = async () => {
-    const response = await fetch('/api/Controller/UsuarioController');
+    const response = await fetch('/api/Controller/Usuario');
     const json = await response.json();
     setData(json);
   }
@@ -49,7 +49,7 @@ const TabelaUsuarios = () => {
               <td className="px-4 py-1 border">{user.status == '1' ? 'Ativo' : 'Desativado'}</td>
               <td className="px-4 py-1 border">
                 <span className="cursor-pointer hover:text-red-500">
-                  <DeleteButton onConfirm={fetchData} idosoData={`Usuario: ${user.usuario}`} id={user._id} url={'/api/Controller/UsuarioController'} />
+                  <DeleteButton onConfirm={fetchData} idosoData={`Usuario: ${user.usuario}`} id={user._id} url={'/api/Controller/Usuario'} />
                 </span>
               </td>
             </tr>

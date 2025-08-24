@@ -3,7 +3,7 @@
 import { getCroppedImg } from '@/utils/cropImage'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 import { getUserID } from '@/utils/Login'
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import Cropper from 'react-easy-crop'
 import { BsCamera } from 'react-icons/bs'
 
@@ -20,6 +20,12 @@ const AvatarCropper = ({ onImageCropped, defaultImage, size = 24, returnType = '
     const [crop, setCrop] = useState({ x: 0, y: 0 })
     const [zoom, setZoom] = useState(1)
     const [preview, setPreview] = useState<string | null>(defaultImage || null)
+
+    useEffect(() => {
+        if (defaultImage) {
+            setPreview(defaultImage)
+        }
+    }, [defaultImage])
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -49,7 +55,7 @@ const AvatarCropper = ({ onImageCropped, defaultImage, size = 24, returnType = '
 
     const handleUpload = async (base64: string) => {
         try {
-            const res = await fetch(`/api/Controller/UsuarioController?tipo=alteraFoto&id=${getUserID()}`, {
+            const res = await fetch(`/api/Controller/Usuario?tipo=alteraFoto&id=${getUserID()}`, {
                 method: 'PUT',
                 body: JSON.stringify({ foto_base64: base64 }),
             })

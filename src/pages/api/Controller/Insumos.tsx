@@ -94,6 +94,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
+      // LISTAR PAGINADO COM INVENTÁRIO
+      // -------------------------
+
+      else if (req.query.type == 'getPagesWithInventory') {
+        try {
+
+          // --- parâmetros de paginação: default pageSize = 10 ---
+          const pageSize = parseInt(req.query.limit as string, 10) || 10;
+          const page = parseInt(req.query.page as string, 10) || 1;
+          const skip = (page - 1) * pageSize;
+
+          const [result] = await mainCollection.aggregate(pipelineInsumosWithInventory(skip, pageSize, page)).toArray();
+
+          return res.status(200).json({
+            page,
+            pageSize,
+            total: result.total,
+            data: result.data
+          });
+
+        } catch (err) {
+          return res
+            .status(500)
+            .json({ message: 'getPagesWithInventory: Erro interno. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
       // SE NENHUMA CONDIÇÃR BATER DEVE RETORNAR ERRO
       // -------------------------
 
@@ -206,4 +234,59 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
   }
 
 
+}
+
+
+function pipelineInsumosWithInventory(skip: number, pageSize: number, page: number = 1) {
+  return [
+    {
+      $lookup: {
+        from: 'insumo_estoque',
+        let: { insumoId: '$_id' },
+        pipeline: [
+          // converte a string insumo_id em ObjectId
+          {
+            $addFields: {
+              insumoObjectId: { $toObjectId: '$insumo_id' }
+            }
+          },
+          // filtra apenas os registros cujo insumo_id convertido bate com _id da raíz
+          {
+            $match: {
+              $expr: { $eq: ['$insumoObjectId', '$$insumoId'] }
+            }
+          },
+          // mantemos só o campo quantidade para somar
+          { $project: { quantidade: 1 } }
+        ],
+        as: 'estoques'
+      }
+    },
+    {
+      // soma todas as quantidades encontradas
+      $addFields: {
+        totalQuantidade: { $sum: '$estoques.quantidade' }
+      }
+    },
+    { $sort: { nome_insumo: 1 } },
+    {
+      $facet: {
+        metadata: [{ $count: 'total' }],
+        data: [
+          { $skip: skip },
+          { $limit: pageSize },
+          { $project: { estoques: 0 } }
+        ]
+      }
+    },
+    { $unwind: '$metadata' },
+    {
+      $project: {
+        page,
+        pageSize,
+        total: '$metadata.total',
+        data: '$data'
+      }
+    }
+  ];
 }

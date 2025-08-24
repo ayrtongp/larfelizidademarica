@@ -1,5 +1,5 @@
 export default async function Usuario_getAtivos() {
-  const controller = 'UsuarioController'
+  const controller = 'Usuario'
   // const type = 'getAll'
   try {
     const url = `/api/Controller/${controller}`

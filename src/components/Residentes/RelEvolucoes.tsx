@@ -107,7 +107,7 @@ const RelAnotacoes = ({ residenteData }: any) => {
 
   async function getResponsaveisData() {
     const objIds = { "arrayIds": idResponsaveis }
-    const res = await fetch("/api/Controller/UsuarioController?type=arrayIds", {
+    const res = await fetch("/api/Controller/Usuario?type=arrayIds", {
       method: "POST",
       body: JSON.stringify(objIds),
     });
