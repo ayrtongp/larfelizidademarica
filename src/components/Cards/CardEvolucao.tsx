@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FaUserMd, FaCalendarAlt, FaFileAlt } from 'react-icons/fa';
-import { formatDateBR } from '@/utils/Functions';
+import { formatDateBR, formatDateBRHora } from '@/utils/Functions';
 import Modalpadrao from '../ModalPadrao';
 import RichReadOnly_M3 from '../Formularios/RichReadOnly_M3';
 
@@ -55,7 +55,7 @@ const CardEvolucao: React.FC<CardEvolucaoProps> = ({ item }) => {
       <Modalpadrao isOpen={open} onClose={handleCloseModal}>
         <div className="space-y-2 text-left text-sm">
           <div>
-            <strong>Data:</strong> {formatDateBR(item.dataEvolucao)}
+            <strong>Data:</strong> {formatDateBRHora(item.dataEvolucao)}
           </div>
           <div>
             <strong>Área:</strong> {item.area}
