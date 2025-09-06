@@ -7,7 +7,7 @@ import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { getUserID } from '@/utils/Login'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import { FaFirstAid, FaNotesMedical, FaUserShield } from 'react-icons/fa'
+import { FaCameraRetro, FaFirstAid, FaNotesMedical, FaUserShield } from 'react-icons/fa'
 
 const Index = () => {
 
@@ -23,6 +23,12 @@ const Index = () => {
             title: 'Medição Avulsa',
             icon: <FaNotesMedical size={24} className="text-indigo-500 mb-3 inline-block" />,
             href: '/portal/servicos/medicaoAvulsa'
+        },
+        {
+            name: 'fotos',
+            title: 'Fotos',
+            icon: <FaCameraRetro size={24} className="text-indigo-500 mb-3 inline-block" />,
+            href: '/portal/servicos/fotos'
         },
     ]
 

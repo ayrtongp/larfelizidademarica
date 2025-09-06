@@ -17,6 +17,10 @@ interface Props {
   capture?: string;
   /** Opcional: permitir múltiplos arquivos. Retrocompatível (padrão: false). */
   multiple?: boolean;
+  /** Disparador externo para abrir o picker imediatamente ao mudar (ex.: 1,2,3...) */
+  pickerTrigger?: number;
+  /** Chave para forçar remontar o input quando capture/accept mudarem */
+  inputKey?: string;
   /** Opcional: rota do seu backend Node/Express para upload (multipart). Se não for passada, usa as Actions atuais. */
   uploadUrl?: string;
   /** Headers extras para o POST (ex.: Authorization). */
@@ -34,6 +38,8 @@ const File_M4: React.FC<Props> = ({
   accept,
   capture,
   multiple = false,
+  pickerTrigger,
+  inputKey,
   uploadUrl,
   headers,
   extraFields,
@@ -42,6 +48,12 @@ const File_M4: React.FC<Props> = ({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  // abre automaticamente quando o trigger muda
+  React.useEffect(() => {
+    if (pickerTrigger && inputRef.current) {
+      inputRef.current.click();
+    }
+  }, [pickerTrigger]);
 
   // Abre o seletor de arquivo (ou câmera, conforme props)
   const openPicker = () => inputRef.current?.click();
@@ -126,6 +138,7 @@ const File_M4: React.FC<Props> = ({
     <div className="flex flex-col items-center gap-3">
       {/* Input real (oculto) — agora com props opcionais accept/capture/multiple */}
       <input
+        key={inputKey}
         ref={inputRef}
         id="fileInput"
         type="file"

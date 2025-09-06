@@ -25,6 +25,7 @@
     "autoprefixer": "10.4.14",
     "bcrypt": "^5.1.0",
     "bcryptjs": "^2.4.3",
+    "date-fns": "^4.1.0",
     "docx": "^8.0.3",
     "docxtemplater": "^3.42.4",
     "eslint": "8.38.0",
