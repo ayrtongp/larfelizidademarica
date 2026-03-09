@@ -16,12 +16,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         const docs = await col
-            .find({ collection: "arquivos", folder })
+            .find<Record<string, any>>({ collection: "arquivos", folder })
             .sort({ createdAt: -1 })
             .limit(limit)
             .toArray();
 
-        const arquivos = docs.map((doc) => ({
+        const arquivos = docs.map((doc: Record<string, any>) => ({
             _id: String(doc._id),
             cloudURL: doc.isPublic && PUBLIC_BASE ? `${PUBLIC_BASE.replace(/\/$/, "")}/${doc.key}` : null,
             filename: doc.originalName || "",
