@@ -248,9 +248,8 @@ const FotosServicosPage = ({ initialIsMobile }: { initialIsMobile: boolean }) =>
             // ---- campos OBRIGATÓRIOS do seu Express ----
             fd.append("createdBy", createdBy);
             fd.append("originalName", originalName);
-            fd.append("collection", "usuario");
-            fd.append("userId", createdBy);
-            fd.append("folder", idosoId);   // <- usamos a pasta como id do residente
+            fd.append("collection", "fotos");
+            fd.append("userId", idosoId);    // folder no MongoDB = userId → residente
             fd.append("resource", "fotos");
 
             // ---- opcionais práticos ----

@@ -12,9 +12,9 @@ export type ArquivoR2Doc = {
     etag?: string;
     isPublic: boolean;
 
-    collection?: string; // "usuario"
-    resource?: string;   // "fotos" — subcategoria dentro de usuario
-    folder?: string;     // idosoId (ex.: "64f...ab")
+    collection?: string; // "fotos" | "arquivos" — salvo no MongoDB
+    // resource NÃO é salvo no doc, só usada no buildKey do backend
+    folder?: string;     // = userId = residenteId
     userId?: string;
     createdBy?: string;
     tags?: string[];
@@ -32,4 +32,4 @@ export type FotoItem = {
 };
 
 export const FOTOS_COLLECTION_NAME = "arquivosr2";
-export const FOTOS_COLLECTION_FILTER = { collection: "usuario", resource: "fotos" } as const;
+export const FOTOS_COLLECTION_FILTER = { collection: "fotos" } as const;

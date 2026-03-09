@@ -77,12 +77,13 @@ const File_M4: React.FC<Props> = ({
 
       // ROTA 1: Backend Express externo (multipart)
       if (uploadUrl) {
-        const userId = String(dadosUsuario?.id || dadosUsuario?._id || dadosUsuario?.email || 'guest');
+        const loggedUserId = String(dadosUsuario?.id || dadosUsuario?._id || dadosUsuario?.email || 'guest');
         const form = new FormData();
         form.append('file', file);
         form.append('originalName', file.name);
-        form.append('userId', userId);
-        form.append('createdBy', userId);
+        // extraFields pode sobrescrever userId (ex: Residente_Files passa o id do residente)
+        if (!extraFields?.userId) form.append('userId', loggedUserId);
+        form.append('createdBy', loggedUserId);
         form.append('folders', folders);
         form.append('dbName', infoProps.dbName);
         form.append('residenteId', String(infoProps.residenteId ?? ''));

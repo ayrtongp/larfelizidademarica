@@ -5,8 +5,6 @@ import Modalpadrao from '../ModalPadrao'
 import TextInputM2 from '../Formularios/TextInputM2'
 import File_M4 from '../Formularios/File_M4'
 import { InfoProps } from '@/types/Arquivos_InfoProps'
-import { notifyError } from '@/utils/Functions'
-import { Arquivos_GET_getBydbNameAndId } from '@/actions/Arquivos'
 import { I_Arquivo } from '@/types/Arquivos'
 
 interface Props {
@@ -49,8 +47,9 @@ const Residente_Files = ({ residenteData }: Props) => {
     // ---------------------
 
     async function getArquivosResidente() {
-        const result = await Arquivos_GET_getBydbNameAndId('residentes', residenteData._id)
-        setListaArquivos(result)
+        const res = await fetch(`/api/Controller/ArquivosR2.ctrl?folder=${residenteData._id}`);
+        const data = await res.json();
+        setListaArquivos(data?.arquivos ?? []);
     }
 
     // ---------------------
@@ -89,9 +88,9 @@ const Residente_Files = ({ residenteData }: Props) => {
                                 triggerEffect={handleTriggerEffect}
                                 uploadUrl={process.env.NEXT_PUBLIC_UPLOAD_URL ?? "https://lobster-app-gbru2.ondigitalocean.app/r2_upload"}
                                 extraFields={{
-                                    collection: "usuario",
+                                    collection: "arquivos",
                                     resource: "arquivos",
-                                    folder: residenteData._id,
+                                    userId: residenteData._id,  // folder no MongoDB = userId
                                     isPublic: "true",
                                 }}
                             />
