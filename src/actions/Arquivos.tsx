@@ -16,7 +16,7 @@ export async function Arquivos_POST_novoArquivo(info: InfoProps, data: I_Arquivo
         format: data.format,
         fullName: data.fullName,
     }
-    info.residenteId ? body.residenteId = info.residenteId : null
+    if (info.residenteId) body.residenteId = [info.residenteId]
 
     try {
         const response = await fetch(`/api/Controller/${dbName}?type=${type}`, {
