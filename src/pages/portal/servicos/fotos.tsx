@@ -6,8 +6,15 @@ import ModalPadrao from "@/components/ModalPadrao";
 import { Residentes_GET_getAllActive } from "@/actions/Residentes";
 import { notifyError, notifySuccess } from "@/utils/Functions";
 import { FaCamera, FaCloudUploadAlt, FaImage, FaSearch, FaTimes, FaUndo, FaSync } from "react-icons/fa";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import Button_M3 from "@/components/Formularios/Button_M3";
+import { GetServerSideProps } from "next";
+import { isMobileUA } from "@/utils/device";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import TextInputM2 from "@/components/Formularios/TextInputM2";
+import ComboBox from "@/components/UI/ComboBox";
+import { Fotos_GET_latest } from "@/services/fotos.service";
+import { Fotos_POST_upload } from "@/services/fotos.svc";
 
 // ✅ Carrega o cropper só no client
 const Cropper = dynamic(() => import("react-easy-crop"), { ssr: false }) as any;
@@ -22,18 +29,37 @@ type Residente = {
 type FotoItem = {
     _id: string;
     idosoId: string;
-    url: string;
+    url: string | null;
     legenda?: string;
     createdAt: string;
 };
 
-const PAGE_LIMIT = 10;
-
-function classNames(...c: (string | false | undefined)[]) {
-    return c.filter(Boolean).join(" ");
+interface FormsData {
+    users_id: string[] | null;
+    idosos_id: string[] | null;
+    collection: string;
+    createdBy: string;
+    isPublic: boolean;
+    folder: string;
 }
 
-const FotosServicosPage: React.FC = () => {
+const PAGE_LIMIT = 10;
+
+const INITIAL_FORMSDATA: FormsData = {
+    collection: '',
+    createdBy: '',
+    folder: '',
+    idosos_id: null,
+    users_id: null,
+    isPublic: false,
+}
+
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+    const ua = String(req.headers["user-agent"] || "");
+    return { props: { initialIsMobile: isMobileUA(ua) } };
+};
+
+const FotosServicosPage = ({ initialIsMobile }: { initialIsMobile: boolean }) => {
     // --- Estado base
     const [residentes, setResidentes] = useState<Residente[]>([]);
     const [fotos, setFotos] = useState<FotoItem[]>([]);
@@ -41,7 +67,7 @@ const FotosServicosPage: React.FC = () => {
 
     // --- Busca/combobox de idoso
     const [idosoBusca, setIdosoBusca] = useState<string>("");
-    const [idosoId, setIdosoId] = useState<string>("");
+    const [idosoId, setIdosoId] = useState<string | null>(null);
     const [comboboxOpen, setComboboxOpen] = useState(false);
 
     // --- Upload & Edição
@@ -56,8 +82,14 @@ const FotosServicosPage: React.FC = () => {
     const [rotation, setRotation] = useState<number>(0);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
+    const isMobile = useIsMobile(initialIsMobile); // reativo e sem mismatch
+
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+
+    const [idoso, setIdoso] = useState<Residente | null>(null); // para o combobox
+
+    const [FormsData, setFormsData] = useState<FormsData>(INITIAL_FORMSDATA)
 
     // --- Efeitos iniciais
     useEffect(() => {
@@ -77,14 +109,9 @@ const FotosServicosPage: React.FC = () => {
     useEffect(() => {
         (async () => {
             try {
-                const resp = await fetch(`/api/Controller/Fotos.ctrl?type=latest&limit=${PAGE_LIMIT}`);
-                if (resp.ok) {
-                    const data = await resp.json();
-                    setFotos(Array.isArray(data?.fotos) ? data.fotos : []);
-                } else {
-                    setFotos([]);
-                }
-            } catch (e) {
+                const arr = await Fotos_GET_latest(PAGE_LIMIT);
+                setFotos(Array.isArray(arr) ? arr : []);
+            } catch {
                 setFotos([]);
             }
         })();
@@ -129,7 +156,7 @@ const FotosServicosPage: React.FC = () => {
             );
 
             return new Promise<Blob>((resolve) => {
-                canvas.toBlob((blob) => resolve(blob as Blob), "image/jpeg", 0.92);
+                canvas.toBlob((blob) => resolve(blob as Blob), "image/jpeg", 0.80);
             });
         },
         []
@@ -194,41 +221,59 @@ const FotosServicosPage: React.FC = () => {
         resetEditor();
     };
 
+    function getCreatedByFallback() {
+        try {
+            const raw = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+            if (raw) {
+                const u = JSON.parse(raw);
+                return String(u?.id || u?.email || u?.name || "guest");
+            }
+        } catch { }
+        return "guest";
+    }
+
     const doUpload = async () => {
         try {
-            if (!previewURL || !croppedAreaPixels) {
-                notifyError("Ajuste o recorte antes de enviar.");
-                return;
-            }
-            if (!idosoId) {
-                notifyError("Selecione o residente.");
-                return;
-            }
+            if (!previewURL || !croppedAreaPixels) return notifyError("Ajuste o recorte antes de enviar.");
+            if (!idosoId) return notifyError("Selecione o residente.");
 
             const croppedBlob = await getCroppedImg(previewURL, croppedAreaPixels, rotation);
+
+            const createdBy = getCreatedByFallback();
+            const originalName = (rawFile?.name || "foto") + ".jpg";
+
             const fd = new FormData();
-            fd.append("idosoId", idosoId);
+            fd.append("file", new File([croppedBlob], originalName, { type: "image/jpeg" }));
+
+            // ---- campos OBRIGATÓRIOS do seu Express ----
+            fd.append("createdBy", createdBy);
+            fd.append("originalName", originalName);
+            fd.append("collection", "usuario");
+            fd.append("userId", createdBy);
+            fd.append("folder", idosoId);   // <- usamos a pasta como id do residente
+            fd.append("resource", "fotos");
+
+            // ---- opcionais práticos ----
+            fd.append("isPublic", "true");  // render direto por CDN (se tiver)
+            if (legenda) fd.append("tags", legenda);
+            fd.append("idosoId", idosoId);  // útil para o service montar FotoItem de retorno
             fd.append("legenda", legenda || "");
-            fd.append("file", new File([croppedBlob], (rawFile?.name || "foto") + ".jpg", { type: "image/jpeg" }));
 
-            const resp = await fetch("/api/Controller/Fotos.ctrl?type=upload", {
-                method: "POST",
-                body: fd,
-            });
-
-            if (!resp.ok) throw new Error("Falha no upload");
-            const data = await resp.json();
+            // chama o backend externo (service)
+            const foto = await Fotos_POST_upload(fd);
 
             notifySuccess("Foto enviada com sucesso!");
-            // prepend nova foto na galeria (otimista)
-            if (data?.foto) {
-                setFotos((curr) => [data.foto, ...curr].slice(0, PAGE_LIMIT));
-            }
+            setFotos((curr) => [foto, ...curr].slice(0, PAGE_LIMIT));
             closeUploadModal();
-        } catch (e) {
-            notifyError("Não foi possível enviar a foto.");
+        } catch (e: any) {
+            notifyError(e?.message || "Não foi possível enviar a foto.");
         }
     };
+
+    const selecionado = useMemo(
+        () => residentes.find((r) => r._id === idosoId) ?? null,
+        [residentes, idosoId]
+    );
 
     // --- UI
     return (
@@ -265,76 +310,21 @@ const FotosServicosPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Combobox (select digitável) */}
-                <div className="col-span-full mt-4">
-                    <label className="block text-sm font-medium mb-1">Residente</label>
-                    <div className="relative">
-                        <div className="flex items-center gap-2 border rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 bg-white shadow-sm">
-                            <FaSearch className="text-gray-400" />
-                            <input
-                                value={idosoBusca}
-                                onChange={(e) => {
-                                    setIdosoBusca(e.target.value);
-                                    setComboboxOpen(true);
-                                }}
-                                onFocus={() => setComboboxOpen(true)}
-                                placeholder="Digite nome ou ID do residente"
-                                className="w-full outline-none"
-                                onBlur={() => setComboboxOpen(false)}
-                            />
-                            {idosoId && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIdosoId("");
-                                        setIdosoBusca("");
-                                    }}
-                                    className="text-gray-400 hover:text-gray-600"
-                                    title="Limpar seleção"
-                                >
-                                    <FaTimes />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Dropdown */}
-                        {comboboxOpen && (
-                            <div
-                                className="absolute z-20 mt-1 w-full max-h-60 overflow-auto rounded-xl border bg-white shadow-lg"
-                                onMouseDown={(e) => e.preventDefault()}
-                            >
-                                {residentesFiltrados.length === 0 && (
-                                    <div className="px-3 py-2 text-sm text-gray-500">Nenhum residente encontrado.</div>
-                                )}
-                                {residentesFiltrados.map((r) => {
-                                    const selected = r._id === idosoId;
-                                    return (
-                                        <button
-                                            key={r._id}
-                                            className={classNames(
-                                                "w-full text-left px-3 py-2 hover:bg-blue-50",
-                                                selected && "bg-blue-100"
-                                            )}
-                                            onClick={() => {
-                                                setIdosoId(r._id);
-                                                setIdosoBusca(`${r.nome} (${r._id.slice(-6)})`);
-                                                setComboboxOpen(false);
-                                            }}
-                                        >
-                                            <div className="font-medium">{r.nome}</div>
-                                            <div className="text-xs text-gray-500">{r._id}</div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                    {idosoSelecionado && (
-                        <p className="mt-1 text-xs text-gray-500">
-                            Selecionado: <span className="font-semibold">{idosoSelecionado.nome}</span>
-                        </p>
-                    )}
-                </div>
+                <ComboBox
+                    className="col-span-full"
+                    label="Residente"
+                    placeholder="Digite nome ou ID do residente"
+                    options={residentes}
+                    value={selecionado}
+                    onChange={(opt) => setIdosoId(opt?._id ?? null)}
+                    // como renderizamos o subtítulo de cada opção (linha menor)
+                    getOptionSubtitle={(opt) => opt._id}
+                // opcional: se quiser customizar o filtro
+                // filter={(opt, q) => /* ... */}
+                // opcional: desabilitar/clear
+                // disabled={false}
+                // clearable
+                />
 
                 {/* Galeria */}
                 <section className="col-span-full mt-6">
@@ -363,7 +353,7 @@ const FotosServicosPage: React.FC = () => {
                                         className="group relative overflow-hidden rounded-2xl border bg-white shadow-sm hover:shadow-md transition"
                                     >
                                         <img
-                                            src={f.url}
+                                            src={f.url ?? undefined}
                                             alt={f.legenda || `Foto do residente ${residente?.nome || f.idosoId}`}
                                             className="aspect-square w-full object-cover"
                                             loading="lazy"
@@ -387,7 +377,7 @@ const FotosServicosPage: React.FC = () => {
                             <div className="text-sm text-gray-500">Selecione uma imagem para continuar.</div>
                         ) : (
                             <>
-                                <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-gray-100">
+                                <div className="relative w-full max-h-[65vh] aspect-square rounded-2xl overflow-hidden bg-gray-100">
                                     {/* @ts-ignore */}
                                     <Cropper
                                         image={previewURL}
@@ -401,6 +391,7 @@ const FotosServicosPage: React.FC = () => {
                                         onCropComplete={onCropComplete}
                                         restrictPosition
                                         showGrid={false}
+
                                     />
                                 </div>
 
@@ -408,45 +399,30 @@ const FotosServicosPage: React.FC = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <div className="bg-gray-50 rounded-xl p-3">
                                         <div className="text-xs font-semibold mb-1">Zoom</div>
-                                        <input
-                                            type="range"
-                                            min={1}
-                                            max={3}
-                                            step={0.01}
-                                            value={zoom}
-                                            onChange={(e) => setZoom(Number(e.target.value))}
-                                            className="w-full"
-                                        />
+                                        <InputRange min={1} max={3} step={0.01} value={zoom} onChange={setZoom} />
                                     </div>
                                     <div className="bg-gray-50 rounded-xl p-3">
                                         <div className="text-xs font-semibold mb-1">Rotação</div>
                                         <div className="flex items-center gap-2">
-                                            <input
-                                                type="range"
-                                                min={-180}
-                                                max={180}
-                                                step={1}
-                                                value={rotation}
-                                                onChange={(e) => setRotation(Number(e.target.value))}
-                                                className="w-full"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setRotation(0)}
-                                                className="p-2 rounded-lg bg-white border hover:bg-gray-50"
-                                                title="Resetar rotação"
-                                            >
+                                            <InputRange min={-180} max={180} step={1} value={rotation} onChange={setRotation} />
+                                            <button type="button" onClick={() => setRotation(0)} className="p-2 rounded-lg bg-white border hover:bg-gray-50" title="Resetar rotação">
                                                 <FaUndo />
                                             </button>
                                         </div>
                                     </div>
                                     <div className="bg-gray-50 rounded-xl p-3">
-                                        <label className="text-xs font-semibold mb-1 block">Legenda (opcional)</label>
-                                        <input
-                                            value={legenda}
-                                            onChange={(e) => setLegenda(e.target.value)}
-                                            placeholder="Ex.: Passeio no jardim"
-                                            className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                        <TextInputM2 name="legenda" label="Legenda (opcional)" value={legenda} onChange={(e) => setLegenda(e.target.value)} />
+                                    </div>
+                                    <div className="bg-gray-50 rounded-xl p-3">
+                                        <ComboBox
+                                            label="Residente"
+                                            value={idoso}
+                                            onChange={(opt) => {
+                                                setIdoso(opt);
+                                                setIdosoId(opt?._id || "");
+                                                setIdosoBusca(opt ? `${opt.nome} (${opt._id.slice(-6)})` : "");
+                                            }}
+                                            options={residentes}
                                         />
                                     </div>
                                 </div>
@@ -477,3 +453,27 @@ const FotosServicosPage: React.FC = () => {
 };
 
 export default FotosServicosPage;
+
+
+// Componente de input range reutilizável
+interface InputRangeProps {
+    min: number;
+    max: number;
+    step: number;
+    value: number;
+    onChange: (value: number) => void;
+}
+
+const InputRange = ({ min, max, step, value, onChange }: InputRangeProps) => {
+    return (
+        <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className="w-full"
+        />
+    );
+};

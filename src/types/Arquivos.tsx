@@ -1,6 +1,6 @@
 export interface I_Arquivo {
     _id?: string;
-    
+
     createdAt?: string;
     updatedAt?: string;
 
@@ -10,7 +10,8 @@ export interface I_Arquivo {
 
     dbName: string;
 
-    residenteId?: string;
+    residenteId?: string[];
+    userId?: string[];
 
     cloudURL: string;
     filename: string;
