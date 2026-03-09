@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== "GET") return res.status(405).json({ ok: false, error: "Método não permitido" });
 
     const { db } = await connect();
-    const col = db.collection<Record<string, any>>("arquivosr2");
+    const col = db.collection("arquivosr2");
     const { folder, limit: limitQ } = req.query as Record<string, string>;
 
     if (!folder) return res.status(400).json({ ok: false, error: "folder é obrigatório" });
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .limit(limit)
             .toArray();
 
-        const arquivos = docs.map((doc) => ({
+        const arquivos = docs.map((doc: any) => ({
             _id: String(doc._id),
             cloudURL: doc.isPublic && PUBLIC_BASE ? `${PUBLIC_BASE.replace(/\/$/, "")}/${doc.key}` : null,
             filename: doc.originalName || "",
