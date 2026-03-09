@@ -77,9 +77,13 @@ const File_M4: React.FC<Props> = ({
 
       // ROTA 1: Backend Express externo (multipart)
       if (uploadUrl) {
+        const userId = String(dadosUsuario?.id || dadosUsuario?._id || dadosUsuario?.email || 'guest');
         const form = new FormData();
         form.append('file', file);
-        form.append('folders', folders); // ex.: lfz-public/residentes/<id>/fotos
+        form.append('originalName', file.name);
+        form.append('userId', userId);
+        form.append('createdBy', userId);
+        form.append('folders', folders);
         form.append('dbName', infoProps.dbName);
         form.append('residenteId', String(infoProps.residenteId ?? ''));
         if (infoProps.descricao) form.append('descricao', infoProps.descricao);
