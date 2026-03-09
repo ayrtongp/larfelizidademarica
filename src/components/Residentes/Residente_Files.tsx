@@ -87,7 +87,7 @@ const Residente_Files = ({ residenteData }: Props) => {
                                 folders={`public/usuario/${residenteData._id}/arquivos`}
                                 infoProps={infoProps}
                                 triggerEffect={handleTriggerEffect}
-                                uploadUrl={`${process.env.NEXT_PUBLIC_URLDO}/r2_upload`}
+                                uploadUrl={process.env.NEXT_PUBLIC_UPLOAD_URL ?? "https://lobster-app-gbru2.ondigitalocean.app/r2_upload"}
                                 extraFields={{
                                     collection: "usuario",
                                     resource: "arquivos",
