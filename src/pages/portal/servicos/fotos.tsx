@@ -249,7 +249,8 @@ const FotosServicosPage = ({ initialIsMobile }: { initialIsMobile: boolean }) =>
             fd.append("createdBy", createdBy);
             fd.append("originalName", originalName);
             fd.append("collection", "fotos");
-            fd.append("userId", idosoId);    // folder no MongoDB = userId → residente
+            fd.append("userId", idosoId);
+            fd.append("folder", idosoId);
             fd.append("resource", "fotos");
 
             // ---- opcionais práticos ----

@@ -90,7 +90,8 @@ const Residente_Files = ({ residenteData }: Props) => {
                                 extraFields={{
                                     collection: "arquivos",
                                     resource: "arquivos",
-                                    userId: residenteData._id,  // folder no MongoDB = userId
+                                    userId: residenteData._id,
+                                    folder: residenteData._id,
                                     isPublic: "true",
                                 }}
                             />
