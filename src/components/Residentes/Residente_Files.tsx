@@ -83,7 +83,18 @@ const Residente_Files = ({ residenteData }: Props) => {
                         <h1 className='text-2xl font-semibold italic text-center'>Adicionar arquivo para {residenteData.apelido} </h1>
                         <TextInputM2 disabled={false} label='Descrição do Arquivo' name='descricao' onChange={handleChange} value={infoProps.descricao} />
                         {residenteData._id && (
-                            <File_M4 folders={`larfelizidade/residentes/${residenteData._id}`} infoProps={infoProps} triggerEffect={handleTriggerEffect} />
+                            <File_M4
+                                folders={`public/usuario/${residenteData._id}/arquivos`}
+                                infoProps={infoProps}
+                                triggerEffect={handleTriggerEffect}
+                                uploadUrl={`${process.env.NEXT_PUBLIC_URLDO}/r2_upload`}
+                                extraFields={{
+                                    collection: "usuario",
+                                    resource: "arquivos",
+                                    folder: residenteData._id,
+                                    isPublic: "true",
+                                }}
+                            />
                         )}
                     </div>
                 )}

@@ -92,7 +92,8 @@ const File_M4: React.FC<Props> = ({
           headers, // não defina Content-Type manualmente
         });
         const payload = await res.json().catch(() => ({}));
-        if (!res.ok || payload?.status !== 'OK') {
+        const uploadFailed = payload?.status === 'ERROR' || payload?.ok === false || !!payload?.error;
+        if (!res.ok || uploadFailed) {
           notifyError(payload?.error || payload?.message || 'Erro no upload.');
           setLoading(false);
           return;
