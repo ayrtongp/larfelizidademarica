@@ -82,7 +82,7 @@ const GestaoArquivos = ({ entityId, entityName }: Props) => {
     }
 
     const categorias: string[] = useMemo(
-        () => [...new Set(listaArquivos.map(a => a.categoria || 'Sem Categoria'))],
+        () => Array.from(new Set(listaArquivos.map(a => a.categoria || 'Sem Categoria'))),
         [listaArquivos]
     );
 
