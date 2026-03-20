@@ -105,16 +105,16 @@ export default function RelatoriosPage() {
         {/* Conteúdo */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
           {tab === 'fluxo' && (
-            fluxoCaixa ? <TabelaFluxoCaixa data={fluxoCaixa} /> : <p className="text-gray-400 text-sm text-center py-8">Clique em "Gerar" para ver o relatório.</p>
+            fluxoCaixa ? <TabelaFluxoCaixa data={fluxoCaixa} /> : <p className="text-gray-400 text-sm text-center py-8">Clique em &quot;Gerar&quot; para ver o relatório.</p>
           )}
           {tab === 'receitas' && (
-            receitas ? <TabelaCategoria categorias={receitas} titulo="Receitas por Categoria" /> : <p className="text-gray-400 text-sm text-center py-8">Clique em "Gerar" para ver o relatório.</p>
+            receitas ? <TabelaCategoria categorias={receitas} titulo="Receitas por Categoria" /> : <p className="text-gray-400 text-sm text-center py-8">Clique em &quot;Gerar&quot; para ver o relatório.</p>
           )}
           {tab === 'despesas' && (
-            despesas ? <TabelaCategoria categorias={despesas} titulo="Despesas por Categoria" /> : <p className="text-gray-400 text-sm text-center py-8">Clique em "Gerar" para ver o relatório.</p>
+            despesas ? <TabelaCategoria categorias={despesas} titulo="Despesas por Categoria" /> : <p className="text-gray-400 text-sm text-center py-8">Clique em &quot;Gerar&quot; para ver o relatório.</p>
           )}
           {tab === 'inadimplencia' && (
-            inadimplencia ? <TabelaInadimplencia titulos={inadimplencia.titulos} total={inadimplencia.total} /> : <p className="text-gray-400 text-sm text-center py-8">Clique em "Gerar Relatório" para ver os dados.</p>
+            inadimplencia ? <TabelaInadimplencia titulos={inadimplencia.titulos} total={inadimplencia.total} /> : <p className="text-gray-400 text-sm text-center py-8">Clique em &quot;Gerar Relatório&quot; para ver os dados.</p>
           )}
         </div>
       </div>

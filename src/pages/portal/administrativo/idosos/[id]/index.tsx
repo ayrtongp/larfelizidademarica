@@ -279,7 +279,7 @@ const IdosoDetalhes = () => {
                         ))}
                       </div>
                       {idoso.status === 'ativo' && (
-                        <p className="text-xs text-gray-400">Para dar alta ao idoso, clique em "Alta" acima.</p>
+                        <p className="text-xs text-gray-400">Para dar alta ao idoso, clique em &quot;Alta&quot; acima.</p>
                       )}
                     </div>
                   )}

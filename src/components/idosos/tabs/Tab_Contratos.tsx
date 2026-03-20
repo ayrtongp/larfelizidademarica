@@ -47,7 +47,7 @@ const Tab_Contratos: React.FC<Props> = ({ idosoDetalhesId, usuarioId }) => {
       ) : contratos.length === 0 ? (
         <div className="text-center py-10 text-gray-400">
           <p className="text-sm">Nenhum contrato cadastrado.</p>
-          <p className="text-xs mt-1">Clique em "+ Novo Contrato" para adicionar.</p>
+          <p className="text-xs mt-1">Clique em &quot;+ Novo Contrato&quot; para adicionar.</p>
         </div>
       ) : (
         <div className="space-y-3">
