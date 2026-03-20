@@ -36,7 +36,7 @@ export default function NewContratoPage() {
         data_inicio: '',
         data_fim: '',
         dia_pagamento: 0,
-        valor: '',
+        valor: 0,
         tipo: '',
         status: '',
         regime_pagamento: '',
@@ -82,7 +82,7 @@ export default function NewContratoPage() {
                 data_inicio: formData.data_inicio,
                 data_fim: formData.data_fim || undefined,
                 dia_pagamento: formData.dia_pagamento,
-                valor: parseFloat(formData.valor),
+                valor: formData.valor,
                 tipo: formData.tipo as any,
                 status: formData.status as any,
                 regime_pagamento: formData.regime_pagamento as any,
@@ -158,7 +158,7 @@ export default function NewContratoPage() {
                             label="Valor"
                             name="valor"
                             value={formData.valor}
-                            onChange={handleChange}
+                            onChange={(val) => setFormData(prev => ({ ...prev, valor: val }))}
                         />
 
                         <Select_M3
