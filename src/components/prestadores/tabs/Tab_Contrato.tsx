@@ -24,7 +24,7 @@ const PERIODICIDADE = [
 ];
 
 const Tab_Contrato: React.FC<Props> = ({ prestadorId, contrato, onUpdate }) => {
-  const [form, setForm] = useState<T_ContratoPrestador & { valor: string }>({
+  const [form, setForm] = useState<Omit<T_ContratoPrestador, 'valor'> & { valor: string }>({
     ...contrato,
     valor: String(contrato.valor ?? ''),
   });
