@@ -86,7 +86,7 @@ const RelZipAnotEnf = () => {
       const evolucoes = abrev(r5.data).sort((a: any, b: any) => new Date(b.dataEvolucao).getTime() - new Date(a.dataEvolucao).getTime());
 
       const residenteMap = new Map(r3.data.map((r: any) => [r._id, { nome: r.nome, cpf: r.cpf }]));
-      const profMap = new Map(r4.data.map((p: any) => [p._id, { nome: `${p.nome} ${p.sobrenome}`, registro: `${p.funcao} | ${p.registro}` }]));
+      const profMap = new Map<string, { nome: string; registro: string }>(r4.data.map((p: any) => [p._id, { nome: `${p.nome} ${p.sobrenome}`, registro: `${p.funcao} | ${p.registro}` }]));
 
       const allProfIds = Array.from(new Set<string>([
         ...anotacoes.map((i: any) => i.usuario_id),
