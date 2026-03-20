@@ -35,7 +35,7 @@ const ESCOLARIDADE = [
 const UFs = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 
 const Tab_DadosPessoais: React.FC<Props> = ({ funcionarioId, dadosPessoais, endereco, ctps, pisPasep, onUpdate }) => {
-  const [dp, setDp] = useState<T_DadosPessoais>({ cpf: '', ...dadosPessoais });
+  const [dp, setDp] = useState<T_DadosPessoais>({ ...dadosPessoais });
   const [end, setEnd] = useState<T_Endereco>({ ...endereco });
   const [ctpsForm, setCtpsForm] = useState<T_CTPS>({ ...ctps });
   const [pis, setPis] = useState(pisPasep ?? '');
@@ -43,7 +43,7 @@ const Tab_DadosPessoais: React.FC<Props> = ({ funcionarioId, dadosPessoais, ende
   const [loadingCep, setLoadingCep] = useState(false);
 
   useEffect(() => {
-    setDp({ cpf: '', ...dadosPessoais });
+    setDp({ ...dadosPessoais });
     setEnd({ ...endereco });
     setCtpsForm({ ...ctps });
     setPis(pisPasep ?? '');
