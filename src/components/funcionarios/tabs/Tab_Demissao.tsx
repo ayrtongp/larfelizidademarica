@@ -110,7 +110,7 @@ const Tab_Demissao: React.FC<Props> = ({ funcionarioId, status, dataDemissao, ti
         <div className="flex gap-3 items-end">
           <div>
             <label className="block text-xs text-gray-600 mb-1">Status</label>
-            <select value={formStatus} onChange={(e) => setFormStatus(e.target.value)}
+            <select value={formStatus} onChange={(e) => setFormStatus(e.target.value as 'ativo' | 'afastado' | 'ferias')}
               className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
               {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
