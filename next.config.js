@@ -14,6 +14,11 @@ module.exports = {
         hostname: '2ed047954a241094f791da420aa7f5ef.r2.cloudflarestorage.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.larfelizidade.com.br',
+        pathname: '/**',
+      },
     ],
   },
 

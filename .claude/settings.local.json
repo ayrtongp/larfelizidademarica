@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install react-currency-format)",
+      "Bash(npm install --save-dev @types/react-currency-format)"
+    ]
+  }
+}

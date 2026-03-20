@@ -186,13 +186,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         if (req.query.type === 'changePhoto') {
           const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
           const bodyObject = JSON.parse(req.body)
-          if (bodyObject.foto_base64) {
-            const novaFoto = bodyObject.foto_base64
-            await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
-            return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
+          if (bodyObject.foto_cdn) {
+            await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_cdn: bodyObject.foto_cdn } });
+            return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT' });
+          } else if (bodyObject.foto_base64) {
+            await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: bodyObject.foto_base64 } });
+            return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT' });
           } else {
-            return res.status(404).json({ message: 'ERRO!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
-
+            return res.status(400).json({ message: 'ERRO: foto_cdn ou foto_base64 obrigatório', method: 'PUT' });
           }
         }
 

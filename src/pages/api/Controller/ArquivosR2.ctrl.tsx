@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         const docs = await col
-            .find({ collection: "arquivos", folder })
+            .find({ collection: "arquivos", folder } as any)
             .sort({ createdAt: -1 })
             .limit(limit)
             .toArray();
@@ -30,7 +30,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             fullName: doc.createdBy || "",
             size: String(doc.size ?? ""),
             format: doc.contentType || "",
-            dbName: "residentes",
             createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : new Date().toISOString(),
         }));
 

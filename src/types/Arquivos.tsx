@@ -18,5 +18,8 @@ export interface I_Arquivo {
     cloudFilename: string;
     size: string;
     format: string;
-    fullName: string
+    fullName: string;
+
+    tags?: string[];
+    categoria?: string;
 }

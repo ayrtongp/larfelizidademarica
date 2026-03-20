@@ -5,12 +5,13 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
 import LogoLar from '../../../public/images/lar felizidade logo transparente.png'
-import { FaArrowLeft, FaChevronDown, FaChevronUp, FaHospital, FaPuzzlePiece } from 'react-icons/fa';
+import { FaArrowLeft, FaChevronDown, FaChevronUp, FaHospital, FaPuzzlePiece, FaChartLine, FaUserTie, FaUserFriends } from 'react-icons/fa';
 import { AiOutlineDashboard } from 'react-icons/ai';
 import Authorization from '../Auth/Authorization';
 import ItemSubitem from './ItemSubitem';
 import Item from './Item';
 import { BsMegaphone, BsMegaphoneFill } from 'react-icons/bs';
+import { useHasGroup } from '@/hooks/useHasGroup';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const router = useRouter();
@@ -18,6 +19,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const trigger = useRef(null);
   const sidebar = useRef(null);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const { hasGroup: hasFinanceiro } = useHasGroup('financeiro');
+  const { hasGroup: hasRH } = useHasGroup('rh');
+  const { hasGroup: hasCoordenacao } = useHasGroup('coordenacao');
 
   const dashboardMenu = [
     { title: 'Início', path: '/portal/dashboard' },
@@ -37,6 +41,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
   const administrativoMenu = [
     { title: 'Página Princpal', path: '/portal/administrativo' },
+    { title: 'Arquivos', path: '/portal/administrativo/arquivos' },
   ]
 
   const ocorrenciasMenu = [
@@ -51,6 +56,27 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
   const configMenu = [
     { title: 'Perfil', path: '/portal/configuracoes/' },
+  ]
+
+  const rhMenu = [
+    { title: 'Funcionários CLT', path: '/portal/administrativo/funcionarios' },
+    { title: 'Prestadores', path: '/portal/administrativo/prestadores' },
+  ]
+
+  const coordenacaoMenu = [
+    { title: 'Idosos', path: '/portal/administrativo/idosos' },
+  ]
+
+  const financeiroMenu = [
+    { title: 'Dashboard', path: '/portal/financeiro' },
+    { title: 'Contas a Receber', path: '/portal/financeiro/contas-receber' },
+    { title: 'Contas a Pagar', path: '/portal/financeiro/contas-pagar' },
+    { title: 'Movimentações', path: '/portal/financeiro/movimentacoes' },
+    { title: 'Contas', path: '/portal/financeiro/contas' },
+    { title: 'Categorias', path: '/portal/financeiro/categorias' },
+    { title: 'Empréstimos', path: '/portal/financeiro/emprestimos' },
+    { title: 'Recorrências', path: '/portal/financeiro/recorrencias' },
+    { title: 'Relatórios', path: '/portal/financeiro/relatorios' },
   ]
 
   const customClasses = {
@@ -257,6 +283,124 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                     );
                   }}
                 </SidebarLinkGroup>
+
+                {/* RH / Funcionários CLT */}
+                {hasRH && <SidebarLinkGroup activecondition={rhMenu.some((item) => pathname.includes(item.path))}>
+                  {(handleClick: any, open: any) => {
+                    return (
+                      <React.Fragment>
+                        <a href="#0" className={`block text-slate-200 truncate transition duration-150 ${rhMenu.some((item) => pathname.includes(item.path)) ? 'hover:text-slate-200' : 'hover:text-white'}`}
+                          onClick={(e) => { e.preventDefault(); sidebarExpanded ? handleClick() : setSidebarExpanded(true); }}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <FaUserTie size={22} className={`fill-current ${pathname.includes('/portal/administrativo/funcionarios') ? 'text-indigo-500' : 'text-slate-500'}`} />
+                              <span className={`text-sm font-medium ml-3 ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>
+                                RH
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 ml-2">
+                              <svg className={`w-3 h-3 shrink-0 ml-1 fill-current text-slate-400 ${open && 'rotate-180'}`} viewBox="0 0 12 12">
+                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </a>
+                        <div className={`${sidebarExpanded ? `lg:block` : `lg:hidden`} 2xl:block`}>
+                          <ul className={`pl-9 mt-1 ${!open && 'hidden'}`}>
+                            {rhMenu.map((item, index) => {
+                              return (
+                                <li key={index} className="mb-1 last:mb-0">
+                                  <Link href={item.path} className={'block transition duration-150 truncate ' + (router.pathname === item.path ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-200')}>
+                                    <span className={`text-sm font-medium ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>{item.title}</span>
+                                  </Link>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        </div>
+                      </React.Fragment>
+                    );
+                  }}
+                </SidebarLinkGroup>}
+
+                {/* Coordenação / ILPI */}
+                {hasCoordenacao && <SidebarLinkGroup activecondition={coordenacaoMenu.some((item) => pathname.includes(item.path))}>
+                  {(handleClick: any, open: any) => {
+                    return (
+                      <React.Fragment>
+                        <a href="#0" className={`block text-slate-200 truncate transition duration-150 ${coordenacaoMenu.some((item) => pathname.includes(item.path)) ? 'hover:text-slate-200' : 'hover:text-white'}`}
+                          onClick={(e) => { e.preventDefault(); sidebarExpanded ? handleClick() : setSidebarExpanded(true); }}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <FaUserFriends size={22} className={`fill-current ${pathname.includes('/portal/administrativo/idosos') ? 'text-indigo-500' : 'text-slate-500'}`} />
+                              <span className={`text-sm font-medium ml-3 ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>
+                                Coordenação
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 ml-2">
+                              <svg className={`w-3 h-3 shrink-0 ml-1 fill-current text-slate-400 ${open && 'rotate-180'}`} viewBox="0 0 12 12">
+                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </a>
+                        <div className={`${sidebarExpanded ? `lg:block` : `lg:hidden`} 2xl:block`}>
+                          <ul className={`pl-9 mt-1 ${!open && 'hidden'}`}>
+                            {coordenacaoMenu.map((item, index) => {
+                              return (
+                                <li key={index} className="mb-1 last:mb-0">
+                                  <Link href={item.path} className={'block transition duration-150 truncate ' + (router.pathname === item.path ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-200')}>
+                                    <span className={`text-sm font-medium ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>{item.title}</span>
+                                  </Link>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        </div>
+                      </React.Fragment>
+                    );
+                  }}
+                </SidebarLinkGroup>}
+
+                {/* Financeiro */}
+                {hasFinanceiro && <SidebarLinkGroup activecondition={financeiroMenu.some((item) => pathname.includes(item.path))}>
+                  {(handleClick: any, open: any) => {
+                    return (
+                      <React.Fragment>
+                        <a href="#0" className={`block text-slate-200 truncate transition duration-150 ${financeiroMenu.some((item) => pathname.includes(item.path)) ? 'hover:text-slate-200' : 'hover:text-white'}`}
+                          onClick={(e) => { e.preventDefault(); sidebarExpanded ? handleClick() : setSidebarExpanded(true); }}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <FaChartLine size={22} className={`fill-current ${pathname.includes('/portal/financeiro') ? 'text-indigo-500' : 'text-slate-500'}`} />
+                              <span className={`text-sm font-medium ml-3 ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>
+                                Financeiro
+                              </span>
+                            </div>
+                            {/* Icon */}
+                            <div className="flex shrink-0 ml-2">
+                              <svg className={`w-3 h-3 shrink-0 ml-1 fill-current text-slate-400 ${open && 'rotate-180'}`} viewBox="0 0 12 12">
+                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </a>
+                        <div className={`${sidebarExpanded ? `lg:block` : `lg:hidden`} 2xl:block`}>
+                          <ul className={`pl-9 mt-1 ${!open && 'hidden'}`}>
+                            {financeiroMenu.map((item, index) => {
+                              return (
+                                <li key={index} className="mb-1 last:mb-0">
+                                  <Link href={item.path} className={'block transition duration-150 truncate ' + (router.pathname === item.path ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-200')}>
+                                    <span className={`text-sm font-medium ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>{item.title}</span>
+                                  </Link>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        </div>
+                      </React.Fragment>
+                    );
+                  }}
+                </SidebarLinkGroup>}
 
               </ul>
 

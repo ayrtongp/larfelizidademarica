@@ -1,221 +1,204 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import RelResidentesMes from '@/utils/docxtemplater/relResidentesMes';
-import DateSelector from '@/components/DateSelector';
+import { FaCalendarAlt, FaFileDownload, FaSearch } from 'react-icons/fa';
 
 interface ArrayResidentes {
   residente_id: string;
   resultados: any;
 }
 
+const MESES: { [key: string]: number } = {
+  janeiro: 0, fevereiro: 1, março: 2, abril: 3,
+  maio: 4, junho: 5, julho: 6, agosto: 7,
+  setembro: 8, outubro: 9, novembro: 10, dezembro: 11,
+};
+
+function formatDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = (date.getMonth() + 1).toString().padStart(2, '0');
+  const d = date.getDate().toString().padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function generateMonthOptions() {
+  const options = [];
+  const now = new Date();
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = `${d.toLocaleString('pt-BR', { month: 'long' })} / ${d.getFullYear()}`;
+    const value = `${d.toLocaleString('pt-BR', { month: 'long' }).toLowerCase()}/${d.getFullYear()}`;
+    options.push({ label, value });
+  }
+  return options;
+}
+
+function mesLabelFromValue(value: string) {
+  if (!value) return null;
+  const [mes, ano] = value.split('/');
+  const n = MESES[mes];
+  if (n === undefined) return null;
+  const d = new Date(Number(ano), n, 1);
+  return d.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+}
+
 const RelZipAnotEnf = () => {
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [dataInicial, setDataInicial] = useState('');
   const [dataFinal, setDataFinal] = useState('');
-  const [relatorioData, setRelatorioData] = useState<ArrayResidentes[]>();
+  const [relatorioData, setRelatorioData] = useState<ArrayResidentes[] | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Function to set dataInicial
-  const handleSetDataInicial = (newDataInicial: string) => {
-    setDataInicial(newDataInicial);
-  };
+  useEffect(() => {
+    if (!selectedMonth) return;
+    const [mes, ano] = selectedMonth.split('/');
+    const n = MESES[mes];
+    if (n === undefined) return;
+    const first = new Date(Number(ano), n, 1);
+    const last = new Date(Number(ano), n + 1, 0);
+    setDataInicial(formatDate(first));
+    setDataFinal(formatDate(last));
+    setRelatorioData(null);
+  }, [selectedMonth]);
 
-  // Function to set dataFinal
-  const handleSetDataFinal = (newDataFinal: string) => {
-    setDataFinal(newDataFinal);
-  };
+  const handleGerar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dataInicial || !dataFinal) return;
+    setLoading(true);
+    try {
+      const [r1, r2, r3, r4, r5] = await Promise.all([
+        axios.get(`/api/Controller/AnotacoesEnfermagemController?type=getBetweenDates&dataInicio=${dataInicial}&dataFim=${dataFinal}`),
+        axios.get(`/api/Controller/SinaisVitaisController?type=getBetweenDates&dataInicio=${dataInicial}&dataFim=${dataFinal}`),
+        axios.get(`/api/Controller/ResidentesController?type=getAll`),
+        axios.get(`/api/Controller/Usuario?type=getProfissionais`),
+        axios.get(`/api/Controller/EvolucaoController?type=getBetweenDates&dataInicio=${dataInicial}&dataFim=${dataFinal}`),
+      ]);
 
-  async function getRelatorioData() {
-    const response = await axios.get(`/api/Controller/AnotacoesEnfermagemController?type=getBetweenDates&dataInicio=${dataInicial}&dataFim=${dataFinal}`)
-    const dadosAnotacoes = response.data
-    const status = response.status
-
-    const response2 = await axios.get(`/api/Controller/SinaisVitaisController?type=getBetweenDates&dataInicio=${dataInicial}&dataFim=${dataFinal}`)
-    const dadosSinais = response2.data
-    const status2 = response2.status
-
-    const response3 = await axios.get(`/api/Controller/ResidentesController?type=getAll`)
-    const dadosResidentes = response3.data
-    const status3 = response3.status
-
-    const response4 = await axios.get(`/api/Controller/Usuario?type=getProfissionais`)
-    const dadosUsuario = response4.data
-    const status4 = response4.status
-
-    const response5 = await axios.get(`/api/Controller/EvolucaoController?type=getBetweenDates&dataInicio=${dataInicial}&dataFim=${dataFinal}`)
-    const dadosEvolucao = response5.data
-    const status5 = response5.status
-
-
-    if (status === 200) {
-
-      // Converter usuario_nome de que pega o nome completo para Primeiro Nome e Ultimo nome com apenas uma letra e .
-      const newData = dadosAnotacoes.map((item: any) => {
+      const abrev = (dados: any[]) => dados.map((item: any) => {
         const { usuario_nome, ...rest } = item;
-
-        if (usuario_nome) {
-          const nomeArray = usuario_nome.split(" ");
-          const firstName = nomeArray[0];
-          const lastName = nomeArray[nomeArray.length - 1].charAt(0);
-          const newUsuarioNome = `${firstName} ${lastName}.`;
-
-          return { usuario_nome: newUsuarioNome, ...rest };
-        }
-        return item;
+        if (!usuario_nome) return item;
+        const parts = usuario_nome.split(' ');
+        return { usuario_nome: `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`, ...rest };
       });
 
-      // Converter usuario_nome de que pega o nome completo para Primeiro Nome e Ultimo nome com apenas uma letra e .
-      const newData2 = dadosSinais.map((item: any) => {
-        const { usuario_nome, ...rest } = item;
+      const anotacoes = abrev(r1.data);
+      const sinais = abrev(r2.data);
+      const evolucoes = abrev(r5.data).sort((a: any, b: any) => new Date(b.dataEvolucao).getTime() - new Date(a.dataEvolucao).getTime());
 
-        if (usuario_nome) {
-          const nomeArray = usuario_nome.split(" ");
-          const firstName = nomeArray[0];
-          const lastName = nomeArray[nomeArray.length - 1].charAt(0);
-          const newUsuarioNome = `${firstName} ${lastName}.`;
+      const residenteMap = new Map(r3.data.map((r: any) => [r._id, { nome: r.nome, cpf: r.cpf }]));
+      const profMap = new Map(r4.data.map((p: any) => [p._id, { nome: `${p.nome} ${p.sobrenome}`, registro: `${p.funcao} | ${p.registro}` }]));
 
-          return { usuario_nome: newUsuarioNome, ...rest };
-        }
-        return item;
-      });
-
-      // Converter usuario_nome de que pega o nome completo para Primeiro Nome e Ultimo nome com apenas uma letra e .
-      const newData5 = dadosEvolucao
-        .map((item: any) => {
-          const { usuario_nome, ...rest } = item;
-
-          if (usuario_nome) {
-            const nomeArray = usuario_nome.split(" ");
-            const firstName = nomeArray[0];
-            const lastName = nomeArray[nomeArray.length - 1].charAt(0);
-            const newUsuarioNome = `${firstName} ${lastName}.`;
-
-            return { usuario_nome: newUsuarioNome, ...rest };
-          }
-          return item;
-        })
-        .sort((a: any, b: any) => {
-          const dateA = new Date(a.dataEvolucao).getTime();
-          const dateB = new Date(b.dataEvolucao).getTime();
-          return dateB - dateA; // Ordena do mais novo para o mais antigo
-        });
-
-      // Preencher o mapa com informações do residente usando dadosResidentes
-      const residenteInfoMap = new Map();
-      dadosResidentes.forEach((residente: any) => {
-        residenteInfoMap.set(residente._id, { nome: residente.nome, cpf: residente.cpf });
-      });
-
-      // Preencher o mapa com informações do residente usando dadosResidentes
-      const profissionalInfoMap = new Map<string, { nome: string; registro: string }>();
-      dadosUsuario.forEach((prof: any) => {
-        profissionalInfoMap.set(prof._id, {
-          nome: prof.nome + " " + prof.sobrenome,
-          registro: prof.funcao + " | " + prof.registro,
-        });
-      });
-
-      // Filtra valores únicos de 'profissional'
-      const uniqueProfissionalIds = Array.from(
-        new Set<string>(newData.map((item: any) => item.usuario_id))
-      );
-
-      const uniqueProfissionalIds2 = Array.from(
-        new Set<string>(newData2.map((item: any) => item.usuario_id))
-      );
-
-      const uniqueProfissionalIds5 = Array.from(
-        new Set<string>(newData5.map((item: any) => item.usuario_id))
-      );
-
-      // Combina os dois conjuntos e filtra apenas os IDs que aparecem no profissionalInfoMap
-      const allProfissionalIds = Array.from(
-        new Set<string>([...uniqueProfissionalIds, ...uniqueProfissionalIds2, ...uniqueProfissionalIds5])
-      );
-
-      // Filtra o profissionalInfoMap com base nos IDs
-      const profissionaisFiltrados = Array.from(profissionalInfoMap.entries())
-        .filter(([id]) => allProfissionalIds.includes(id))
+      const allProfIds = Array.from(new Set<string>([
+        ...anotacoes.map((i: any) => i.usuario_id),
+        ...sinais.map((i: any) => i.usuario_id),
+        ...evolucoes.map((i: any) => i.usuario_id),
+      ]));
+      const profissionaisFiltrados = Array.from(profMap.entries())
+        .filter(([id]) => allProfIds.includes(id))
         .map(([id, info]) => ({ ...info, _id: id }));
 
-      // Filtra valores únicos de 'residente_id'
-      const uniqueResidentIds = Array.from(new Set(newData.map((item: any) => item.residente_id)));
+      const uniqueResIds = Array.from(new Set(anotacoes.map((i: any) => i.residente_id)));
+      const arraysPorResidente = uniqueResIds.map((resId: any) => ({
+        residente_id: resId as string,
+        residente_info: residenteMap.get(resId),
+        profissionais: profissionaisFiltrados,
+        resultados: anotacoes.filter((i: any) => i.residente_id === resId),
+        sinais: sinais.filter((i: any) => i.residente_id === resId),
+        evolucoes: evolucoes.filter((i: any) => i.residente_id === resId),
+      }));
 
-      // Cria um array para cada 'residente_id' com os resultados
-      const arraysPorResidente = uniqueResidentIds.map(residenteId => {
-
-        const residenteInfo = residenteInfoMap.get(residenteId);
-        const resultados = newData.filter((item: any) => item.residente_id === residenteId);
-        const sinais = newData2.filter((item: any) => item.residente_id === residenteId);
-        const evolucoes = newData5.filter((item: any) => item.residente_id === residenteId);
-
-        return {
-          residente_id: residenteId as string,
-          residente_info: residenteInfo,
-          profissionais: profissionaisFiltrados,
-          resultados: resultados,
-          sinais: sinais,
-          evolucoes: evolucoes
-        };
-      });
-
-      setRelatorioData(arraysPorResidente)
+      setRelatorioData(arraysPorResidente);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  const handleSubmit = (event: any) => {
-    event.preventDefault();
+  const handleBaixar = () => {
+    if (relatorioData) RelResidentesMes(relatorioData, dataInicial, dataFinal);
+  };
 
-    getRelatorioData()
-  }
-
-  const handleClick = (event: any) => {
-    if (relatorioData != null && relatorioData != undefined) {
-      RelResidentesMes(relatorioData, dataInicial, dataFinal)
-    }
-  }
-
+  const mesLabel = mesLabelFromValue(selectedMonth);
+  const monthOptions = generateMonthOptions();
 
   return (
-    <div className='mx-auto'>
-      <h1 className='font-bold text-center text-2xl'>Relatório de Anotações da Enfermagem</h1>
+    <div className='space-y-5'>
+      <div>
+        <p className='text-sm text-gray-500 mb-4'>
+          Selecione um mês para gerar o relatório consolidado de anotações de enfermagem, sinais vitais e evoluções multidisciplinares.
+        </p>
 
-      <form onSubmit={handleSubmit} className='grid grid-cols-12 gap-2'>
-
-        <div className='col-span-12'>
-          <DateSelector handleSetDataInicial={handleSetDataInicial} handleSetDataFinal={handleSetDataFinal} />
-        </div>
-
-        <div className='col-span-12 my-2 flex flex-wrap justify-start gap-2'>
-          <div className='border p-2 rounded-md bg-gray-200 max-w-[200px]'>
-            <label className='text-xs font-bold' htmlFor="dataInicial">Data Inicial</label>
-            <input type="text" name="dataInicial" id="dataInicial" disabled
-              value={dataInicial} onChange={(e) => setDataInicial(e.target.value)} />
+        {/* Seleção de mês */}
+        <div className='flex flex-col sm:flex-row gap-3 items-start sm:items-end'>
+          <div className='w-full sm:w-64'>
+            <label className='block text-xs text-gray-600 mb-1 font-medium'>
+              <FaCalendarAlt className='inline mr-1 text-indigo-400' />
+              Mês de referência
+            </label>
+            <select
+              value={selectedMonth}
+              onChange={e => setSelectedMonth(e.target.value)}
+              className='w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500'
+            >
+              <option value='' disabled>Selecione um mês</option>
+              {monthOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
 
-          <div className='border p-2 rounded-md bg-gray-200 max-w-[200px]'>
-            <label className='text-xs font-bold' htmlFor="dataInicial">Data Final</label>
-            <input type="text" name="dataFinal" id="dataFinal" disabled
-              value={dataFinal} onChange={(e) => setDataFinal(e.target.value)} />
+          <button
+            onClick={handleGerar as any}
+            disabled={!selectedMonth || loading}
+            className='flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-semibold px-4 py-2 rounded transition-colors'
+          >
+            <FaSearch size={13} />
+            {loading ? 'Gerando...' : 'Gerar Relatório'}
+          </button>
+        </div>
+      </div>
+
+      {/* Período selecionado */}
+      {dataInicial && dataFinal && (
+        <div className='flex flex-wrap gap-3'>
+          <div className='bg-gray-50 border border-gray-200 rounded px-3 py-2 text-xs text-gray-600'>
+            <span className='font-semibold text-gray-500 uppercase tracking-wider'>Período</span>
+            <p className='mt-0.5 font-medium text-gray-800 capitalize'>{mesLabel}</p>
           </div>
+          {relatorioData !== null && (
+            <div className='bg-green-50 border border-green-200 rounded px-3 py-2 text-xs text-green-700'>
+              <span className='font-semibold uppercase tracking-wider'>Registros</span>
+              <p className='mt-0.5 font-medium'>{relatorioData.length} residente(s) com dados</p>
+            </div>
+          )}
         </div>
+      )}
 
-        <div className='col-span-12 flex justify-center'>
-          <input
-            className='cursor-pointer my-2 text-center border p-2 rounded-md bg-blue-200 hover:bg-blue-600 max-w-[200px]'
-            type="submit"
-            value="Gerar Relatório" />
-        </div>
-
-        <div className='col-span-12 flex justify-center'>
-          <button onClick={handleClick}
-            className='cursor-pointer my-2 text-center border p-2 rounded-md bg-blue-200 hover:bg-blue-600 max-w-[200px]'>
+      {/* Download */}
+      {relatorioData !== null && (
+        <div className='border border-green-200 bg-green-50 rounded-lg p-4 flex items-center justify-between flex-wrap gap-3'>
+          <div>
+            <p className='text-sm font-semibold text-green-800'>Relatório pronto para download</p>
+            <p className='text-xs text-green-600 mt-0.5'>
+              {relatorioData.length} residente(s) · período: {mesLabel}
+            </p>
+          </div>
+          <button
+            onClick={handleBaixar}
+            className='flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded transition-colors'
+          >
+            <FaFileDownload size={14} />
             Baixar Documentos
           </button>
         </div>
+      )}
 
-      </form>
-
+      {loading && (
+        <div className='flex items-center justify-center py-10 text-gray-400 text-sm'>
+          Buscando dados...
+        </div>
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default RelZipAnotEnf
+export default RelZipAnotEnf;

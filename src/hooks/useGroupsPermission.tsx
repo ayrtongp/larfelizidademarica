@@ -11,7 +11,7 @@ export const useIsAdmin = ({ groups }: Props) => {
       if (groups != undefined && groups?.length > 0) {
         const userId = getUserID()
         const userGroups = await GruposUsuario_getGruposUsuario(userId);
-        const groupPermissions = Array.isArray(userGroups) && userGroups.some((item) => item.id_grupo.includes(groups))
+        const groupPermissions = Array.isArray(userGroups) && userGroups.some((item) => groups.includes(item.cod_grupo))
         setHasGroups(groupPermissions)
       }
     };

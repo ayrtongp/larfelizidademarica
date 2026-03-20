@@ -7,7 +7,7 @@ import { sendMessage } from '@/pages/api/WhatsApp'
 import Link from 'next/link'
 import React from 'react'
 import { BsPeopleFill } from 'react-icons/bs'
-import { FaBriefcase, FaFileContract, FaUserShield } from 'react-icons/fa'
+import { FaBriefcase, FaFileContract, FaFolderOpen, FaUserShield, FaUserFriends } from 'react-icons/fa'
 
 const Index = () => {
 
@@ -43,6 +43,18 @@ const Index = () => {
                         <div className='col-span-6 sm:col-span-2'>
                             <Link href={'/portal/administrativo/prestadores'}>
                                 <Card_M1 title={'Prestadores'} cursorPointer bgColor='bg-white' icon={<FaBriefcase size={24} className="text-indigo-500 mb-3 inline-block" />} />
+                            </Link>
+                        </div>
+
+                        <div className='col-span-6 sm:col-span-2'>
+                            <Link href={'/portal/administrativo/idosos'}>
+                                <Card_M1 title={'Idosos'} cursorPointer bgColor='bg-white' icon={<FaUserFriends size={24} className="text-indigo-500 mb-3 inline-block" />} />
+                            </Link>
+                        </div>
+
+                        <div className='col-span-6 sm:col-span-2'>
+                            <Link href={'/portal/administrativo/arquivos'}>
+                                <Card_M1 title={'Arquivos'} cursorPointer bgColor='bg-white' icon={<FaFolderOpen size={24} className="text-indigo-500 mb-3 inline-block" />} />
                             </Link>
                         </div>
 

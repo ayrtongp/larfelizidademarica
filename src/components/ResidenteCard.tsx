@@ -44,6 +44,7 @@ interface Residente {
   genero: string;
   informacoes: string;
   foto_base64: string;
+  foto_cdn?: string;
 }
 
 const ResidenteCard = ({ residenteData }: any) => {
@@ -54,7 +55,7 @@ const ResidenteCard = ({ residenteData }: any) => {
   const vars = {
     id: dadosResidente?._id,
     nomeIdoso: dadosResidente?.nome,
-    foto_base64: dadosResidente?.foto_base64,
+    foto_base64: dadosResidente?.foto_cdn || dadosResidente?.foto_base64,
     descricaoIdoso: dadosResidente?.informacoes,
     idade: "(" + idadeAnos + " anos)",
     apelido: dadosResidente?.apelido,
@@ -85,7 +86,7 @@ const ResidenteCard = ({ residenteData }: any) => {
                     {vars.icone}
                   </div>
                   {vars.foto_base64 && (
-                    <Image src={vars.foto_base64} width={24} height={24} alt='Foto do Residente' className='block w-full h-full object-cover rounded-full' />
+                    <Image src={vars.foto_base64} width={80} height={80} alt='Foto do Residente' className='block w-full h-full object-cover rounded-full' />
                   )}
                 </div>
                 <div className="mt-1 pr-1">

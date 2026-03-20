@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import Image from 'next/image'
-import { FaBook, FaEdit, FaFilePrescription, FaHeart, FaInfo } from 'react-icons/fa'
+import { FaBook, FaFilePrescription, FaHeart, FaInfo } from 'react-icons/fa'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 import ResidenteAccordion from '@/components/Residentes/ResidenteAccordion'
 import Semiologia from '@/components/Residentes/Semiologia'
@@ -20,10 +20,11 @@ import Accordion_Modelo1 from '@/components/Accordion_Modelo1'
 import FormDadosIdoso from '@/components/Forms/FormDadosIdoso'
 import { getUserID } from '@/utils/Login'
 import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario'
-import Residente_Files from '@/components/Residentes/Residente_Files'
+import GestaoArquivos from '@/components/Arquivos/GestaoArquivos'
 import PrescricaoForm from '@/components/Forms/prescricao.form'
 import Prescricao from '@/components/Residentes/Prescricao'
 import ResidenteFotos from '@/components/Residentes/ResidenteFotos'
+import AvatarCropper from '@/components/AvatarCropper'
 
 interface objProps {
   className: string;
@@ -35,9 +36,7 @@ interface objProps {
 
 const ResidenteDetalhes = () => {
   const [residenteData, setResidenteData] = useState<Residente>();
-  const [base64, setBase64] = useState('');
   const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isAdmin = useIsAdmin();
   const [funcao, setFuncao] = useState('');
   const [gruposUsuario, setGruposUsuario] = useState<any>([]);
@@ -113,29 +112,47 @@ const ResidenteDetalhes = () => {
   // ########################################
   // ########################################
 
-  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleCroppedUpload = async (blobUrl: string) => {
+    if (!residenteData?._id) return;
+    try {
+      const EXPRESS_URL = process.env.NEXT_PUBLIC_URLDO ?? "https://lobster-app-gbru2.ondigitalocean.app";
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') as string);
+      const loggedUserId = String(userInfo?.id || userInfo?._id || 'guest');
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
+      const blobResponse = await fetch(blobUrl);
+      const blob = await blobResponse.blob();
+      const file = new File([blob], 'foto_perfil.jpg', { type: 'image/jpeg' });
 
-    reader.onload = async () => {
-      if (reader.result) {
-        const base64Image = reader.result.toString();
-        setBase64(base64Image)
+      const form = new FormData();
+      form.append('file', file);
+      form.append('originalName', 'foto_perfil.jpg');
+      form.append('collection', 'foto_perfil');
+      form.append('resource', 'perfil');
+      form.append('userId', residenteData._id);
+      form.append('folder', residenteData._id);
+      form.append('createdBy', loggedUserId);
+      form.append('isPublic', 'true');
 
-        const formData = { foto_base64: base64Image }
-        const res = await fetch(`/api/Controller/ResidentesController?type=changePhoto&id=${residenteData?._id}`, {
-          method: 'PUT',
-          body: JSON.stringify(formData),
-        });
+      const uploadRes = await fetch(`${EXPRESS_URL}/r2_upload`, { method: 'POST', body: form });
+      const uploadData = await uploadRes.json();
 
-        if (res.ok) {
-          const data = await res.json();
-          notifySuccess('Foto de Perfil Alterada!')
-        }
+      if (!uploadRes.ok || !uploadData.ok) {
+        notifyError(uploadData.error || 'Erro ao enviar foto.');
+        return;
       }
+
+      const fotoCdn = uploadData.file?.url as string;
+      const res = await fetch(`/api/Controller/ResidentesController?type=changePhoto&id=${residenteData._id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ foto_cdn: fotoCdn }),
+      });
+
+      if (res.ok) {
+        setResidenteData(prev => prev ? { ...prev, foto_cdn: fotoCdn } : prev);
+        notifySuccess('Foto de Perfil Alterada!');
+      }
+    } catch {
+      notifyError('Falha ao alterar foto.');
     }
   };
 
@@ -165,7 +182,22 @@ const ResidenteDetalhes = () => {
                 <div className='p-2 border shadow-md rounded-md'>
 
                   <div className='flex flex-row gap-2 items-center mb-4'>
-                    <ProfileAvatar isAdmin={isAdmin} foto={residenteData?.foto_base64} onImageChange={handleImageChange} />
+                    {isAdmin ? (
+                    <AvatarCropper
+                      returnType='blob'
+                      defaultImage={residenteData?.foto_cdn || residenteData?.foto_base64}
+                      onImageCropped={handleCroppedUpload}
+                      size={20}
+                    />
+                  ) : (
+                    <div className="relative flex w-20 h-20">
+                      {(residenteData?.foto_cdn || residenteData?.foto_base64) && (
+                        <Image src={residenteData.foto_cdn || residenteData.foto_base64!} width={80} height={80} alt="Foto do residente"
+                          className="block w-full h-full object-cover rounded-full"
+                        />
+                      )}
+                    </div>
+                  )}
                     <div className='text-center my-4 font-bold text-slate-500 text-xl'>
                       {residenteData.nome}
                     </div>
@@ -227,7 +259,14 @@ const ResidenteDetalhes = () => {
                 {classeAtiva == "menuRelatorios" && (<div className='p-3'><RelatoriosResidente residenteData={residenteData} /></div>)}
 
                 {/* ARQUIVOS */}
-                {classeAtiva == "menuArquivos" && (<div className='p-3'><Residente_Files residenteData={residenteData} /></div>)}
+                {classeAtiva == "menuArquivos" && residenteData._id && (
+                  <div className='p-3'>
+                    <GestaoArquivos
+                      entityId={residenteData._id}
+                      entityName={residenteData.apelido || residenteData.nome}
+                    />
+                  </div>
+                )}
 
                 {/* FOTOS */}
                 {classeAtiva == "menuFotos" && (<div className='p-3'><ResidenteFotos residenteData={residenteData} /></div>)}
@@ -245,23 +284,3 @@ const ResidenteDetalhes = () => {
 export default ResidenteDetalhes
 
 
-const ProfileAvatar = ({ isAdmin, foto, onImageChange, }: { isAdmin: boolean; foto?: string; onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void; }) => (
-  <div className="relative flex w-20 h-20 sm:w-40 sm:h-40 ">
-    {isAdmin && (
-      <>
-        <label
-          htmlFor="profile-picture-input"
-          className="absolute right-1 bottom-1 flex items-center justify-center w-7 h-7 sm:w-12 sm:h-12 bg-white text-blue-500 rounded-full p-1 sm:p-2 cursor-pointer focus:outline-none"
-        >
-          <FaEdit className="w-4 h-4 sm:w-6 sm:h-6" />
-        </label>
-        <input id="profile-picture-input" type="file" className="sr-only" accept="image/*" onChange={onImageChange} />
-      </>
-    )}
-    {foto && (
-      <Image src={foto} width={160} height={160} alt="Foto do residente" id="foto_idoso"
-        className="block w-full h-full object-cover rounded-full"
-      />
-    )}
-  </div>
-);

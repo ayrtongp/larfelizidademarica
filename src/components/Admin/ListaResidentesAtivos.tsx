@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react'
 import ImagemPadrao from '../../../public/images/lar felizidade logo transparente.png'
@@ -8,8 +7,7 @@ import { notifyError, notifySuccess } from '@/utils/Functions';
 import Modalpadrao from '../ModalPadrao';
 import { SINAL_VITAL_OPTIONS, validarSinalVital } from '@/models/sinaisvitaisv2.model';
 import TextInputM2 from '../Formularios/TextInputM2';
-import { Residentes_PUT_alterarDados, Residentes_PUT_alterarLimites } from '@/actions/Residentes';
-import TabelaGenerica from '../TabelaGenerica';
+import { Residentes_PUT_alterarLimites } from '@/actions/Residentes';
 
 type ListaData = {
   apelido: string;
@@ -32,198 +30,203 @@ const ListaResidentesAtivos = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [residenteSelecionado, setResidenteSelecionado] = useState<ListaData | null>(null);
   const [limites, setLimites] = useState<{ [tipo: string]: { valorMin: string; valorMax: string } }>({});
+  const [savingLimites, setSavingLimites] = useState(false);
 
   useEffect(() => {
     async function fetchResidentes() {
       const residentes = await Residentes_getAll();
       setListaUsuarios(residentes);
     }
-
     fetchResidentes();
   }, []);
 
-  const handleChangeIsAtivo = async (e: any) => {
-    const tr = e.target.closest('tr');
-    const idCell = tr.dataset.id
-    const isAtivo = tr.dataset.value
-    const result = await Residentes_put_toggleIsAtivo(idCell, isAtivo)
+  const ativos = listaUsuarios.filter(r => r.is_ativo === 'S');
+  const inativos = listaUsuarios.filter(r => r.is_ativo === 'N');
 
+  const handleToggleIsAtivo = async (residente: ListaData) => {
+    const result = await Residentes_put_toggleIsAtivo(residente._id, residente.is_ativo);
     if (result) {
-      notifySuccess("Alterado com sucesso")
+      notifySuccess('Alterado com sucesso');
+      setListaUsuarios(prev => prev.map(r => r._id === residente._id ? { ...r, is_ativo: r.is_ativo === 'S' ? 'N' : 'S' } : r));
     } else {
-      notifyError("Não foi possível alterar.")
+      notifyError('Não foi possível alterar.');
     }
-  }
+  };
 
-  const handleOpenModal = (residente: any) => {
-    setResidenteSelecionado(residente._id);
-    // Preenche limites atuais ou vazio
+  const handleOpenModal = (residente: ListaData) => {
+    setResidenteSelecionado(residente);
     const limitesObj: { [tipo: string]: { valorMin: string; valorMax: string } } = {};
     SINAL_VITAL_OPTIONS.forEach(opt => {
       const limite = residente.limitesSinais?.find((l: any) => l.tipo === opt.value);
       limitesObj[opt.value] = {
-        valorMin: limite ? String(limite.valorMin) : "",
-        valorMax: limite ? String(limite.valorMax) : "",
+        valorMin: limite ? String(limite.valorMin) : '',
+        valorMax: limite ? String(limite.valorMax) : '',
       };
     });
     setLimites(limitesObj);
     setModalOpen(true);
   };
 
-  const handleLimiteChange = (tipo: string, campo: "valorMin" | "valorMax", value: string) => {
-    setLimites(prev => ({
-      ...prev,
-      [tipo]: {
-        ...prev[tipo],
-        [campo]: value
-      }
-    }));
+  const handleLimiteChange = (tipo: string, campo: 'valorMin' | 'valorMax', value: string) => {
+    setLimites(prev => ({ ...prev, [tipo]: { ...prev[tipo], [campo]: value } }));
   };
-
 
   const handleSalvarLimites = async () => {
     if (!residenteSelecionado) return;
-    const limitesArray = Object.entries(limites)
-      .filter(([_, v]) => v.valorMin !== "" && v.valorMax !== "");
+    const limitesArray = Object.entries(limites).filter(([_, v]) => v.valorMin !== '' && v.valorMax !== '');
 
-    // Validação dos limites usando validarSinalVital e regras de negócio
-    for (const lim of limitesArray) {
-      const tipo = lim[0];
-      const valorMin = lim[1].valorMin;
-      const valorMax = lim[1].valorMax;
-
-      const minValidation = validarSinalVital(tipo, valorMin);
-      const maxValidation = validarSinalVital(tipo, valorMax);
-
-      if (!minValidation.valido) {
-        notifyError(`Mínimo inválido para ${tipo}: ${minValidation.erro}`);
-        return;
-      }
-      if (!maxValidation.valido) {
-        notifyError(`Máximo inválido para ${tipo}: ${maxValidation.erro}`);
-        return;
-      }
+    for (const [tipo, { valorMin, valorMax }] of limitesArray) {
+      const minV = validarSinalVital(tipo, valorMin);
+      const maxV = validarSinalVital(tipo, valorMax);
+      if (!minV.valido) { notifyError(`Mínimo inválido para ${tipo}: ${minV.erro}`); return; }
+      if (!maxV.valido) { notifyError(`Máximo inválido para ${tipo}: ${maxV.erro}`); return; }
     }
 
-
-    // Monta array final para envio
-    const limitesToSend = limitesArray.map(([tipo, v]) => ({
-      tipo,
-      valorMin: v.valorMin,
-      valorMax: v.valorMax,
-    }));
-
+    const limitesToSend = limitesArray.map(([tipo, v]) => ({ tipo, valorMin: v.valorMin, valorMax: v.valorMax }));
     try {
-      const [data, ok] = await Residentes_PUT_alterarLimites({
-        idResidente: residenteSelecionado,
-        body: { limitesSinais: limitesToSend }
-      });
-      if (ok) {
-        notifySuccess("Limites salvos com sucesso!");
-        setModalOpen(false);
-      } else {
-        notifyError("Erro ao salvar limites.");
-      }
+      setSavingLimites(true);
+      const [, ok] = await Residentes_PUT_alterarLimites({ idResidente: residenteSelecionado._id, body: { limitesSinais: limitesToSend } });
+      if (ok) { notifySuccess('Limites salvos!'); setModalOpen(false); }
+      else notifyError('Erro ao salvar limites.');
     } catch {
-      notifyError("Erro ao salvar limites.");
+      notifyError('Erro ao salvar limites.');
+    } finally {
+      setSavingLimites(false);
     }
   };
 
-  return (
-    <div className='flex flex-col gap-5'>
-      <div className='relative overflow-x-auto shadow-md sm:rounded-lg'>
-        <table className='table-auto w-full text-xs bg-white'>
-          <thead className='uppercase'>
-            <tr className='bg-black text-white font-bold'>
-              <th className='px-2 py-1'>Apelido</th>
-              <th className='px-2 py-1'>Nome</th>
-              <th className='px-2 py-1'>Ativo</th>
-              <th className='px-2 py-1'>ID</th>
-            </tr>
-          </thead>
-          <tbody >
-            {listaUsuarios.map((linha, index) => {
-              const imagemUsuario = linha.foto_base64
-              if (linha.is_ativo === 'S') {
-                return (
-                  <tr onClick={() => handleOpenModal(linha)} key={index} data-id={linha?._id} data-value={linha.is_ativo} className={`border-b ${index % 2 == 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                    <td className='px-2 py-1 whitespace-nowrap min-w-[160px]'>
-                      <div className='flex flex-row items-center gap-1 justify-start'>
-                        <Image className='rounded-full w-10 h-10' width={30} height={30} src={imagemUsuario ? imagemUsuario : ImagemPadrao} alt={linha?.nome} />
-                        {linha?.apelido}
-                      </div>
-                    </td>
-                    <td className='text-center px-2 py-1 whitespace-nowrap'>{linha?.nome}</td>
-                    <td className='text-center px-2 py-1 whitespace-nowrap' onClick={handleChangeIsAtivo}>
-                      <SelectSimNao linha={linha.is_ativo} />
-                    </td>
-                    <td className='text-center px-2 py-1 whitespace-nowrap'>{linha?._id}</td>
-                  </tr>
-                )
-              }
-            })}
-          </tbody>
-        </table>
-
-      </div>
-
-      <div className='p-3 bg-white'>
-        <div className='my-4'>
-          <h2 className='font-bold text-lg'>Residentes Inativos</h2>
+  const ResidenteRow = ({ r }: { r: ListaData }) => (
+    <tr className='hover:bg-gray-50 transition-colors cursor-pointer' onClick={() => handleOpenModal(r)}>
+      <td className='px-3 py-2.5 whitespace-nowrap'>
+        <div className='flex items-center gap-2'>
+          <Image className='rounded-full object-cover w-8 h-8 flex-shrink-0' width={32} height={32}
+            src={r.foto_base64 || ImagemPadrao} alt={r.nome} />
+          <div>
+            <p className='text-sm font-medium text-gray-800'>{r.apelido || r.nome}</p>
+            <p className='text-xs text-gray-400'>{r.nome}</p>
+          </div>
         </div>
-        <TabelaGenerica rowsPerPage={20} dados={listaUsuarios.filter(f => f.is_ativo === "N")} colunas={[
-          { key: 'apelido', label: 'Apelido' },
-          { key: 'nome', label: 'Nome' },
-          { key: 'is_ativo', label: 'Ativo' },
-          { key: '_id', label: 'ID' },
-        ]} />
+      </td>
+      <td className='px-3 py-2.5 text-xs text-gray-500 whitespace-nowrap'>{r.cpf}</td>
+      <td className='px-3 py-2.5'>
+        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${r.is_ativo === 'S' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+          {r.is_ativo === 'S' ? 'Ativo' : 'Inativo'}
+        </span>
+      </td>
+      <td className='px-3 py-2.5' onClick={e => { e.stopPropagation(); handleToggleIsAtivo(r); }}>
+        <button className='text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2 py-1 rounded hover:bg-indigo-50'>
+          {r.is_ativo === 'S' ? 'Desativar' : 'Ativar'}
+        </button>
+      </td>
+    </tr>
+  );
+
+  const TabelaHeader = () => (
+    <thead className='bg-gray-50 text-gray-500 text-xs uppercase'>
+      <tr>
+        <th className='px-3 py-3 text-left'>Residente</th>
+        <th className='px-3 py-3 text-left'>CPF</th>
+        <th className='px-3 py-3 text-left'>Status</th>
+        <th className='px-3 py-3 text-left'>Ação</th>
+      </tr>
+    </thead>
+  );
+
+  return (
+    <div className='space-y-6'>
+
+      {/* Ativos */}
+      <div>
+        <div className='flex items-center justify-between mb-2'>
+          <h3 className='text-sm font-semibold text-gray-700'>Residentes Ativos</h3>
+          <span className='bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold'>{ativos.length}</span>
+        </div>
+        <div className='overflow-x-auto rounded-lg border border-gray-200'>
+          <table className='w-full text-sm'>
+            <TabelaHeader />
+            <tbody className='divide-y divide-gray-100'>
+              {ativos.length === 0 && (
+                <tr><td colSpan={4} className='text-center py-8 text-gray-400 text-sm'>Nenhum residente ativo.</td></tr>
+              )}
+              {ativos.map(r => <ResidenteRow key={r._id} r={r} />)}
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      {/* Inativos */}
+      {inativos.length > 0 && (
+        <div>
+          <div className='flex items-center justify-between mb-2'>
+            <h3 className='text-sm font-semibold text-gray-700'>Residentes Inativos</h3>
+            <span className='bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-semibold'>{inativos.length}</span>
+          </div>
+          <div className='overflow-x-auto rounded-lg border border-gray-200'>
+            <table className='w-full text-sm'>
+              <TabelaHeader />
+              <tbody className='divide-y divide-gray-100'>
+                {inativos.map(r => <ResidenteRow key={r._id} r={r} />)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de limites */}
       <Modalpadrao isOpen={modalOpen} onClose={() => setModalOpen(false)}>
-        <div className="p-2">
-          <h3 className="font-bold mb-2">Limites de Sinais Vitais</h3>
-          {SINAL_VITAL_OPTIONS.map(opt => (
-            <div key={opt.value} className="flex items-center gap-2 mb-2">
-              <span className="w-40">{opt.label}</span>
-              <TextInputM2
-                label="Mín"
-                name={`min-${opt.value}`}
-                value={limites[opt.value]?.valorMin || ""}
-                onChange={e => handleLimiteChange(opt.value, "valorMin", e.target.value)}
-              />
-              <TextInputM2
-                label="Máx"
-                name={`max-${opt.value}`}
-                value={limites[opt.value]?.valorMax || ""}
-                onChange={e => handleLimiteChange(opt.value, "valorMax", e.target.value)}
-              />
-              <span className="text-xs text-gray-500">{opt.placeholder}</span>
-            </div>
-          ))}
-          <div className="flex justify-end gap-2 mt-4">
-            <button className="bg-gray-300 px-3 py-1 rounded" onClick={() => setModalOpen(false)}>Cancelar</button>
-            <button className="bg-green-600 text-white px-3 py-1 rounded" onClick={handleSalvarLimites}>Salvar</button>
+        <div className='space-y-4'>
+          <div>
+            <h3 className='text-base font-bold text-gray-800'>Limites de Sinais Vitais</h3>
+            {residenteSelecionado && (
+              <p className='text-sm text-gray-500 mt-0.5'>{residenteSelecionado.apelido || residenteSelecionado.nome}</p>
+            )}
+          </div>
+
+          <p className='text-xs text-gray-500'>Defina os valores mínimo e máximo aceitáveis para cada sinal vital. Deixe em branco para não monitorar.</p>
+
+          <div className='divide-y divide-gray-100'>
+            {SINAL_VITAL_OPTIONS.map(opt => (
+              <div key={opt.value} className='py-2.5 flex flex-col sm:flex-row sm:items-center gap-2'>
+                <span className='text-sm text-gray-700 font-medium w-full sm:w-36 flex-shrink-0'>{opt.label}</span>
+                <div className='flex gap-2 flex-1 items-center'>
+                  <div className='flex-1'>
+                    <TextInputM2
+                      label='Mín'
+                      name={`min-${opt.value}`}
+                      value={limites[opt.value]?.valorMin || ''}
+                      onChange={e => handleLimiteChange(opt.value, 'valorMin', e.target.value)}
+                    />
+                  </div>
+                  <div className='flex-1'>
+                    <TextInputM2
+                      label='Máx'
+                      name={`max-${opt.value}`}
+                      value={limites[opt.value]?.valorMax || ''}
+                      onChange={e => handleLimiteChange(opt.value, 'valorMax', e.target.value)}
+                    />
+                  </div>
+                  {opt.placeholder && (
+                    <span className='text-xs text-gray-400 flex-shrink-0 hidden sm:block'>{opt.placeholder}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className='flex justify-end gap-2 pt-2'>
+            <button onClick={() => setModalOpen(false)}
+              className='px-4 py-2 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors'>
+              Cancelar
+            </button>
+            <button onClick={handleSalvarLimites} disabled={savingLimites}
+              className='px-4 py-2 text-sm rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold transition-colors'>
+              {savingLimites ? 'Salvando...' : 'Salvar Limites'}
+            </button>
           </div>
         </div>
       </Modalpadrao>
     </div>
-  )
-}
+  );
+};
 
-export default ListaResidentesAtivos
-
-
-const SelectSimNao = ({ linha }: any) => {
-  if (linha == "S") linha = true
-  else linha = false
-  return (
-    <div className="flex justify-center items-center border rounded-md border-gray-300 w-20 h-8 mx-auto">
-      <div className={`w-1/2 h-full flex justify-center items-center ${linha ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-800 cursor-pointer'}`}>
-        S
-      </div>
-      <div className={`w-1/2 flex h-full justify-center items-center ${!linha ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-800 cursor-pointer'}`}>
-        N
-      </div>
-    </div>
-  )
-}
+export default ListaResidentesAtivos;

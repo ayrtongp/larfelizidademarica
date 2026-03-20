@@ -41,7 +41,7 @@ const SelectSearchInputM2: React.FC<SelectWithAutocompleteProps> = ({ name, labe
   );
 
   return (
-    <div className='w-full sm:w-[50%]'>
+    <div className='w-full'>
       <label className="pl-1 text-gray-700 text-sm font-bold mb-1" htmlFor={name}>{label2}</label>
       <div className="relative">
         <input type="text" value={inputValue} onChange={handleInputChange} name={name}

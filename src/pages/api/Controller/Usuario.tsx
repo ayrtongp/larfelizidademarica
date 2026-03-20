@@ -137,9 +137,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       try {
         const novoUsuario = JSON.parse(req.body)
 
-        if (!novoUsuario.nome || !novoUsuario.sobrenome || !novoUsuario.usuario || !novoUsuario.senha
-          || !novoUsuario.admin || !novoUsuario.email || !novoUsuario.repetirSenha) {
-          return res.status(400).json({ message: 'Faltam campos para continuar a ação, favor verificar!', method: 'POST', url: `Usuario` });
+        if (!novoUsuario.nome || !novoUsuario.sobrenome || !novoUsuario.cpf || !novoUsuario.dataNascimento
+          || !novoUsuario.telefone || !novoUsuario.usuario || !novoUsuario.senha
+          || !novoUsuario.admin || !novoUsuario.ativo || !novoUsuario.repetirSenha) {
+          return res.status(400).json({ message: 'Faltam campos obrigatórios: nome, sobrenome, CPF, nascimento, telefone, usuário e senha são necessários.', method: 'POST', url: `Usuario` });
         }
 
         const isUser = await mainCollection.findOne({ usuario: novoUsuario.usuario })
@@ -147,9 +148,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(400).json({ message: `Este usuário já existe: ${novoUsuario.usuario}.`, method: 'POST', url: `Usuario` });
         }
 
-        const isEmail = await mainCollection.findOne({ email: novoUsuario.email })
-        if (isEmail) {
-          return res.status(400).json({ message: `Este email já está cadastrado: ${novoUsuario.email}.`, method: 'POST', url: `Usuario` });
+        const isCpf = await mainCollection.findOne({ cpf: novoUsuario.cpf })
+        if (isCpf) {
+          return res.status(400).json({ message: `Este CPF já está cadastrado.`, method: 'POST', url: `Usuario` });
+        }
+
+        if (novoUsuario.email) {
+          const isEmail = await mainCollection.findOne({ email: novoUsuario.email })
+          if (isEmail) {
+            return res.status(400).json({ message: `Este email já está cadastrado: ${novoUsuario.email}.`, method: 'POST', url: `Usuario` });
+          }
         }
 
         const passMatch = novoUsuario.senha === novoUsuario.repetirSenha
@@ -166,9 +174,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         const userObj = {
           "nome": novoUsuario.nome,
           "sobrenome": novoUsuario.sobrenome,
-          "usuario": novoUsuario.usuario,
+          "cpf": novoUsuario.cpf,
           "dataNascimento": novoUsuario.dataNascimento,
-          "email": novoUsuario.email,
+          "telefone": novoUsuario.telefone,
+          "usuario": novoUsuario.usuario,
+          "email": novoUsuario.email || null,
           "funcao": novoUsuario.funcao,
           "registro": novoUsuario.registro,
           "senha": hashedPassword,

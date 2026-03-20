@@ -1,13 +1,17 @@
 import { I_Arquivo } from '@/types/Arquivos';
-import { formatDateBR, formatDateBRHora } from '@/utils/Functions';
+import { formatDateBRHora } from '@/utils/Functions';
+import { useIsAdmin } from '@/hooks/useGroupsPermission';
 import React from 'react'
 import { FaDownload, FaTrash } from 'react-icons/fa';
 
 interface Props {
     listaArquivos: I_Arquivo[];
+    onDelete?: (id: string) => void;
 }
 
-const Tbl_ArquivosResidente = ({ listaArquivos }: Props) => {
+const Tbl_ArquivosResidente = ({ listaArquivos, onDelete }: Props) => {
+    const isAdmin = useIsAdmin({ groups: ['administrativo'] });
+
     return (
         <table className='min-w-full rounded-xl whitespace-nowrap'>
             <thead>
@@ -26,8 +30,10 @@ const Tbl_ArquivosResidente = ({ listaArquivos }: Props) => {
                         <td className='p-5'>{arquivo.fullName}</td>
                         <td className='p-5'>
                             <div className='flex flex-row items-center gap-2'>
-                                <FaDownload color='blue' onClick={() => window.open(arquivo.cloudURL, '_blank')} />
-                                {/* <FaTrash color='red' /> */}
+                                <FaDownload color='blue' className='cursor-pointer' onClick={() => window.open(arquivo.cloudURL, '_blank')} />
+                                {isAdmin && arquivo._id && (
+                                    <FaTrash color='red' className='cursor-pointer' onClick={() => onDelete?.(arquivo._id!)} />
+                                )}
                             </div>
                         </td>
                     </tr>

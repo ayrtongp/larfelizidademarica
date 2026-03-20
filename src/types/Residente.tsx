@@ -38,6 +38,7 @@ export interface Residente {
   genero: string;
   is_ativo: string;
   foto_base64: string;
+  foto_cdn?: string;
   composicaoFamiliar: ComposicaFamiliar[];
   questionario: Questionario;
 }

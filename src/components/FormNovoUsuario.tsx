@@ -1,172 +1,300 @@
 import { notifyError, notifySuccess } from '@/utils/Functions'
-import { getUserID } from '@/utils/Login'
 import React, { useEffect, useState } from 'react'
 
+interface Grupo {
+  _id: string;
+  cod_grupo: string;
+  nome_grupo: string;
+}
+
+const CATEGORIAS_OPTIONS = [
+  { name: 'idosos',           label: 'Idosos' },
+  { name: 'residentes',       label: 'Residentes' },
+  { name: 'sinaisVitais',     label: 'Sinais Vitais' },
+  { name: 'livroOcorrencias', label: 'Livro de Ocorrências' },
+  { name: 'insumos',          label: 'Insumos' },
+]
+
 const FormNovoUsuario = () => {
-  const [categorias, setCategorias] = useState({ idosos: false, sinaisVitais: false, livroOcorrencias: false, insumos: false, residentes: false})
   const [formData, setFormData] = useState({
-    nome: '', sobrenome: '', usuario: '', dataNascimento: '', senha: '',
-    repetirSenha: '', funcao: '', registro: '', email: (Math.random() * 1000 + 1).toFixed(2), admin: 'N', ativo: 'N'
+    nome: '', sobrenome: '', cpf: '', dataNascimento: '', telefone: '',
+    funcao: '', registro: '',
+    usuario: '', senha: '', repetirSenha: '',
+    admin: 'N', ativo: 'S',
   })
   const [isAdmin, setIsAdmin] = useState(false)
-  const [isAtivo, setIsAtivo] = useState(false)
+  const [isAtivo, setIsAtivo] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [categorias, setCategorias] = useState({
+    idosos: false, residentes: false, sinaisVitais: false, livroOcorrencias: false, insumos: false,
+  })
+  const [gruposDisponiveis, setGruposDisponiveis] = useState<Grupo[]>([])
+  const [gruposSelecionados, setGruposSelecionados] = useState<string[]>([])
 
-  const handleChangeForm = (event: any) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      [event.target.name]: event.target.value
-    }));
+  useEffect(() => {
+    fetch('/api/Controller/Grupos?type=getAll')
+      .then(r => r.json())
+      .then((data: Grupo[]) => setGruposDisponiveis(Array.isArray(data) ? data : []))
+      .catch(() => {})
+  }, [])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const handleChangeCheckbox = (event: any) => {
-    setCategorias({ ...categorias, [event.target.name]: event.target.checked, })
+  const handleToggleAdmin = () => {
+    const novo = !isAdmin
+    setIsAdmin(novo)
+    setFormData(prev => ({ ...prev, admin: novo ? 'S' : 'N' }))
   }
 
-  const handleChangeIsAdmin = (event: any) => {
-    setIsAdmin(!isAdmin)
-    setFormData((prevState) => ({ ...prevState, admin: event.target.checked ? 'S' : 'N' }));
+  const handleToggleAtivo = () => {
+    const novo = !isAtivo
+    setIsAtivo(novo)
+    setFormData(prev => ({ ...prev, ativo: novo ? 'S' : 'N' }))
   }
 
-  const handleChangeIsAtivo = (event: any) => {
-    setIsAtivo(!isAtivo)
-    setFormData((prevState) => ({ ...prevState, ativo: event.target.checked ? 'S' : 'N' }));
+  const handleChangeCategoria = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCategorias(prev => ({ ...prev, [e.target.name]: e.target.checked }))
   }
 
-  const handleSubmit = async (event: any) => {
-    event.preventDefault()
+  const handleToggleGrupo = (id: string) => {
+    setGruposSelecionados(prev =>
+      prev.includes(id) ? prev.filter(g => g !== id) : [...prev, id]
+    )
+  }
 
-    if (formData.senha === formData.repetirSenha) {
-      const res = await fetch("/api/Controller/Usuario", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        notifySuccess('Usuário Cadastrado')
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-        const userId = await data.userId
-        const res2 = await fetch(`/api/Controller/CategoriaPermissaoController?tipo=register&tipo_permissao=portal_servicos&id=${userId}`, {
-          method: "POST",
-          body: JSON.stringify(categorias),
-        });
-        if (res2.ok) {
-          notifySuccess('Categorias Cadastradas')
-
-        }
-      }
-      else if (res.status === 400) {
-        const { message } = await res.json()
-        notifyError(message)
-      }
+    if (!formData.nome.trim() || !formData.sobrenome.trim()) {
+      notifyError('Nome e sobrenome são obrigatórios.')
+      return
     }
-  };
+    if (!formData.cpf.trim()) {
+      notifyError('CPF é obrigatório.')
+      return
+    }
+    if (!formData.dataNascimento) {
+      notifyError('Data de nascimento é obrigatória.')
+      return
+    }
+    if (!formData.telefone.trim()) {
+      notifyError('Telefone é obrigatório.')
+      return
+    }
+    if (!formData.usuario.trim()) {
+      notifyError('Usuário (login) é obrigatório.')
+      return
+    }
+    if (!formData.senha.trim()) {
+      notifyError('Senha é obrigatória.')
+      return
+    }
+    if (formData.senha !== formData.repetirSenha) {
+      notifyError('As senhas não coincidem.')
+      return
+    }
+
+    try {
+      setSaving(true)
+
+      const res = await fetch('/api/Controller/Usuario', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      })
+
+      if (!res.ok) {
+        const { message } = await res.json()
+        notifyError(message || 'Erro ao cadastrar usuário.')
+        return
+      }
+
+      const { userId } = await res.json()
+      notifySuccess('Usuário cadastrado com sucesso!')
+
+      // Permissões de categoria (usuario_permissao)
+      await fetch(`/api/Controller/CategoriaPermissaoController?tipo=register&tipo_permissao=portal_servicos&id=${userId}`, {
+        method: 'POST',
+        body: JSON.stringify(categorias),
+      })
+
+      // Grupos de permissão (grupos_usuario)
+      await Promise.allSettled(
+        gruposSelecionados.map(id_grupo =>
+          fetch('/api/Controller/GruposUsuario?type=new', {
+            method: 'POST',
+            body: JSON.stringify({ id_usuario: userId, id_grupo }),
+          })
+        )
+      )
+
+      if (gruposSelecionados.length > 0) notifySuccess('Grupos atribuídos!')
+
+      // Reset
+      setFormData({
+        nome: '', sobrenome: '', cpf: '', dataNascimento: '', telefone: '',
+        funcao: '', registro: '',
+        usuario: '', senha: '', repetirSenha: '',
+        admin: 'N', ativo: 'S',
+      })
+      setIsAdmin(false)
+      setIsAtivo(true)
+      setCategorias({ idosos: false, residentes: false, sinaisVitais: false, livroOcorrencias: false, insumos: false })
+      setGruposSelecionados([])
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inputClass = 'w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 bg-white'
+  const labelClass = 'block text-xs text-gray-600 mb-1 font-medium'
 
   return (
-    <div className="border rounded-sm p-1">
-      <h2 className="text-2xl text-center font-bold mb-4">Novo Usuário</h2>
-      <form onSubmit={handleSubmit} className="">
-        
-        {/* Campos de Texto */}
-        <div className='grid grid-cols-1 sm:grid-cols-2'>
-          <div className="col-span-1 mx-2">
-            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nome">Nome</label>
-            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="nome" type="text" placeholder="Insira o nome" />
+    <form onSubmit={handleSubmit} className="space-y-6">
+
+      {/* Dados Pessoais */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Dados Pessoais</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>Nome *</label>
+            <input name="nome" type="text" value={formData.nome} onChange={handleChange}
+              className={inputClass} placeholder="Primeiro nome" />
           </div>
-          <div className="col-span-1 mx-2">
-            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="sobrenome">Sobrenome</label>
-            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white" name="sobrenome" type="text" placeholder="Insira o sobrenome" />
+          <div>
+            <label className={labelClass}>Sobrenome *</label>
+            <input name="sobrenome" type="text" value={formData.sobrenome} onChange={handleChange}
+              className={inputClass} placeholder="Sobrenome" />
           </div>
-          <div className="col-span-1 mx-2">
-            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="funcao">Função</label>
-            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="funcao" type="text" placeholder="Insira o cargo" />
+          <div>
+            <label className={labelClass}>CPF *</label>
+            <input name="cpf" type="text" value={formData.cpf} onChange={handleChange}
+              className={inputClass} placeholder="000.000.000-00" />
           </div>
-          <div className="col-span-1 mx-2">
-            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="registro">Núm. Registro</label>
-            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white" name="registro" type="text" placeholder="Núm. registro" />
+          <div>
+            <label className={labelClass}>Data de Nascimento *</label>
+            <input name="dataNascimento" type="date" value={formData.dataNascimento} onChange={handleChange}
+              className={inputClass} />
           </div>
-          <div className="col-span-1 mx-2">
-            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="usuario">Usuário</label>
-            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="usuario" type="text" placeholder="Insira o username" />
+          <div>
+            <label className={labelClass}>Telefone *</label>
+            <input name="telefone" type="text" value={formData.telefone} onChange={handleChange}
+              className={inputClass} placeholder="(00) 00000-0000" />
           </div>
-          <div className="col-span-1 mx-2">
-            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="dataNascimento">Data de Nascimento</label>
-            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="dataNascimento" type="text" placeholder="dd/mm/aaaa" />
+          <div>
+            <label className={labelClass}>Função / Cargo</label>
+            <input name="funcao" type="text" value={formData.funcao} onChange={handleChange}
+              className={inputClass} placeholder="Ex: Enfermeiro(a)" />
           </div>
-          <div className="col-span-1 mx-2">
-            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="senha">Senha</label>
-            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="senha" type="password" placeholder="Insira a senha" />
-          </div>
-          <div className="col-span-1 mx-2">
-            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="repetirSenha">Repita a senha</label>
-            <input onChange={handleChangeForm} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" name="repetirSenha" type="password" placeholder="Confirme a senha" />
+          <div>
+            <label className={labelClass}>Nº Registro Profissional</label>
+            <input name="registro" type="text" value={formData.registro} onChange={handleChange}
+              className={inputClass} placeholder="Ex: COREN-RJ 000000" />
           </div>
         </div>
+      </div>
 
-        <div className="w-full md:w-1/2 px-3 mb-2 md:mb-0">
-          <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Permissão Categorias</span>
-          <div className="mt-2">
-            <label className="ml-1 inline-flex items-center">
-              <input type="checkbox" name='idosos' onChange={handleChangeCheckbox} checked={categorias.idosos} className="form-checkbox h-5 w-5 text-gray-600" />
-              <span className="ml-2 text-gray-700">Idosos</span>
-            </label>
-            <label className="ml-1 inline-flex items-center">
-              <input type="checkbox" name='residentes' onChange={handleChangeCheckbox} checked={categorias.residentes} className="form-checkbox h-5 w-5 text-gray-600" />
-              <span className="ml-2 text-gray-700">Residentes</span>
-            </label>
-            <label className="ml-1 inline-flex items-center">
-              <input type="checkbox" name='sinaisVitais' onChange={handleChangeCheckbox} checked={categorias.sinaisVitais} className="form-checkbox h-5 w-5 text-gray-600" />
-              <span className="ml-2 text-gray-700">Sinais Vitais</span>
-            </label>
-            <label className="ml-1 inline-flex items-center">
-              <input type="checkbox" name='livroOcorrencias' onChange={handleChangeCheckbox} checked={categorias.livroOcorrencias} className="form-checkbox h-5 w-5 text-gray-600" />
-              <span className="ml-2 text-gray-700">Livro de Ocorrências</span>
-            </label>
-            <label className="ml-1 inline-flex items-center">
-              <input type="checkbox" name='insumos' onChange={handleChangeCheckbox} checked={categorias.insumos} className="form-checkbox h-5 w-5 text-gray-600" />
-              <span className="ml-2 text-gray-700">Insumos</span>
-            </label>
+      <hr />
+
+      {/* Dados de Acesso */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Dados de Acesso</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="sm:col-span-2">
+            <label className={labelClass}>Usuário (login) *</label>
+            <input name="usuario" type="text" value={formData.usuario} onChange={handleChange}
+              className={inputClass} placeholder="nome.sobrenome" />
+          </div>
+          <div>
+            <label className={labelClass}>Senha *</label>
+            <input name="senha" type="password" value={formData.senha} onChange={handleChange}
+              className={inputClass} placeholder="••••••••" />
+          </div>
+          <div>
+            <label className={labelClass}>Confirmar Senha *</label>
+            <input name="repetirSenha" type="password" value={formData.repetirSenha} onChange={handleChange}
+              className={inputClass} placeholder="••••••••" />
           </div>
         </div>
+      </div>
 
-        <div className="mt-3 w-full md:w-1/2 px-3 mb-2 md:mb-0">
-          <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Usuário Admin</span>
-          <div className="mt-2">
-            <label className="inline-flex items-center">
-              <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="admin" checked={isAdmin} onChange={handleChangeIsAdmin} value="sim" />
-              <span className="ml-2 text-gray-700">Sim</span>
+      <hr />
+
+      {/* Permissões de Categoria */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Permissões de Categoria</p>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {CATEGORIAS_OPTIONS.map(opt => (
+            <label key={opt.name} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                name={opt.name}
+                checked={(categorias as any)[opt.name]}
+                onChange={handleChangeCategoria}
+                className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+              />
+              <span className="text-sm text-gray-700">{opt.label}</span>
             </label>
-            <label className="inline-flex items-center ml-6">
-              <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="admin" checked={!isAdmin} value="não" onChange={handleChangeIsAdmin} />
-              <span className="ml-2 text-gray-700">Não</span>
-            </label>
-          </div>
+          ))}
         </div>
+      </div>
 
-        <div className="mt-3 w-full md:w-1/2 px-3 mb-2 md:mb-0">
-          <span className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Usuário Ativo</span>
-          <div className="mt-2">
-            <label className="inline-flex items-center">
-              <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="ativo" checked={isAtivo} onChange={handleChangeIsAtivo} value="sim" />
-              <span className="ml-2 text-gray-700">Sim</span>
-            </label>
-            <label className="inline-flex items-center ml-6">
-              <input type="radio" className="form-radio h-5 w-5 text-gray-600" name="ativo" checked={!isAtivo} value="não" onChange={handleChangeIsAtivo} />
-              <span className="ml-2 text-gray-700">Não</span>
-            </label>
+      <hr />
+
+      {/* Grupos de Permissão */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Grupos de Permissão</p>
+        {gruposDisponiveis.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">Nenhum grupo cadastrado.</p>
+        ) : (
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            {gruposDisponiveis.map(g => (
+              <label key={g._id} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={gruposSelecionados.includes(g._id)}
+                  onChange={() => handleToggleGrupo(g._id)}
+                  className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                />
+                <span className="text-sm text-gray-700">{g.nome_grupo}</span>
+              </label>
+            ))}
           </div>
-        </div>
+        )}
+      </div>
 
-        <div className="flex items-center justify-center m-2">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="submit">
-            Cadastrar Usuário
+      <hr />
+
+      {/* Toggles */}
+      <div className="flex flex-wrap gap-6">
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-700 font-medium">Usuário Admin</span>
+          <button type="button" onClick={handleToggleAdmin}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAdmin ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAdmin ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
-
+          <span className={`text-xs font-semibold ${isAdmin ? 'text-indigo-600' : 'text-gray-400'}`}>{isAdmin ? 'Sim' : 'Não'}</span>
         </div>
 
-      </form>
-    </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-700 font-medium">Conta Ativa</span>
+          <button type="button" onClick={handleToggleAtivo}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAtivo ? 'bg-green-500' : 'bg-gray-200'}`}>
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAtivo ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+          <span className={`text-xs font-semibold ${isAtivo ? 'text-green-600' : 'text-gray-400'}`}>{isAtivo ? 'Sim' : 'Não'}</span>
+        </div>
+      </div>
+
+      <div className="pt-2">
+        <button type="submit" disabled={saving}
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold py-2 px-6 rounded focus:outline-none transition-colors text-sm">
+          {saving ? 'Cadastrando...' : 'Cadastrar Usuário'}
+        </button>
+      </div>
+
+    </form>
   )
 }
 

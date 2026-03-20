@@ -6,6 +6,9 @@ import TextInputM2 from '../Formularios/TextInputM2'
 import File_M4 from '../Formularios/File_M4'
 import { InfoProps } from '@/types/Arquivos_InfoProps'
 import { I_Arquivo } from '@/types/Arquivos'
+import { notifyError, notifySuccess } from '@/utils/Functions'
+
+const EXPRESS_URL = process.env.NEXT_PUBLIC_URLDO ?? "https://lobster-app-gbru2.ondigitalocean.app";
 
 interface Props {
     residenteData: any;
@@ -52,6 +55,22 @@ const Residente_Files = ({ residenteData }: Props) => {
         setListaArquivos(data?.arquivos ?? []);
     }
 
+    async function handleDelete(id: string) {
+        if (!confirm('Deseja excluir este arquivo? Esta ação não pode ser desfeita.')) return;
+        try {
+            const res = await fetch(`${EXPRESS_URL}/r2_files/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                notifyError(data.error || 'Erro ao excluir arquivo.');
+                return;
+            }
+            notifySuccess('Arquivo excluído com sucesso.');
+            setTriggerEffect(prev => !prev);
+        } catch {
+            notifyError('Falha ao excluir arquivo.');
+        }
+    }
+
     // ---------------------
     // USEEFFECT
     // ---------------------
@@ -73,7 +92,7 @@ const Residente_Files = ({ residenteData }: Props) => {
             </div>
 
             <div className='overflow-x-auto'>
-                <Tbl_ArquivosResidente listaArquivos={listaArquivos} />
+                <Tbl_ArquivosResidente listaArquivos={listaArquivos} onDelete={handleDelete} />
             </div>
 
             <Modalpadrao isOpen={modalOpen} onClose={() => setModalOpen(false)}>
