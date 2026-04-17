@@ -38,8 +38,8 @@ export interface T_Contrato {
   tipoContrato: 'experiencia' | 'prazo_indeterminado' | 'prazo_determinado';
   cargaHorariaSemanal: number;
   turno?: 'manha' | 'tarde' | 'noite' | 'integral' | 'escala_12x36' | 'escala_24x48';
-  salarioBase: number;
-  dataAdmissao: string;
+  salarioBase?: number;
+  dataAdmissao?: string;
   dataFimExperiencia?: string;
   dataFimContrato?: string;
   sindicato?: string;

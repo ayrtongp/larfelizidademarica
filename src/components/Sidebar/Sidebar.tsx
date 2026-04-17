@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
 import LogoLar from '../../../public/images/lar felizidade logo transparente.png'
-import { FaArrowLeft, FaChevronDown, FaChevronUp, FaHospital, FaPuzzlePiece, FaChartLine, FaUserTie, FaUserFriends } from 'react-icons/fa';
+import { FaArrowLeft, FaChevronDown, FaChevronUp, FaHospital, FaPuzzlePiece, FaChartLine, FaUserTie, FaUserFriends, FaHeartbeat } from 'react-icons/fa';
 import { AiOutlineDashboard } from 'react-icons/ai';
 import Authorization from '../Auth/Authorization';
 import ItemSubitem from './ItemSubitem';
@@ -22,6 +22,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const { hasGroup: hasFinanceiro } = useHasGroup('financeiro');
   const { hasGroup: hasRH } = useHasGroup('rh');
   const { hasGroup: hasCoordenacao } = useHasGroup('coordenacao');
+  const { hasGroup: hasMedicina } = useHasGroup('medicina');
+  const { hasGroup: hasEnfermagem } = useHasGroup('equipe_enfermagem');
 
   const dashboardMenu = [
     { title: 'Início', path: '/portal/dashboard' },
@@ -65,6 +67,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
   const coordenacaoMenu = [
     { title: 'Idosos', path: '/portal/administrativo/idosos' },
+    { title: 'Medicamentos', path: '/portal/servicos/medicamentos' },
+  ]
+
+  const saudeMenu = [
+    { title: 'Medições', path: '/portal/saude/medicoes' },
   ]
 
   const financeiroMenu = [
@@ -355,6 +362,43 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                                 </li>
                               )
                             })}
+                          </ul>
+                        </div>
+                      </React.Fragment>
+                    );
+                  }}
+                </SidebarLinkGroup>}
+
+                {/* Saúde */}
+                {(hasMedicina || hasEnfermagem || hasCoordenacao) && <SidebarLinkGroup activecondition={pathname.includes('/portal/saude')}>
+                  {(handleClick: any, open: any) => {
+                    return (
+                      <React.Fragment>
+                        <a href="#0" className={`block text-slate-200 truncate transition duration-150 ${pathname.includes('/portal/saude') ? 'hover:text-slate-200' : 'hover:text-white'}`}
+                          onClick={(e) => { e.preventDefault(); sidebarExpanded ? handleClick() : setSidebarExpanded(true); }}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <FaHeartbeat size={22} className={`fill-current ${pathname.includes('/portal/saude') ? 'text-indigo-500' : 'text-slate-500'}`} />
+                              <span className={`text-sm font-medium ml-3 ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>
+                                Saúde
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 ml-2">
+                              <svg className={`w-3 h-3 shrink-0 ml-1 fill-current text-slate-400 ${open && 'rotate-180'}`} viewBox="0 0 12 12">
+                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </a>
+                        <div className={`${sidebarExpanded ? `lg:block` : `lg:hidden`} 2xl:block`}>
+                          <ul className={`pl-9 mt-1 ${!open && 'hidden'}`}>
+                            {saudeMenu.map((item, index) => (
+                              <li key={index} className="mb-1 last:mb-0">
+                                <Link href={item.path} className={'block transition duration-150 truncate ' + (router.pathname === item.path ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-200')}>
+                                  <span className={`text-sm font-medium ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>{item.title}</span>
+                                </Link>
+                              </li>
+                            ))}
                           </ul>
                         </div>
                       </React.Fragment>

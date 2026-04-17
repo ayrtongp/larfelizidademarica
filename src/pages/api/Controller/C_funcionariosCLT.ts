@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb';
+import { registrarAuditoria } from '../../../utils/auditoria';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { db } = await connect();
@@ -140,18 +141,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!usuarioId) {
             return res.status(400).json({ message: 'Campo obrigatório ausente: usuarioId.' });
           }
-          if (!contrato?.cargo || !contrato?.setor || !contrato?.salarioBase || !contrato?.tipoContrato || !contrato?.cargaHorariaSemanal || !contrato?.dataAdmissao) {
-            return res.status(400).json({ message: 'Campos obrigatórios do contrato ausentes: cargo, setor, salarioBase, tipoContrato, cargaHorariaSemanal, dataAdmissao.' });
+          if (!contrato?.cargo || !contrato?.setor || !contrato?.tipoContrato || !contrato?.cargaHorariaSemanal) {
+            return res.status(400).json({ message: 'Campos obrigatórios do contrato ausentes: cargo, setor, tipoContrato, cargaHorariaSemanal.' });
           }
 
-          // Verifica se usuarioId existe
           const usuariosCollection = db.collection('usuario');
           const usuarioExiste = await usuariosCollection.findOne({ _id: new ObjectId(usuarioId) });
           if (!usuarioExiste) {
             return res.status(404).json({ message: 'Usuário não encontrado.' });
           }
 
-          // Verifica se já existe registro CLT para esse usuário
           const jaExiste = await collection.findOne({ usuarioId });
           if (jaExiste) {
             return res.status(409).json({ message: 'Este usuário já possui um registro CLT.' });
@@ -183,6 +182,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           };
 
           const result = await collection.insertOne(dataFields);
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: result.insertedId.toString(),
+            nomeEntidade: `${usuarioExiste.nome ?? ''} ${usuarioExiste.sobrenome ?? ''}`.trim(),
+            acao: 'criar',
+            depois: { cargo: contrato.cargo, setor: contrato.setor, tipoContrato: contrato.tipoContrato },
+            realizadoPor: createdBy ?? '',
+          });
+
           return res.status(201).json({ id: result.insertedId, message: 'Funcionário CLT cadastrado com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -203,11 +212,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const reqId = req.query.id as string;
         try {
           const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const antes = await collection.findOne(
+            { _id: new ObjectId(reqId) },
+            { projection: { contrato: 1, usuarioId: 1 } }
+          );
           const result = await collection.updateOne(
             { _id: new ObjectId(reqId) },
             { $set: { contrato: body.contrato, updatedAt: new Date().toISOString() } }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: antes ? await getFuncionarioNome(db, reqId) : '',
+            acao: 'editar_contrato',
+            antes: antes?.contrato,
+            depois: body.contrato,
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Contrato atualizado com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -235,6 +259,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'editar_dados_pessoais',
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Dados pessoais atualizados com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -249,11 +282,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const reqId = req.query.id as string;
         try {
           const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const antes = await collection.findOne(
+            { _id: new ObjectId(reqId) },
+            { projection: { beneficios: 1 } }
+          );
           const result = await collection.updateOne(
             { _id: new ObjectId(reqId) },
             { $set: { beneficios: body.beneficios, updatedAt: new Date().toISOString() } }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'editar_beneficios',
+            antes: antes?.beneficios,
+            depois: body.beneficios,
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Benefícios atualizados com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -273,6 +321,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             { $set: { dadosBancarios: body.dadosBancarios, updatedAt: new Date().toISOString() } }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'editar_dados_bancarios',
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Dados bancários atualizados com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -292,6 +349,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             { $set: { contatoEmergencia: body.contatoEmergencia, updatedAt: new Date().toISOString() } }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'editar_contato_emergencia',
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Contato de emergência atualizado com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -314,6 +380,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'adicionar_aso',
+            depois: body.aso,
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'ASO adicionado com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -329,6 +405,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const asoIndex = parseInt(req.query.asoIndex as string, 10);
         try {
           const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const antes = await collection.findOne(
+            { _id: new ObjectId(reqId) },
+            { projection: { 'saudeOcupacional.asos': 1 } }
+          );
           const setFields: any = { updatedAt: new Date().toISOString() };
           setFields[`saudeOcupacional.asos.${asoIndex}`] = body.aso;
           const result = await collection.updateOne(
@@ -336,6 +416,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             { $set: setFields }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'editar_aso',
+            antes: antes?.saudeOcupacional?.asos?.[asoIndex],
+            depois: body.aso,
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'ASO atualizado com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -350,7 +441,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const reqId = req.query.id as string;
         const asoIndex = parseInt(req.query.asoIndex as string, 10);
         try {
-          // Usar null + pull para remover pelo índice
+          const antes = await collection.findOne(
+            { _id: new ObjectId(reqId) },
+            { projection: { 'saudeOcupacional.asos': 1 } }
+          );
+          const asoRemovido = antes?.saudeOcupacional?.asos?.[asoIndex];
+
           const unsetFields: any = {};
           unsetFields[`saudeOcupacional.asos.${asoIndex}`] = 1;
           await collection.updateOne({ _id: new ObjectId(reqId) }, { $unset: unsetFields });
@@ -358,6 +454,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             { _id: new ObjectId(reqId) },
             { $pull: { 'saudeOcupacional.asos': null } as any, $set: { updatedAt: new Date().toISOString() } }
           );
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'excluir_aso',
+            antes: asoRemovido,
+            realizadoPor: (req.query.realizadoPor as string) ?? '',
+          });
+
           return res.status(200).json({ message: 'ASO removido com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -385,6 +491,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'demitir',
+            depois: {
+              dataDemissao: body.dataDemissao,
+              tipoDemissao: body.tipoDemissao,
+              motivoDemissao: body.motivoDemissao ?? '',
+            },
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Funcionário demitido com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -398,6 +518,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       else if (req.query.type === 'reativar' && req.query.id) {
         const reqId = req.query.id as string;
         try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body ?? {});
           const result = await collection.updateOne(
             { _id: new ObjectId(reqId) },
             {
@@ -406,6 +527,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'reativar',
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Funcionário reativado com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -425,6 +555,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             { $set: { observacoes: body.observacoes ?? '', updatedAt: new Date().toISOString() } }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'editar_observacoes',
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Observações atualizadas com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -443,11 +582,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!statusPermitidos.includes(body.status)) {
             return res.status(400).json({ message: 'Status inválido. Use: ativo, afastado ou ferias.' });
           }
+          const antes = await collection.findOne(
+            { _id: new ObjectId(reqId) },
+            { projection: { status: 1 } }
+          );
           const result = await collection.updateOne(
             { _id: new ObjectId(reqId) },
             { $set: { status: body.status, updatedAt: new Date().toISOString() } }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'atualizar_status',
+            antes: antes?.status,
+            depois: body.status,
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
           return res.status(200).json({ message: 'Status atualizado com sucesso.' });
         } catch (err) {
           console.error(err);
@@ -462,5 +616,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     default:
       res.setHeader('Allow', ['GET', 'POST', 'PUT']);
       return res.status(405).json({ message: `Method ${req.method} not allowed` });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helper: retorna o nome completo do funcionário via join com `usuario`
+// ---------------------------------------------------------------------------
+async function getFuncionarioNome(db: any, funcionarioId: string): Promise<string> {
+  try {
+    const pipeline = [
+      { $match: { _id: new ObjectId(funcionarioId) } },
+      { $addFields: { uId: { $toObjectId: '$usuarioId' } } },
+      {
+        $lookup: {
+          from: 'usuario',
+          localField: 'uId',
+          foreignField: '_id',
+          as: 'u',
+        },
+      },
+      {
+        $project: {
+          nome: {
+            $trim: {
+              input: {
+                $concat: [
+                  { $ifNull: [{ $arrayElemAt: ['$u.nome', 0] }, ''] },
+                  ' ',
+                  { $ifNull: [{ $arrayElemAt: ['$u.sobrenome', 0] }, ''] },
+                ],
+              },
+            },
+          },
+        },
+      },
+    ];
+    const result = await db.collection('funcionarios_clt').aggregate(pipeline).toArray();
+    return result[0]?.nome ?? '';
+  } catch {
+    return '';
   }
 }

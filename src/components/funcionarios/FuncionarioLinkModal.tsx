@@ -97,8 +97,7 @@ const FuncionarioLinkModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, usu
 
     if (!contrato.cargo.trim()) { setErro('Cargo é obrigatório.'); return; }
     if (!contrato.setor.trim()) { setErro('Setor é obrigatório.'); return; }
-    if (!contrato.salarioBase || isNaN(parseFloat(contrato.salarioBase))) { setErro('Salário base inválido.'); return; }
-    if (!contrato.dataAdmissao) { setErro('Data de admissão é obrigatória.'); return; }
+    if (contrato.salarioBase && isNaN(parseFloat(contrato.salarioBase))) { setErro('Salário base inválido.'); return; }
     if (!contrato.cargaHorariaSemanal || isNaN(parseInt(contrato.cargaHorariaSemanal))) { setErro('Carga horária inválida.'); return; }
 
     try {
@@ -196,7 +195,7 @@ const FuncionarioLinkModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, usu
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Data de Admissão *</label>
+              <label className="block text-xs text-gray-600 mb-1">Data de Admissão</label>
               <input
                 type="date"
                 value={contrato.dataAdmissao}
@@ -205,7 +204,7 @@ const FuncionarioLinkModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, usu
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Salário Base (R$) *</label>
+              <label className="block text-xs text-gray-600 mb-1">Salário Base (R$)</label>
               <input
                 type="text"
                 value={contrato.salarioBase}

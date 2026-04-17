@@ -74,21 +74,18 @@ function Index() {
         <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
           <PortalHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
           <main>
-            <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+            <div className="px-4 sm:px-6 lg:px-8 py-6 w-full max-w-7xl mx-auto">
               <WelcomeBanner />
-              <div className="sm:flex sm:justify-between sm:items-center mb-8">
-              </div>
 
-              {/* GRID INI */}
-              <div className="grid grid-cols-12 gap-6">
+              <div className="flex flex-col lg:flex-row gap-6">
 
-                {/* GRID PART */}
-                <div className='col-span-full sm:col-span-6 lg:col-span-4'>
+                {/* Calendário — compacto à esquerda no desktop */}
+                <div className="w-full lg:w-80 flex-shrink-0">
                   <CalendarioM1 eventos={eventos} />
                 </div>
 
-                {/* GRID PART */}
-                <div className='col-span-full sm:col-span-6 lg:col-span-4'>
+                {/* Lista de residentes — ocupa o restante */}
+                <div className="flex-1 min-w-0">
                   <EvolucaoResidente />
                 </div>
 

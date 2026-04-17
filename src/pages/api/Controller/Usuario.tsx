@@ -205,10 +205,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
       try {
         const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-        const bodyObject = JSON.parse(req.body)
+        const bodyObject = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body ?? {});
         if (req.query.tipo === 'alteraFoto' && bodyObject.foto_base64) {
           const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-          const bodyObject = JSON.parse(req.body)
+          const bodyObject = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body ?? {});
           const novaFoto = bodyObject.foto_base64
           await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
           return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `Usuario?tipo=${req.query.tipo}&id=${req.query.id}` });
@@ -271,9 +271,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         else if (req.query.tipo === 'alteraDados') {
           const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-          const bodyObject = JSON.parse(req.body)
+          const bodyObject = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body ?? {});
           await mainCollection.updateOne({ _id: myObjectId }, { $set: bodyObject },);
-          return res.status(201).json({ message: 'Senha do usuário alterada com sucesso!', method: 'PUT', url: `Usuario?tipo=${req.query.tipo}&id=${req.query.id}` });
+          return res.status(201).json({ message: 'Dados alterados com sucesso!', method: 'PUT', url: `Usuario?tipo=${req.query.tipo}&id=${req.query.id}` });
+        }
+
+        else if (req.query.tipo === 'toggleAtivo') {
+          const ativo = req.query.ativo as string;
+          if (ativo !== 'S' && ativo !== 'N') {
+            return res.status(400).json({ message: 'Valor inválido para ativo. Use S ou N.' });
+          }
+          await mainCollection.updateOne({ _id: myObjectId }, { $set: { ativo } });
+          return res.status(200).json({ ok: true, message: `Usuário ${ativo === 'S' ? 'ativado' : 'desativado'} com sucesso.` });
         }
         else {
           return res.status(409).json({ message: 'Condição inválida, verificar a requisição!', method: 'PUT', url: `Usuario?tipo=${req.query.tipo}&id=${req.query.id}` });

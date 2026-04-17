@@ -40,6 +40,7 @@ export interface Residente {
   foto_base64: string;
   foto_cdn?: string;
   composicaoFamiliar: ComposicaFamiliar[];
+  composicaoFamiliarData?: ComposicaoFamiliarData;
   questionario: Questionario;
 }
 
@@ -55,4 +56,45 @@ export interface Questionario {
   motivoMoradia: string;
   opiniaoMoradia: string;
   rotinaAnterior: string;
+}
+
+// ---- Composição Familiar Detalhada ----
+
+export interface MembroFamiliarDetalhado {
+  nome: string;
+  parentesco: string;
+  idade: string;
+  contato: string;
+  observacoes: string;
+}
+
+export interface VisitanteHorario {
+  pessoa: string;
+  horarioAcordado: string;
+}
+
+export interface VisitanteImpossibilitado {
+  pessoa: string;
+  parentesco: string;
+  motivo: string;
+}
+
+export interface PessoaRotina {
+  nome: string;
+  frequencia: string;
+  tipoInteracao: string;
+}
+
+export interface ComposicaoFamiliarData {
+  membros: MembroFamiliarDetalhado[];
+  acompanhadaOrgaos: string;
+  quaisOrgaos: string;
+  redeApoio: string;
+  visitantesHorarioDiferenciado: VisitanteHorario[];
+  visitantesImpossibilitados: VisitanteImpossibilitado[];
+  convivoSocial: string;
+  relacaoFamiliaComIdoso: string;
+  relacaoIdosoComFamilia: string;
+  percepcaoEquipeTecnica: string;
+  pessoasNaRotina: PessoaRotina[];
 }

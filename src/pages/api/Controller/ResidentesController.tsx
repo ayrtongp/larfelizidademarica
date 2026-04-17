@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb'
 import { formatDateBR } from '@/utils/Functions';
+import { registrarAuditoria } from '../../../utils/auditoria';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse,) {
 
@@ -199,9 +200,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         else if (req.query.type === 'changeData') {
           const myObjectId = new ObjectId(req.body.idResidente as unknown as ObjectId);
-          const myBody = req.body.body
-          const result = await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
-          return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
+          const myBody = req.body.body;
+          const realizadoPor: string = req.body.realizadoPor ?? '';
+
+          const residenteDoc = await mainCollection.findOne({ _id: myObjectId }, { projection: { nome: 1 } });
+
+          await mainCollection.updateOne(
+            { _id: myObjectId },
+            { $set: { ...myBody, updatedAt: formatDateBR(Date.now()) } }
+          );
+
+          await registrarAuditoria(db, {
+            entidade: 'residente',
+            entidadeId: req.body.idResidente,
+            nomeEntidade: residenteDoc?.nome ?? '',
+            acao: 'editar_dados',
+            depois: myBody,
+            realizadoPor,
+          });
+
+          return res.status(201).json({ message: 'Dados do residente alterados com sucesso!', method: 'PUT' });
         }
 
         else if (req.query.type === 'updateLimitesSinais') {

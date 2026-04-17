@@ -53,7 +53,8 @@ export interface T_DocumentosIdoso {
 // Documento principal
 export interface T_IdosoDetalhes {
   _id?: string;
-  usuarioId: string;          // FK → usuario (nome, foto, CPF, data_nasc ficam lá)
+  usuarioId: string;          // FK → usuario (auth)
+  patient_id?: string;        // FK → patient (referência clínica canônica)
   status: 'ativo' | 'alta' | 'falecido' | 'afastado';
   admissao: T_Admissao;
   responsavel: T_ResponsavelIdoso;

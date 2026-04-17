@@ -9,13 +9,15 @@ interface Props {
     className?: string;
     placeholder?: string;
     disabled?: boolean;
+    highlightEmpty?: boolean;
 }
 
-const Textarea_M3: React.FC<Props> = ({ name, label, value, onChange, placeholder, rows = 4, disabled = false, className }) => {
+const Textarea_M3: React.FC<Props> = ({ name, label, value, onChange, placeholder, rows = 4, disabled = false, className, highlightEmpty = false }) => {
+    const isEmpty = highlightEmpty && (!value || value === '');
     return (
         <div className={`text-left flex flex-col mb-4 ${className}`}>
             <label className='text-xs font-bold mb-1 pl-1' htmlFor={name}>{label}</label>
-            <textarea disabled={disabled} className='w-full p-2 border rounded-md' rows={rows} name={name} value={value} onChange={onChange} placeholder={placeholder} />
+            <textarea disabled={disabled} className={`w-full p-2 border rounded-md ${isEmpty ? 'border-red-400' : ''}`} rows={rows} name={name} value={value} onChange={onChange} placeholder={placeholder} />
         </div>
     )
 }

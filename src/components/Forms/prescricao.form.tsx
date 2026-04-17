@@ -14,6 +14,8 @@ interface PrescricaoFormProps {
     onSuccess: () => void;
 }
 
+const isEditing = (p?: Prescricao) => !!p?._id;
+
 export default function PrescricaoForm({
     residenteId,
     prescricao,
@@ -60,17 +62,23 @@ export default function PrescricaoForm({
                     <label className="block text-sm font-medium text-gray-700 mb-2">Horários</label>
                     <div className="flex flex-wrap gap-3">
                         {(formValues.horarios || []).map((h, i) => (
-                            <input
-                                key={i}
-                                type="time"
-                                value={h}
-                                onChange={e => {
-                                    const arr = [...(formValues.horarios || [])];
-                                    arr[i] = e.target.value;
-                                    handleChange('horarios', arr);
-                                }}
-                                className="w-full sm:w-40 border border-gray-300 rounded p-2"
-                            />
+                            <div key={i} className="flex items-center gap-1">
+                                <input
+                                    type="time"
+                                    value={h}
+                                    onChange={e => {
+                                        const arr = [...(formValues.horarios || [])];
+                                        arr[i] = e.target.value;
+                                        handleChange('horarios', arr);
+                                    }}
+                                    className="w-36 border border-gray-300 rounded p-2 text-sm"
+                                />
+                                <button type="button"
+                                    onClick={() => handleChange('horarios', (formValues.horarios || []).filter((_, j) => j !== i))}
+                                    className="text-red-400 hover:text-red-600 text-lg leading-none px-1">
+                                    ×
+                                </button>
+                            </div>
                         ))}
                         <button type="button" onClick={() => handleChange('horarios', [...(formValues.horarios || []), ''])} className="mt-1 text-blue-600 text-sm hover:underline">
                             + Adicionar horário
@@ -93,7 +101,7 @@ export default function PrescricaoForm({
             {/* Ações */}
             <div className="col-span-full flex justify-end gap-4 mt-4">
                 <Button_M3 label="Limpar" onClick={resetForm} bgColor="gray" type='button' />
-                <Button_M3 label={submitting ? 'Enviando...' : 'Criar Prescrição'} onClick={handleSubmit} bgColor="green" disabled={submitting} />
+                <Button_M3 label={submitting ? 'Enviando...' : (isEditing(prescricao) ? 'Salvar Alterações' : 'Criar Prescrição')} onClick={handleSubmit} bgColor="green" disabled={submitting} />
             </div>
 
         </form>

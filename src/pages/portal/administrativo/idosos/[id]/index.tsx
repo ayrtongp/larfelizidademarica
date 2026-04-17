@@ -12,9 +12,10 @@ import Tab_Familia from '@/components/idosos/tabs/Tab_Familia';
 import Tab_Historico from '@/components/idosos/tabs/Tab_Historico';
 import Tab_Contratos from '@/components/idosos/tabs/Tab_Contratos';
 import GestaoArquivos from '@/components/Arquivos/GestaoArquivos';
+import Prescricao from '@/components/Residentes/Prescricao';
 import { notifyError, notifySuccess } from '@/utils/Functions';
 import {
-  FaUser, FaFileContract, FaUsers, FaBook, FaFolder, FaSignOutAlt,
+  FaUser, FaFileContract, FaUsers, FaBook, FaFolder, FaSignOutAlt, FaPills,
 } from 'react-icons/fa';
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -52,12 +53,13 @@ const IdosoDetalhes = () => {
   const efeitoClasseAtiva = 'bg-slate-100 border-l-2 border-purple-500';
 
   const tabs: MenuTab[] = [
-    { id: 'menuVisaoGeral', label: 'Visão Geral',   icon: <FaUser />,         color: 'text-blue-600' },
-    { id: 'menuAdmissao',   label: 'Admissão',       icon: <FaBook />,         color: 'text-indigo-600' },
-    { id: 'menuFamilia',    label: 'Família',         icon: <FaUsers />,        color: 'text-green-600' },
-    { id: 'menuHistorico',  label: 'Histórico',       icon: <FaBook />,         color: 'text-gray-600' },
-    { id: 'menuContratos',  label: 'Contratos',       icon: <FaFileContract />, color: 'text-yellow-600' },
-    { id: 'menuDocumentos', label: 'Documentos',      icon: <FaFolder />,       color: 'text-fuchsia-600' },
+    { id: 'menuVisaoGeral',   label: 'Visão Geral',   icon: <FaUser />,         color: 'text-blue-600' },
+    { id: 'menuAdmissao',     label: 'Admissão',       icon: <FaBook />,         color: 'text-indigo-600' },
+    { id: 'menuFamilia',      label: 'Família',         icon: <FaUsers />,        color: 'text-green-600' },
+    { id: 'menuHistorico',    label: 'Histórico',       icon: <FaBook />,         color: 'text-gray-600' },
+    { id: 'menuContratos',    label: 'Contratos',       icon: <FaFileContract />, color: 'text-yellow-600' },
+    { id: 'menuPrescricoes',  label: 'Prescrições',     icon: <FaPills />,        color: 'text-purple-600' },
+    { id: 'menuDocumentos',   label: 'Documentos',      icon: <FaFolder />,       color: 'text-fuchsia-600' },
     ...(isAdmin ? [{ id: 'menuStatus', label: 'Status / Alta', icon: <FaSignOutAlt />, color: 'text-red-600' }] : []),
   ];
 
@@ -250,6 +252,11 @@ const IdosoDetalhes = () => {
                       idosoDetalhesId={idoso._id}
                       usuarioId={idoso.usuarioId}
                     />
+                  )}
+
+                  {/* PRESCRIÇÕES */}
+                  {classeAtiva === 'menuPrescricoes' && idoso._id && (
+                    <Prescricao idosoData={{ _id: idoso._id, nome: nomeCompleto }} />
                   )}
 
                   {/* DOCUMENTOS */}

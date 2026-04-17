@@ -39,13 +39,13 @@ export function usePrescricaoForm({ initialData, onSuccess }: UsePrescricaoFormP
         setSubmitting(true);
         setErrors({});
         try {
-            // CRIAÇÃO: passa 1 argumento
-            const res = await createPrescricao(
-                formValues as Prescricao
-            );
+            const res = formValues._id
+                ? await updatePrescricao(formValues._id, formValues as Prescricao)
+                : await createPrescricao(formValues as Prescricao);
 
             if (!res.success) {
                 const fieldErrs: Record<string, string> = {};
+                if (res.message) fieldErrs._global = res.message;
                 (res.erros || []).forEach(e => {
                     fieldErrs._global = (fieldErrs._global || '') + e + '. ';
                 });

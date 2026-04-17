@@ -69,82 +69,70 @@ const CalendarioM1 = ({ eventos }: Props) => {
     // #############################################
 
     return (
-        <div className="flex items-center justify-center py-2 px-2">
-            <div className="max-w-3xl w-full shadow-lg flex sm:flex-row flex-col justify-center">
-                <div className="md:p-8 p-5 dark:bg-gray-800 bg-white rounded-t max-w-sm">
-                    <div className="px-2 flex items-center justify-between">
-                        <span tabIndex={0} className="focus:outline-none  text-base font-bold dark:text-gray-100 text-gray-800">{getMonthName(renderMes)}, {renderAno}</span>
-                        <div className="flex items-center">
-                            <button aria-label="calendar backward" className="focus:text-gray-400 hover:text-gray-400 text-gray-800 dark:text-gray-100">
-                                <FaChevronLeft id='cLeft' onClick={handleClickChevronMonth} />
-                            </button>
-                            <button aria-label="calendar forward" className="focus:text-gray-400 hover:text-gray-400 ml-3 text-gray-800 dark:text-gray-100">
-                                <FaChevronRight id='cRight' onClick={handleClickChevronMonth} />
-                            </button>
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-2">
-                        <table className="w-full">
-                            <thead>
-                                <tr>
-                                    {weekDays.map((day: any, index: number) => <ThColName key={index} name={day} />)}
-                                </tr>
-                            </thead>
-
-                            <tbody>
-
-                                {renderSemanas.map((week: any, i: number) => (
-                                    <tr key={i}>
-                                        {week.map((dayWeek: any, j: number) => {
-                                            const testeDia = diasMarcados.includes(dayWeek)
-
-                                            if (dayWeek == renderDia) {
-                                                return (
-                                                    <td key={j} className=''>
-                                                        <CalendarCurrentDay day={dayWeek} color='indigo' />
-                                                    </td>
-                                                )
-                                            }
-                                            else {
-                                                return (
-                                                    <td key={j} className={`${testeDia ? 'bg-purple-300 rounded-full' : ''}`}>
-                                                        <div className={`px-2 py-2 text-center cursor-pointer flex w-full justify-center}`}>
-                                                            <p className="text-base mx-auto text-gray-500 dark:text-gray-100 font-medium"> {dayWeek || ''}</p>
-                                                        </div>
-                                                    </td>
-                                                )
-                                            }
-                                        }
-                                        )}
-                                    </tr>
-                                ))}
-
-                            </tbody>
-                        </table>
+        <div className="w-full flex flex-col bg-white rounded-xl shadow-lg overflow-hidden">
+            {/* Grade do calendário */}
+            <div className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                    <span className="text-base font-bold text-gray-800 capitalize">
+                        {getMonthName(renderMes)}, {renderAno}
+                    </span>
+                    <div className="flex items-center gap-3">
+                        <button aria-label="mês anterior" className="p-1 rounded hover:bg-gray-100 text-gray-600">
+                            <FaChevronLeft id='cLeft' onClick={handleClickChevronMonth} />
+                        </button>
+                        <button aria-label="próximo mês" className="p-1 rounded hover:bg-gray-100 text-gray-600">
+                            <FaChevronRight id='cRight' onClick={handleClickChevronMonth} />
+                        </button>
                     </div>
                 </div>
 
-                <div className="md:py-8 py-5 md:px-16 px-5 dark:bg-gray-700 bg-gray-50 rounded-b w-full">
-                    <div className="px-4 flex flex-col gap-2">
-                        {eventos.length > 0 && sortEventsByDate(eventos).map((evento: EventosProps, index: number) => {
+                <table className="w-full">
+                    <thead>
+                        <tr>
+                            {weekDays.map((day, index) => <ThColName key={index} name={day} />)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {renderSemanas.map((week: any, i: number) => (
+                            <tr key={i}>
+                                {week.map((dayWeek: any, j: number) => {
+                                    const testeDia = diasMarcados.includes(dayWeek);
+                                    if (dayWeek == renderDia) {
+                                        return (
+                                            <td key={j}>
+                                                <CalendarCurrentDay day={dayWeek} color='indigo' />
+                                            </td>
+                                        );
+                                    }
+                                    return (
+                                        <td key={j} className={testeDia ? 'bg-purple-200 rounded-full' : ''}>
+                                            <div className="px-1 py-1.5 text-center flex w-full justify-center">
+                                                <p className="text-sm text-gray-500 font-medium">{dayWeek || ''}</p>
+                                            </div>
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
-                            const dataFormatada = testDateString(evento.data) ? evento.data : 'Data Inválida'
-                            const convertedDate = testDateString(evento.data) != null ? createDateFromString(evento.data) : new Date(1900, 1, 1) as any
-                            const convertedDate1 = convertedDate.getMonth() + convertedDate.getFullYear()
-                            const convertedDate2 = renderMes + renderAno
-                            const compareDates = convertedDate1 == convertedDate2
-                            if (compareDates) {
-                                return (
-                                    <EventDetails key={index} data={dataFormatada} horario={evento.horario} titulo={evento.titulo} observacao={evento.observacao} />
-                                )
-                            }
-                        })}
-                        {eventos.length <= 0 && (
-                            <div>Nenhum evento identificado no período</div>
-                        )}
-                    </div>
-                </div>
-
+            {/* Eventos do mês */}
+            <div className="bg-gray-50 border-t border-gray-200 p-4 flex flex-col gap-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Eventos</p>
+                {eventos.length > 0
+                    ? sortEventsByDate(eventos).map((evento: EventosProps, index: number) => {
+                        const dataFormatada = testDateString(evento.data) ? evento.data : 'Data Inválida';
+                        const convertedDate = testDateString(evento.data) ? createDateFromString(evento.data) : new Date(1900, 1, 1) as any;
+                        const compareDates = (convertedDate.getMonth() + convertedDate.getFullYear()) === (renderMes + renderAno);
+                        if (!compareDates) return null;
+                        return (
+                            <EventDetails key={index} data={dataFormatada} horario={evento.horario} titulo={evento.titulo} observacao={evento.observacao} />
+                        );
+                    })
+                    : <p className="text-sm text-gray-400">Nenhum evento neste mês</p>
+                }
             </div>
         </div>
     )
@@ -260,7 +248,7 @@ function filtrarEventosDoMes(eventos: any, mesAtual: number) {
     // Filtra os eventos do mês atual
     const eventosDoMes = eventos.filter((evento: any) => {
         // Converte a data do evento de string para Date
-        const [dia, mes, ano] = evento.data.split('/');
+        const [, mes] = evento.data.split('/');
         const mesComparado = parseInt(mes) - 1
 
         // Compara o mês e o ano do evento com o mês e o ano atual

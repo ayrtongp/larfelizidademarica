@@ -11,10 +11,11 @@ type Props = {
     onImageCropped: (imgUrl: string) => void
     defaultImage?: string
     size?: number
-    returnType?: 'base64' | 'blob'  // 👈 nova prop
+    returnType?: 'base64' | 'blob'
+    targetUserId?: string  // se não informado, usa o usuário logado
 }
 
-const AvatarCropper = ({ onImageCropped, defaultImage, size = 24, returnType = 'base64' }: Props) => {
+const AvatarCropper = ({ onImageCropped, defaultImage, size = 24, returnType = 'base64', targetUserId }: Props) => {
     const [imageSrc, setImageSrc] = useState<string | null>(null)
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
     const [crop, setCrop] = useState({ x: 0, y: 0 })
@@ -55,7 +56,8 @@ const AvatarCropper = ({ onImageCropped, defaultImage, size = 24, returnType = '
 
     const handleUpload = async (base64: string) => {
         try {
-            const res = await fetch(`/api/Controller/Usuario?tipo=alteraFoto&id=${getUserID()}`, {
+            const userId = targetUserId ?? getUserID()
+            const res = await fetch(`/api/Controller/Usuario?tipo=alteraFoto&id=${userId}`, {
                 method: 'PUT',
                 body: JSON.stringify({ foto_base64: base64 }),
             })

@@ -131,6 +131,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           };
 
           const result = await collection.insertOne(doc);
+          const idosoId = String(result.insertedId);
+
+          // Criar patient record automaticamente
+          try {
+            const patientCol = db.collection('patient');
+            const patientNow = new Date().toISOString();
+            const patientInsert = await patientCol.insertOne({
+              usuario_id:        usuarioId,
+              idoso_detalhes_id: idosoId,
+              given_name:        usuarioExiste.nome       ?? '',
+              family_name:       usuarioExiste.sobrenome  ?? '',
+              display_name:      `${usuarioExiste.nome ?? ''} ${usuarioExiste.sobrenome ?? ''}`.trim(),
+              birth_date:        usuarioExiste.data_nascimento ?? undefined,
+              gender:            usuarioExiste.genero     ?? undefined,
+              cpf:               usuarioExiste.cpf        ?? undefined,
+              photo_url:         usuarioExiste.foto_cdn   ?? undefined,
+              active:            true,
+              created_at:        patientNow,
+              updated_at:        patientNow,
+            });
+            await collection.updateOne(
+              { _id: result.insertedId },
+              { $set: { patient_id: String(patientInsert.insertedId) } }
+            );
+          } catch {
+            // Não falhar a criação do idoso se o patient falhar — migração corrige depois
+          }
+
           return res.status(201).json({ id: result.insertedId, message: 'Idoso admitido com sucesso.' });
         } catch (err) {
           console.error(err);

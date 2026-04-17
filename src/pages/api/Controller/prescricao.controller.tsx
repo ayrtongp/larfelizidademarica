@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             else return res.status(400).json({ message: 'Tipo de requisição GET inválido ou não informado.' });
 
         case 'POST':
-            if (type === 'postPrescricao') return postPrescricao(req, res, collection);
+            if (type === 'postPrescricao') return postPrescricao(req, res, collection, db);
             else return res.status(400).json({ message: 'Tipo de requisição POST inválido ou não informado.' });
 
         case 'PUT':
@@ -95,7 +95,7 @@ async function getByResidente(req: NextApiRequest, res: NextApiResponse, collect
 // ****************************
 // ****************************
 
-async function postPrescricao(req: NextApiRequest, res: NextApiResponse, collection: any) {
+async function postPrescricao(req: NextApiRequest, res: NextApiResponse, collection: any, db: any) {
     const body: Prescricao = req.body;
     const now = getCurrentDateTime();
 
@@ -105,8 +105,21 @@ async function postPrescricao(req: NextApiRequest, res: NextApiResponse, collect
     const { valido, erros } = validarPrescricao(body);
     if (!valido) return res.status(400).json({ message: 'Dados inválidos.', erros });
 
+    // Adicionar patient_id se possível (residenteId = usuario._id)
+    let patient_id: string | undefined;
+    if (body.residenteId) {
+        try {
+            const idoso = await db.collection('idoso_detalhes').findOne({ usuarioId: body.residenteId });
+            if (idoso?.patient_id) patient_id = idoso.patient_id;
+        } catch { /* não bloqueia o cadastro */ }
+    }
+
     try {
-        const result = await collection.insertOne({ ...body, _id: new ObjectId() });
+        const result = await collection.insertOne({
+            ...body,
+            _id: new ObjectId(),
+            ...(patient_id ? { patient_id } : {}),
+        });
         res.status(201).json({ message: 'Prescrição cadastrada com sucesso.', insertedId: result.insertedId });
     } catch (error) {
         console.error(error);

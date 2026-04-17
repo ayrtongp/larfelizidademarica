@@ -3,11 +3,11 @@ import { Card_M1 } from '@/components/Formularios/Card'
 import AbrirPortao from '@/components/Paginas/Servicos/AbrirPortao'
 import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { useHasGroup } from '@/hooks/useHasGroup'
 import { getUserID } from '@/utils/Login'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import { FaCameraRetro, FaFirstAid, FaNotesMedical, FaUserShield } from 'react-icons/fa'
+import { FaCameraRetro, FaFirstAid, FaNotesMedical, FaPills } from 'react-icons/fa'
 
 const Index = () => {
 
@@ -33,6 +33,7 @@ const Index = () => {
     ]
 
     const [hasPermission, setHasPermission] = useState(false);
+    const { hasGroup: hasCoordenacao } = useHasGroup('coordenacao');
 
     useEffect(() => {
         const fetchGrupos = async () => {
@@ -63,6 +64,15 @@ const Index = () => {
                                 </Link>
                             </div>
                         ))}
+
+                        {hasCoordenacao && (
+                            <div className='col-span-6 sm:col-span-2'>
+                                <Link href='/portal/servicos/medicamentos'>
+                                    <Card_M1 title='Medicamentos' cursorPointer bgColor='bg-white'
+                                        icon={<FaPills size={24} className="text-indigo-500 mb-3 inline-block" />} />
+                                </Link>
+                            </div>
+                        )}
 
                     </div>
                 </div>

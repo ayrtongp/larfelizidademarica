@@ -4,7 +4,7 @@ import PortalBase from '@/components/Portal/PortalBase'
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import Image from 'next/image'
-import { FaBook, FaFilePrescription, FaHeart, FaInfo } from 'react-icons/fa'
+import { FaFilePrescription, FaHeart, FaInfo } from 'react-icons/fa'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 import ResidenteAccordion from '@/components/Residentes/ResidenteAccordion'
 import Semiologia from '@/components/Residentes/Semiologia'
@@ -13,17 +13,14 @@ import AnotacoesEnfermagem from '@/components/Residentes/AnotacoesEnfermagem'
 import { HiAnnotation, HiBriefcase } from 'react-icons/hi'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import RelatoriosResidente from '@/components/Residentes/RelatoriosResidente'
-import { MdLocalGroceryStore, MdPhoto } from 'react-icons/md'
+import { MdLocalGroceryStore } from 'react-icons/md'
 import Suprimentos from '@/components/Residentes/Suprimentos'
 import { Residente } from '@/types/Residente'
 import Accordion_Modelo1 from '@/components/Accordion_Modelo1'
 import FormDadosIdoso from '@/components/Forms/FormDadosIdoso'
 import { getUserID } from '@/utils/Login'
 import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario'
-import GestaoArquivos from '@/components/Arquivos/GestaoArquivos'
-import PrescricaoForm from '@/components/Forms/prescricao.form'
 import Prescricao from '@/components/Residentes/Prescricao'
-import ResidenteFotos from '@/components/Residentes/ResidenteFotos'
 import AvatarCropper from '@/components/AvatarCropper'
 
 interface objProps {
@@ -53,8 +50,6 @@ const ResidenteDetalhes = () => {
     { className: "menuEvolucao", label: "Evolução Multidisciplinar", icon: <HiBriefcase />, component: <ResidenteAccordion />, color: 'text-orange-600' },
     { className: "menuRelatorios", label: "Relatórios", icon: <MdLocalGroceryStore />, component: <ResidenteAccordion />, color: 'text-purple-600' },
     { className: "menuSuprimentos", label: "Suprimentos", icon: <HiAnnotation />, component: <ResidenteAccordion />, color: 'text-green-600' },
-    { className: "menuArquivos", label: "Arquivos", icon: <FaBook />, component: <ResidenteAccordion />, color: 'text-fuchsia-600' },
-    { className: "menuFotos", label: "Fotos", icon: <MdPhoto />, component: <ResidenteAccordion />, color: 'text-red-600' },
   ];
 
   const handleMenuClick = (e: React.MouseEvent<HTMLLIElement>) => {
@@ -258,18 +253,6 @@ const ResidenteDetalhes = () => {
                 {/* RELATÓRIOS */}
                 {classeAtiva == "menuRelatorios" && (<div className='p-3'><RelatoriosResidente residenteData={residenteData} /></div>)}
 
-                {/* ARQUIVOS */}
-                {classeAtiva == "menuArquivos" && residenteData._id && (
-                  <div className='p-3'>
-                    <GestaoArquivos
-                      entityId={residenteData._id}
-                      entityName={residenteData.apelido || residenteData.nome}
-                    />
-                  </div>
-                )}
-
-                {/* FOTOS */}
-                {classeAtiva == "menuFotos" && (<div className='p-3'><ResidenteFotos residenteData={residenteData} /></div>)}
 
               </div>
             </div>

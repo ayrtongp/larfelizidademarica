@@ -1,13 +1,13 @@
 import ListaUsuarios from '@/components/Admin/ListaUsuarios'
 import ListaResidentesAtivos from '@/components/Admin/ListaResidentesAtivos'
 import RelZipAnotEnf from '@/components/Admin/RelZipAnotEnf'
+import AuditoriaFuncionarios from '@/components/Admin/AuditoriaFuncionarios'
 import FormNovoUsuario from '@/components/FormNovoUsuario'
 import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
 import React, { useState } from 'react'
 import NovoGrupo from '@/components/Cadastros/NovoGrupo'
-import GruposDoUsuario from '@/components/GruposDoUsuario'
-import { FaUserPlus, FaUsers, FaFileAlt, FaBed, FaLayerGroup, FaUsersCog } from 'react-icons/fa'
+import { FaUserPlus, FaUsers, FaFileAlt, FaBed, FaLayerGroup, FaUsersCog, FaHistory } from 'react-icons/fa'
 
 interface MenuItem {
   id: string
@@ -19,11 +19,11 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   { id: 'fun-novoUsuario',      label: 'Novo Usuário',       icon: <FaUserPlus />,   color: 'text-indigo-500', description: 'Cadastrar novo usuário no sistema' },
-  { id: 'fun-listaUsuarios',    label: 'Lista de Usuários',  icon: <FaUsers />,      color: 'text-blue-500',   description: 'Ver e gerenciar todos os usuários' },
-  { id: 'fun-usuarioGrupos',    label: 'Grupos do Usuário',  icon: <FaUsersCog />,   color: 'text-purple-500', description: 'Atribuir grupos de permissão' },
+  { id: 'fun-listaUsuarios',    label: 'Lista de Usuários',  icon: <FaUsers />,      color: 'text-blue-500',   description: 'Ver e gerenciar usuários e grupos' },
   { id: 'fun-criarGrupo',       label: 'Criar Grupo',        icon: <FaLayerGroup />, color: 'text-green-500',  description: 'Cadastrar novo grupo de permissão' },
   { id: 'fun-ResidentesAtivos', label: 'Residentes Ativos',  icon: <FaBed />,        color: 'text-orange-500', description: 'Gerenciar residentes e limites' },
   { id: 'fun-AnotEnfV2',        label: 'Relatório Geral',    icon: <FaFileAlt />,    color: 'text-red-500',    description: 'Gerar relatório de anotações' },
+  { id: 'fun-auditoriaFunc',    label: 'Auditoria RH',       icon: <FaHistory />,    color: 'text-slate-500',  description: 'Histórico de alterações em funcionários' },
 ]
 
 const Index = () => {
@@ -110,7 +110,7 @@ const Index = () => {
                     {funcaoAdmin === 'fun-AnotEnfV2'        && <RelZipAnotEnf />}
                     {funcaoAdmin === 'fun-ResidentesAtivos' && <ListaResidentesAtivos />}
                     {funcaoAdmin === 'fun-criarGrupo'       && <NovoGrupo />}
-                    {funcaoAdmin === 'fun-usuarioGrupos'    && <GruposDoUsuario />}
+                    {funcaoAdmin === 'fun-auditoriaFunc'    && <AuditoriaFuncionarios />}
                   </div>
                 </>
               )}

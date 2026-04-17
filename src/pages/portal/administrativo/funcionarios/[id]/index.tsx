@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PermissionWrapper from '@/components/PermissionWrapper';
 import PortalBase from '@/components/Portal/PortalBase';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
+import AvatarCropper from '@/components/AvatarCropper';
 import { useHasGroup } from '@/hooks/useHasGroup';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import S_funcionariosCLT from '@/services/S_funcionariosCLT';
@@ -108,7 +108,7 @@ const FuncionarioDetalhes = () => {
   const statusInfo = funcionario ? (STATUS_CONFIG[funcionario.status] ?? { label: funcionario.status, className: 'bg-gray-100 text-gray-700' }) : null;
 
   return (
-    <PermissionWrapper href="/portal/administrativo/funcionarios">
+    <PermissionWrapper href="/portal">
       <PortalBase>
         <div className="col-span-full">
 
@@ -125,15 +125,14 @@ const FuncionarioDetalhes = () => {
 
                   {/* Avatar + nome */}
                   <div className="flex flex-row gap-3 items-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                      {foto ? (
-                        <Image src={foto} width={64} height={64} alt={nomeCompleto} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg font-bold">
-                          {nomeCompleto.charAt(0).toUpperCase()}
-                        </div>
+                    <AvatarCropper
+                      defaultImage={foto}
+                      size={16}
+                      targetUserId={funcionario.usuarioId}
+                      onImageCropped={newFoto => setFuncionario(prev =>
+                        prev ? { ...prev, usuario: { ...prev.usuario!, foto_base64: newFoto, foto_cdn: undefined } } : prev
                       )}
-                    </div>
+                    />
                     <div>
                       <p className="font-bold text-slate-700 text-base leading-tight">{nomeCompleto}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{funcionario.contrato?.cargo}</p>

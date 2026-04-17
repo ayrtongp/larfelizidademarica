@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { I_Arquivo } from '@/types/Arquivos';
 import { notifyError, notifySuccess } from '@/utils/Functions';
 import Button_M3 from '@/components/Formularios/Button_M3';
@@ -200,7 +200,7 @@ const GestaoArquivos = ({ entityId, entityName }: Props) => {
                             folders={`public/usuario/${residenteId}/arquivos`}
                             infoProps={{ dbName: 'usuarios', residenteId, descricao }}
                             triggerEffect={handleUploadSuccess}
-                            uploadUrl={process.env.NEXT_PUBLIC_UPLOAD_URL ?? "https://lobster-app-gbru2.ondigitalocean.app/r2_upload"}
+                            uploadUrl="/api/proxy/r2-upload"
                             extraFields={extraFields}
                         />
                     )}
