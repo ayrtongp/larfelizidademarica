@@ -43,37 +43,29 @@ const LoginPage = () => {
   };
 
   const handleBiometria = async () => {
-    if (!usuario) return notifyError('Digite o nome de usuário antes de usar biometria');
-
     try {
       setBiometriaLoading(true);
 
-      // 1. Get authentication options
+      // 1. Obtém opções — sem username, o browser apresenta o seletor de passkeys
       const initRes = await fetch('/api/Controller/C_biometria?tipo=autenticar-inicio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario }),
+        body: JSON.stringify({}),
       });
-      if (!initRes.ok) {
-        const err = await initRes.json();
-        throw new Error(err.message);
-      }
-      const { options, userId } = await initRes.json();
+      if (!initRes.ok) throw new Error((await initRes.json()).message);
+      const { options } = await initRes.json();
 
-      // 2. Trigger browser biometric prompt
+      // 2. Browser abre seletor de passkeys cadastradas
       const { startAuthentication } = await import('@simplewebauthn/browser');
       const authResponse = await startAuthentication({ optionsJSON: options });
 
-      // 3. Verify with server and get token
+      // 3. Verifica no servidor — userId derivado do userHandle pela API
       const finalRes = await fetch('/api/Controller/C_biometria?tipo=autenticar-finalizar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, response: authResponse }),
+        body: JSON.stringify({ response: authResponse }),
       });
-      if (!finalRes.ok) {
-        const err = await finalRes.json();
-        throw new Error(err.message);
-      }
+      if (!finalRes.ok) throw new Error((await finalRes.json()).message);
       const { token, userInfo } = await finalRes.json();
       await finalizarLogin(token, userInfo);
     } catch (err: any) {
@@ -171,38 +163,39 @@ const LoginPage = () => {
               ) : 'Entrar'}
             </button>
 
-            {/* Divisor */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+            {/* Divisor + Biometria — apenas em mobile */}
+            <div className="md:hidden space-y-5">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white px-3 text-gray-400">ou</span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-gray-400">ou</span>
-              </div>
-            </div>
 
-            {/* Biometria */}
-            <button
-              type="button"
-              onClick={handleBiometria}
-              disabled={loading || biometriaLoading}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg border border-gray-300 shadow-sm transition disabled:opacity-50"
-            >
-              {biometriaLoading ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
-                  </svg>
-                  Aguardando biometria...
-                </>
-              ) : (
-                <>
-                  <span className="text-base">🔐</span>
-                  Entrar com biometria
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={handleBiometria}
+                disabled={loading || biometriaLoading}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg border border-gray-300 shadow-sm transition disabled:opacity-50"
+              >
+                {biometriaLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                    </svg>
+                    Aguardando biometria...
+                  </>
+                ) : (
+                  <>
+                    <span className="text-base">🔐</span>
+                    Entrar com biometria
+                  </>
+                )}
+              </button>
+            </div>
 
           </form>
         </div>

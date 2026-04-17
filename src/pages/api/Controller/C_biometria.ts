@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         attestationType: 'none',
         excludeCredentials: existingCredentials,
         authenticatorSelection: {
-          residentKey: 'preferred',
+          residentKey: 'required',   // discoverable credential obrigatório
           userVerification: 'preferred',
         },
       });
@@ -130,66 +130,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // ─── POST: autenticar-inicio ──────────────────────────────────────────────
+    // Discoverable credentials: não precisa de username.
+    // O browser apresenta um seletor com as passkeys disponíveis para este RP.
     if (req.method === 'POST' && tipo === 'autenticar-inicio') {
-      const { usuario } = req.body;
-      if (!usuario) return res.status(400).json({ message: 'Usuário obrigatório' });
-
-      const user = await usuarios.findOne({
-        usuario: (usuario as string).toLowerCase(),
-        ativo: 'S',
-      });
-      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
-
-      if (!user.biometriaHabilitada) {
-        return res.status(403).json({ message: 'Biometria não habilitada para este usuário' });
-      }
-
-      const credentials = (user.webauthnCredentials ?? []);
-      if (credentials.length === 0) {
-        return res.status(400).json({ message: 'Nenhuma biometria cadastrada' });
-      }
-
-      const allowCredentials = credentials.map((c: any) => ({
-        id: c.id,
-        type: 'public-key' as const,
-        transports: c.transports,
-      }));
+      const challenges = db.collection('webauthn_challenges');
 
       const options = await generateAuthenticationOptions({
         rpID: getRpId(req),
-        allowCredentials,
+        allowCredentials: [], // vazio = discoverable: browser decide
         userVerification: 'preferred',
       });
 
-      await usuarios.updateOne(
-        { _id: user._id },
-        {
-          $set: {
-            _webauthnChallenge: {
-              challenge: options.challenge,
-              expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-            },
-          },
-        }
-      );
+      // Guarda challenge numa collection temporária (TTL 5 min)
+      await challenges.insertOne({
+        _id: options.challenge as any,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      });
 
-      return res.status(200).json({ options, userId: user._id.toString() });
+      return res.status(200).json({ options });
     }
 
     // ─── POST: autenticar-finalizar ───────────────────────────────────────────
     if (req.method === 'POST' && tipo === 'autenticar-finalizar') {
-      const { userId, response: authResponse } = req.body as {
-        userId: string;
+      const { response: authResponse } = req.body as {
         response: AuthenticationResponseJSON;
       };
-      if (!userId || !authResponse) return res.status(400).json({ message: 'Dados inválidos' });
+      if (!authResponse) return res.status(400).json({ message: 'Dados inválidos' });
 
-      const user = await usuarios.findOne({ _id: new ObjectId(userId) });
-      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+      const challenges = db.collection('webauthn_challenges');
 
-      const challengeDoc = user._webauthnChallenge;
+      // Recupera challenge pelo clientDataJSON
+      const clientData = JSON.parse(
+        Buffer.from(authResponse.response.clientDataJSON, 'base64url').toString('utf8')
+      );
+      const challengeDoc = await challenges.findOne({ _id: clientData.challenge as any });
+
       if (!challengeDoc || new Date(challengeDoc.expiresAt) < new Date()) {
         return res.status(400).json({ message: 'Challenge expirado. Tente novamente.' });
+      }
+      await challenges.deleteOne({ _id: clientData.challenge as any });
+
+      // Descobre o userId pelo userHandle que o browser devolve
+      if (!authResponse.response.userHandle) {
+        return res.status(400).json({ message: 'userHandle ausente — credencial não é discoverable.' });
+      }
+      const userId = Buffer.from(authResponse.response.userHandle, 'base64url').toString('utf8');
+
+      const user = await usuarios.findOne({ _id: new ObjectId(userId), ativo: 'S' });
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+      if (!user.biometriaHabilitada) {
+        return res.status(403).json({ message: 'Biometria não habilitada para este usuário' });
       }
 
       const storedCred = (user.webauthnCredentials ?? []).find(
@@ -201,7 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const verification = await verifyAuthenticationResponse({
         response: authResponse,
-        expectedChallenge: challengeDoc.challenge,
+        expectedChallenge: clientData.challenge,
         expectedOrigin: getOrigin(req),
         expectedRPID: getRpId(req),
         credential: {
@@ -217,18 +208,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ message: 'Verificação biométrica falhou' });
       }
 
-      // update counter
       await usuarios.updateOne(
         { _id: new ObjectId(userId), 'webauthnCredentials.id': storedCred.id },
-        {
-          $set: {
-            'webauthnCredentials.$.counter': verification.authenticationInfo.newCounter,
-            _webauthnChallenge: null,
-          },
-        }
+        { $set: { 'webauthnCredentials.$.counter': verification.authenticationInfo.newCounter } }
       );
 
-      // issue JWT same as LoginController
       const secret = process.env.JWT_SECRET as string;
       const token = jwt.sign({ userId: user._id }, secret, { expiresIn: '1h' });
       const userInfo = {
