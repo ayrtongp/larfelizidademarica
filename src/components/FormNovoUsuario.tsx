@@ -17,8 +17,7 @@ const CATEGORIAS_OPTIONS = [
 
 const FormNovoUsuario = () => {
   const [formData, setFormData] = useState({
-    nome: '', sobrenome: '', cpf: '', dataNascimento: '', telefone: '',
-    funcao: '', registro: '',
+    nome: '', sobrenome: '', cpf: '', dataNascimento: '', telefone: '', email: '',
     usuario: '', senha: '', repetirSenha: '',
     admin: 'N', ativo: 'S',
   })
@@ -133,8 +132,7 @@ const FormNovoUsuario = () => {
 
       // Reset
       setFormData({
-        nome: '', sobrenome: '', cpf: '', dataNascimento: '', telefone: '',
-        funcao: '', registro: '',
+        nome: '', sobrenome: '', cpf: '', dataNascimento: '', telefone: '', email: '',
         usuario: '', senha: '', repetirSenha: '',
         admin: 'N', ativo: 'S',
       })
@@ -183,14 +181,9 @@ const FormNovoUsuario = () => {
               className={inputClass} placeholder="(00) 00000-0000" />
           </div>
           <div>
-            <label className={labelClass}>Função / Cargo</label>
-            <input name="funcao" type="text" value={formData.funcao} onChange={handleChange}
-              className={inputClass} placeholder="Ex: Enfermeiro(a)" />
-          </div>
-          <div>
-            <label className={labelClass}>Nº Registro Profissional</label>
-            <input name="registro" type="text" value={formData.registro} onChange={handleChange}
-              className={inputClass} placeholder="Ex: COREN-RJ 000000" />
+            <label className={labelClass}>E-mail</label>
+            <input name="email" type="email" value={formData.email} onChange={handleChange}
+              className={inputClass} placeholder="exemplo@email.com" />
           </div>
         </div>
       </div>
