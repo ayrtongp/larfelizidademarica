@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]);
 
     return res.status(200).json({
-      data: data.map(d => ({ ...d, _id: d._id.toString() })),
+      data: data.map((d: any) => ({ ...d, _id: d._id.toString() })),
       total,
       page,
       limit,

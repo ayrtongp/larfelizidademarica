@@ -35,26 +35,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (docs.length === 0) return res.status(200).json({ sessions: [], total });
 
-        const sessionIds = docs.map(d => String(d._id));
+        const sessionIds = docs.map((d: any) => String(d._id));
         const measurementDocs = await measurements
           .find({ session_id: { $in: sessionIds }, status: { $ne: 'cancelled' } })
           .toArray();
 
         // Nome vem diretamente do patient_name gravado na sessão (ou fallback ao patient)
-        const missingNames = docs.filter(d => !d.patient_name).map(d => d.patient_id);
+        const missingNames = docs.filter((d: any) => !d.patient_name).map((d: any) => d.patient_id);
         const patientMap = new Map<string, string>();
         if (missingNames.length > 0) {
           const pts = await patientCol
-            .find({ _id: { $in: missingNames.map(id => { try { return new ObjectId(id); } catch { return id; } }) } })
+            .find({ _id: { $in: missingNames.map((id: any) => { try { return new ObjectId(id); } catch { return id; } }) } })
             .project({ _id: 1, display_name: 1 })
             .toArray();
-          pts.forEach(p => patientMap.set(String(p._id), p.display_name as string));
+          pts.forEach((p: any) => patientMap.set(String(p._id), p.display_name as string));
         }
 
-        const result = docs.map(s => ({
+        const result = docs.map((s: any) => ({
           ...s,
           patient_name: s.patient_name ?? patientMap.get(s.patient_id) ?? 'Paciente',
-          measurements: measurementDocs.filter(m => m.session_id === String(s._id)),
+          measurements: measurementDocs.filter((m: any) => m.session_id === String(s._id)),
         }));
 
         return res.status(200).json({ sessions: result, total });
@@ -78,19 +78,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (todaySessions.length === 0) return res.status(200).json([]);
 
-        const sessionIds  = todaySessions.map(s => String(s._id));
-        const patientIds  = [...new Set(todaySessions.map(s => s.patient_id))];
+        const sessionIds  = todaySessions.map((s: any) => String(s._id));
+        const patientIds  = Array.from(new Set<string>(todaySessions.map((s: any) => s.patient_id as string)));
 
         const [measurementDocs, patientDocs] = await Promise.all([
           measurements.find({ session_id: { $in: sessionIds }, status: { $ne: 'cancelled' } }).toArray(),
           patientCol
-            .find({ _id: { $in: patientIds.map(id => { try { return new ObjectId(id); } catch { return id; } }) } })
+            .find({ _id: { $in: patientIds.map((id: any) => { try { return new ObjectId(id); } catch { return id; } }) } })
             .project({ _id: 1, display_name: 1 })
             .toArray(),
         ]);
 
-        const patientMap = new Map(patientDocs.map(p => [String(p._id), p.display_name as string]));
-        const sessionTimeMap = new Map(todaySessions.map(s => [String(s._id), s.measured_at]));
+        const patientMap = new Map<string, string>(patientDocs.map((p: any) => [String(p._id), p.display_name as string]));
+        const sessionTimeMap = new Map<string, string>(todaySessions.map((s: any) => [String(s._id), String(s.measured_at ?? '')]));
 
         // Para cada paciente, pegar o último valor por type_code
         const patientSummary: Record<string, Record<string, {
@@ -98,13 +98,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }>> = {};
 
         for (const m of measurementDocs) {
-          const session  = todaySessions.find(s => String(s._id) === m.session_id);
+          const session  = todaySessions.find((s: any) => String(s._id) === m.session_id);
           const pId      = session?.patient_id;
           if (!pId) continue;
           if (!patientSummary[pId]) patientSummary[pId] = {};
 
           const existing  = patientSummary[pId][m.type_code];
-          const measuredAt = sessionTimeMap.get(m.session_id) ?? '';
+          const measuredAt: string = sessionTimeMap.get(m.session_id) ?? '';
           if (!existing || measuredAt > existing.measured_at) {
             patientSummary[pId][m.type_code] = {
               value_numeric: m.value_numeric,
