@@ -239,7 +239,7 @@ const Biometria: React.FC = () => {
           <div className="text-center py-8 text-gray-400 text-sm bg-gray-50 rounded-xl border border-dashed border-gray-200">
             <p className="text-2xl mb-2">🔐</p>
             <p>Nenhum dispositivo cadastrado.</p>
-            <p className="text-xs mt-1">Clique em "Adicionar biometria" para começar.</p>
+            <p className="text-xs mt-1">Clique em &quot;Adicionar biometria&quot; para começar.</p>
           </div>
         ) : (
           <div className="space-y-2">
