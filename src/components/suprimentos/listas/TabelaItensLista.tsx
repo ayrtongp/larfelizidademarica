@@ -96,10 +96,10 @@ const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarCo
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {itens.map((item) => (
+              {itens.map((item, idx) => (
                 <tr
                   key={item._id}
-                  className={`hover:bg-gray-50 transition-colors ${item.comprado ? 'opacity-60' : ''}`}
+                  className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-indigo-50 ${item.comprado ? 'opacity-60' : ''}`}
                 >
                   <td className="px-3 py-3 text-center">
                     <input
