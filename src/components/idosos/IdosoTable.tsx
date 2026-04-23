@@ -9,7 +9,7 @@ interface Props {
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   ativo:     { label: 'Ativo',     className: 'bg-green-100 text-green-800' },
-  alta:      { label: 'Alta',      className: 'bg-blue-100 text-blue-800' },
+  inativo:   { label: 'Inativo',   className: 'bg-blue-100 text-blue-800' },
   falecido:  { label: 'Falecido',  className: 'bg-gray-200 text-gray-700' },
   afastado:  { label: 'Afastado',  className: 'bg-yellow-100 text-yellow-800' },
 };
@@ -34,7 +34,7 @@ const IdosoTable: React.FC<Props> = ({ idosos }) => {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
       <table className="w-full text-sm text-left">
         <thead className="bg-gray-50 text-gray-600 text-xs uppercase">
           <tr>
@@ -53,7 +53,7 @@ const IdosoTable: React.FC<Props> = ({ idosos }) => {
             const statusInfo = statusConfig[i.status] ?? { label: i.status, className: 'bg-gray-100 text-gray-700' };
 
             return (
-              <tr key={i._id} className="hover:bg-gray-50">
+              <tr key={i._id} className="odd:bg-white even:bg-gray-50 hover:bg-yellow-50 transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">

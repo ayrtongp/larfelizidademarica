@@ -21,7 +21,15 @@ const S_idosoDetalhes = {
   },
 
   create: async (payload: {
-    usuarioId: string;
+    patient: {
+      nome: string;
+      sobrenome: string;
+      gender?: 'male' | 'female' | 'other' | 'unknown';
+      birthDate?: string;   // YYYY-MM-DD
+      cpf?: string;
+      phone?: string;
+      photo?: string;       // base64
+    };
     admissao: T_Admissao;
     responsavel?: T_ResponsavelIdoso;
     createdBy?: string;
@@ -71,7 +79,7 @@ const S_idosoDetalhes = {
   },
 
   updateStatus: async (id: string, payload: {
-    status: 'ativo' | 'alta' | 'falecido' | 'afastado';
+    status: 'ativo' | 'inativo' | 'falecido' | 'afastado';
     dataSaida?: string;
     motivoSaida?: string;
   }): Promise<{ message: string }> => {

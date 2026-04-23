@@ -35,6 +35,10 @@ export interface T_ContratoIdoso {
   pacote?: T_PacoteAvulso;
   avulso?: T_ContratoAvulso;
 
+  prazo?: number;
+  tipoPrazo?: 'dia' | 'mes' | 'ano';
+  tipoPagamento?: 'a_vencer' | 'vencido';
+
   observacoes?: string;
   createdBy?: string;
   createdAt?: string;

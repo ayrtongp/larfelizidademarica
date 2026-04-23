@@ -6,21 +6,25 @@ import Image from 'next/image';
 import { useHasGroup } from '@/hooks/useHasGroup';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import S_idosoDetalhes from '@/services/S_idosoDetalhes';
+import AvatarCropper from '@/components/AvatarCropper';
+import { getUserID } from '@/utils/Login';
 import { T_IdosoDetalhesComUsuario } from '@/types/T_idosoDetalhes';
 import Tab_Admissao from '@/components/idosos/tabs/Tab_Admissao';
 import Tab_Familia from '@/components/idosos/tabs/Tab_Familia';
 import Tab_Historico from '@/components/idosos/tabs/Tab_Historico';
 import Tab_Contratos from '@/components/idosos/tabs/Tab_Contratos';
+import Tab_Clinico from '@/components/idosos/tabs/Tab_Clinico';
+import ClinicalSummary from '@/components/idosos/ClinicalSummary';
 import GestaoArquivos from '@/components/Arquivos/GestaoArquivos';
 import Prescricao from '@/components/Residentes/Prescricao';
 import { notifyError, notifySuccess } from '@/utils/Functions';
 import {
-  FaUser, FaFileContract, FaUsers, FaBook, FaFolder, FaSignOutAlt, FaPills,
+  FaUser, FaFileContract, FaUsers, FaBook, FaFolder, FaSignOutAlt, FaPills, FaHeartbeat,
 } from 'react-icons/fa';
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   ativo:    { label: 'Ativo',    className: 'bg-green-100 text-green-800' },
-  alta:     { label: 'Alta',     className: 'bg-blue-100 text-blue-800' },
+  inativo:  { label: 'Inativo',  className: 'bg-blue-100 text-blue-800' },
   falecido: { label: 'Falecido', className: 'bg-gray-200 text-gray-700' },
   afastado: { label: 'Afastado', className: 'bg-yellow-100 text-yellow-800' },
 };
@@ -59,8 +63,9 @@ const IdosoDetalhes = () => {
     { id: 'menuHistorico',    label: 'Histórico',       icon: <FaBook />,         color: 'text-gray-600' },
     { id: 'menuContratos',    label: 'Contratos',       icon: <FaFileContract />, color: 'text-yellow-600' },
     { id: 'menuPrescricoes',  label: 'Prescrições',     icon: <FaPills />,        color: 'text-purple-600' },
+    { id: 'menuClinico',     label: 'Clínico',          icon: <FaHeartbeat />,    color: 'text-red-500' },
     { id: 'menuDocumentos',   label: 'Documentos',      icon: <FaFolder />,       color: 'text-fuchsia-600' },
-    ...(isAdmin ? [{ id: 'menuStatus', label: 'Status / Alta', icon: <FaSignOutAlt />, color: 'text-red-600' }] : []),
+    ...(isAdmin ? [{ id: 'menuStatus', label: 'Status', icon: <FaSignOutAlt />, color: 'text-red-600' }] : []),
   ];
 
   const loadIdoso = async (idosoId: string) => {
@@ -81,7 +86,44 @@ const IdosoDetalhes = () => {
     }
   }, [id, hasGroup]);
 
-  const handleStatusChange = async (novoStatus: 'ativo' | 'alta' | 'falecido' | 'afastado', dataSaida?: string) => {
+  const handleFotoUpload = async (blobOrBase64: string) => {
+    const patientId = idoso?.patient_id;
+    if (!patientId) return;
+    try {
+      const EXPRESS_URL = process.env.NEXT_PUBLIC_URLDO ?? 'https://lobster-app-gbru2.ondigitalocean.app';
+      const blob = await fetch(blobOrBase64).then((r) => r.blob());
+      const form = new FormData();
+      form.append('file', blob, 'foto_perfil.jpg');
+      form.append('originalName', 'foto_perfil.jpg');
+      form.append('collection', 'foto_perfil');
+      form.append('resource', 'perfil');
+      form.append('userId', patientId);
+      form.append('folder', patientId);
+      form.append('createdBy', getUserID());
+      form.append('isPublic', 'true');
+
+      const uploadRes = await fetch(`${EXPRESS_URL}/r2_upload`, { method: 'POST', body: form });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData.ok) { notifyError(uploadData.error || 'Erro ao enviar foto.'); return; }
+
+      const photoUrl: string = uploadData.file?.url;
+      await fetch(`/api/Controller/patient.controller?type=updatePhoto&id=${patientId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo_url: photoUrl }),
+      });
+
+      setIdoso((prev) => prev ? {
+        ...prev,
+        usuario: prev.usuario ? { ...prev.usuario, foto_cdn: photoUrl, foto_base64: undefined } : prev.usuario,
+      } : prev);
+      notifySuccess('Foto atualizada!');
+    } catch {
+      notifyError('Erro ao atualizar foto.');
+    }
+  };
+
+  const handleStatusChange = async (novoStatus: 'ativo' | 'inativo' | 'falecido' | 'afastado', dataSaida?: string) => {
     if (!idoso?._id) return;
     try {
       setSavingStatus(true);
@@ -144,11 +186,18 @@ const IdosoDetalhes = () => {
 
                   {/* Avatar + nome */}
                   <div className="flex flex-row gap-3 items-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                      {foto ? (
-                        <Image src={foto} width={64} height={64} alt={nomeCompleto} className="w-full h-full object-cover" />
+                    <div className="flex-shrink-0">
+                      {isAdmin ? (
+                        <AvatarCropper
+                          returnType="blob"
+                          defaultImage={foto || undefined}
+                          onImageCropped={handleFotoUpload}
+                          size={16}
+                        />
+                      ) : foto ? (
+                        <Image src={foto} width={64} height={64} alt={nomeCompleto} className="w-16 h-16 rounded-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg font-bold">
+                        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-lg font-bold">
                           {nomeCompleto.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -209,6 +258,13 @@ const IdosoDetalhes = () => {
                         <InfoCard label="Estado Civil" value={idoso.historico?.estadoCivil} />
                         <InfoCard label="Religião" value={idoso.historico?.religiao} />
                       </div>
+                      {idoso.patient_id && (
+                        <ClinicalSummary
+                          patientId={idoso.patient_id}
+                          onNavigate={() => setClasseAtiva('menuClinico')}
+                        />
+                      )}
+
                       {idoso.responsavel?.interditado && (
                         <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-sm text-yellow-800">
                           <strong>Atenção:</strong> Idoso interditado. Proc. {idoso.responsavel.processoInterdicao || '—'}
@@ -250,13 +306,18 @@ const IdosoDetalhes = () => {
                   {classeAtiva === 'menuContratos' && idoso._id && (
                     <Tab_Contratos
                       idosoDetalhesId={idoso._id}
-                      usuarioId={idoso.usuarioId}
+                      usuarioId={idoso.usuarioId ?? ''}
                     />
                   )}
 
                   {/* PRESCRIÇÕES */}
                   {classeAtiva === 'menuPrescricoes' && idoso._id && (
                     <Prescricao idosoData={{ _id: idoso._id, nome: nomeCompleto }} />
+                  )}
+
+                  {/* CLÍNICO */}
+                  {classeAtiva === 'menuClinico' && (
+                    <Tab_Clinico patientId={idoso.patient_id ?? ''} />
                   )}
 
                   {/* DOCUMENTOS */}
@@ -267,12 +328,18 @@ const IdosoDetalhes = () => {
                     />
                   )}
 
-                  {/* STATUS / ALTA (apenas admin) */}
+                  {/* STATUS (apenas admin) */}
                   {classeAtiva === 'menuStatus' && isAdmin && (
                     <div className="space-y-4">
-                      <p className="text-sm text-gray-500">Altere o status deste idoso.</p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-gray-700 font-medium">Altere o status deste idoso.</p>
+                        <p className="text-xs text-gray-400">
+                          <strong>Afastado</strong>: ausência temporária (hospital, família).{' '}
+                          <strong>Inativo</strong>: desvinculado do lar (sem ser por falecimento).
+                        </p>
+                      </div>
                       <div className="flex flex-wrap gap-2">
-                        {(['ativo', 'afastado', 'alta', 'falecido'] as const).map((s) => (
+                        {(['ativo', 'afastado', 'inativo', 'falecido'] as const).map((s) => (
                           <button
                             key={s}
                             onClick={() => handleStatusChange(s)}
@@ -285,9 +352,6 @@ const IdosoDetalhes = () => {
                           </button>
                         ))}
                       </div>
-                      {idoso.status === 'ativo' && (
-                        <p className="text-xs text-gray-400">Para dar alta ao idoso, clique em &quot;Alta&quot; acima.</p>
-                      )}
                     </div>
                   )}
                 </div>

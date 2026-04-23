@@ -23,6 +23,8 @@ export interface T_Movimentacao {
   vinculadoId?: string;
   vinculadoTipo?: 'usuario' | 'residente';
   temRateio: boolean;
+  rateioCount?: number;
+  conciliado?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

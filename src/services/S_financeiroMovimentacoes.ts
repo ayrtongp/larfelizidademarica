@@ -3,11 +3,16 @@ import { T_Rateio } from '@/types/T_financeiroRateios';
 
 const baseUrl = '/api/Controller/C_financeiroMovimentacoes';
 
-export interface FiltrosMovimentacao {
-  contaFinanceiraId?: string;
-  tipoMovimento?: string;
-  dataInicio?: string;
-  dataFim?: string;
+export interface GetAllParams {
+  conditions?: { field: string; operator: string; value: string; value2?: string }[];
+  logic?: 'and' | 'or';
+  skip?: number;
+  limit?: number;
+}
+
+export interface GetAllResult {
+  items: T_Movimentacao[];
+  total: number;
 }
 
 export interface DadosTransferencia {
@@ -20,12 +25,15 @@ export interface DadosTransferencia {
 }
 
 const S_financeiroMovimentacoes = {
-  getAll: async (filtros?: FiltrosMovimentacao): Promise<T_Movimentacao[]> => {
+  getAll: async (p?: GetAllParams): Promise<GetAllResult> => {
     const params = new URLSearchParams({ type: 'getAll' });
-    if (filtros?.contaFinanceiraId) params.append('contaFinanceiraId', filtros.contaFinanceiraId);
-    if (filtros?.tipoMovimento) params.append('tipoMovimento', filtros.tipoMovimento);
-    if (filtros?.dataInicio) params.append('dataInicio', filtros.dataInicio);
-    if (filtros?.dataFim) params.append('dataFim', filtros.dataFim);
+    const active = (p?.conditions ?? []).filter(c =>
+      c.operator === 'empty' || c.operator === 'notempty' || c.value !== '',
+    );
+    if (active.length)     params.append('conditions', JSON.stringify(active));
+    if (p?.logic)          params.append('logic', p.logic);
+    if (p?.skip  != null)  params.append('skip',  String(p.skip));
+    if (p?.limit != null)  params.append('limit', String(p.limit));
 
     const res = await fetch(`${baseUrl}?${params.toString()}`);
     if (!res.ok) {
@@ -93,6 +101,22 @@ const S_financeiroMovimentacoes = {
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`Erro ao atualizar movimentação: ${text}`);
+    }
+  },
+
+  updateMany: async (
+    ids: string[],
+    update: { categoriaId?: string | null; vinculadoId?: string | null; vinculadoTipo?: string | null },
+  ): Promise<void> => {
+    const params = new URLSearchParams({ type: 'updateMany' });
+    const res = await fetch(`${baseUrl}?${params.toString()}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids, update }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Erro ao atualizar movimentações: ${text}`);
     }
   },
 };

@@ -12,7 +12,7 @@ import { useRouter } from 'next/router';
 const STATUS_FILTROS = [
   { value: '', label: 'Todos' },
   { value: 'ativo', label: 'Ativos' },
-  { value: 'alta', label: 'Alta' },
+  { value: 'inativo', label: 'Inativos' },
   { value: 'afastado', label: 'Afastados' },
   { value: 'falecido', label: 'Falecidos' },
 ];
@@ -33,7 +33,7 @@ const IdososPage = () => {
   const [loadingData, setLoadingData] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const [filtroStatus, setFiltroStatus] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState('ativo');
   const [filtroModalidade, setFiltroModalidade] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
 
@@ -66,8 +66,9 @@ const IdososPage = () => {
   }, [idosos, filtroStatus, filtroModalidade, filtroBusca]);
 
   const usuariosJaVinculados = idosos
-    .filter((i) => i.status !== 'alta')
-    .map((i) => i.usuarioId);
+    .filter((i) => i.status !== 'inativo')
+    .map((i) => i.usuarioId)
+    .filter((id): id is string => !!id);
 
   const handleSuccess = (novoId: string) => {
     setShowModal(false);
@@ -105,22 +106,28 @@ const IdososPage = () => {
             </div>
           ) : (
             <>
+              {/* Cards de status */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+                {[
+                  { value: '',         label: 'Total',     count: idosos.length,                                          bg: 'bg-indigo-50  border-indigo-200  text-indigo-700'  },
+                  { value: 'ativo',    label: 'Ativos',    count: idosos.filter((i) => i.status === 'ativo').length,    bg: 'bg-green-50   border-green-200   text-green-700'   },
+                  { value: 'afastado', label: 'Afastados', count: idosos.filter((i) => i.status === 'afastado').length, bg: 'bg-yellow-50  border-yellow-200  text-yellow-700'  },
+                  { value: 'inativo',  label: 'Inativos',  count: idosos.filter((i) => i.status === 'inativo').length,  bg: 'bg-blue-50    border-blue-200    text-blue-700'    },
+                  { value: 'falecido', label: 'Falecidos', count: idosos.filter((i) => i.status === 'falecido').length, bg: 'bg-gray-100   border-gray-300    text-gray-600'    },
+                ].map((card) => (
+                  <button
+                    key={card.value}
+                    onClick={() => setFiltroStatus(card.value)}
+                    className={`text-left p-3 rounded-lg border transition-all ${card.bg} ${filtroStatus === card.value ? 'ring-2 ring-offset-1 ring-current' : 'hover:opacity-75'}`}
+                  >
+                    <p className="text-2xl font-bold leading-none">{card.count}</p>
+                    <p className="text-xs font-medium mt-1">{card.label}</p>
+                  </button>
+                ))}
+              </div>
+
               {/* Filtros */}
               <div className="flex flex-wrap gap-3 mb-4">
-                <div className="flex gap-1 flex-wrap">
-                  {STATUS_FILTROS.map((s) => (
-                    <button
-                      key={s.value}
-                      onClick={() => setFiltroStatus(s.value)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition ${filtroStatus === s.value
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-
                 <input
                   type="text"
                   placeholder="Buscar por nome..."

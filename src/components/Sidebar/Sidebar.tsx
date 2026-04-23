@@ -73,6 +73,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
   const saudeMenu = [
     { title: 'Medições', path: '/portal/saude/medicoes' },
+    { title: 'Clínico',  path: '/portal/saude/clinico'  },
   ]
 
   const financeiroMenu = [
@@ -85,6 +86,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
     { title: 'Empréstimos', path: '/portal/financeiro/emprestimos' },
     { title: 'Recorrências', path: '/portal/financeiro/recorrencias' },
     { title: 'Relatórios', path: '/portal/financeiro/relatorios' },
+    { title: 'Matriz Idosos', path: '/portal/financeiro/matriz-idosos' },
   ]
 
   const customClasses = {

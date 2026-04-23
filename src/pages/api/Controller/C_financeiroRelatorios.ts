@@ -126,6 +126,116 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ titulos, total });
       }
 
+      if (type === 'matrizIdosos') {
+        const ano = req.query.ano ? Number(req.query.ano) : new Date().getFullYear();
+        const dataInicio = `${ano}-01-01`;
+        const dataFim    = `${ano}-12-31`;
+        const { ObjectId } = await import('mongodb');
+        const mesesRef = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+
+        // ── 1. Todos os residentes ativos + os que tiveram movimento no ano ─
+        const [residentesAtivos, movDiretas, movRateios] = await Promise.all([
+          db.collection('residentes')
+            .find({ is_ativo: 'S' })
+            .project({ _id: 1, nome: 1 })
+            .toArray(),
+
+          // movimentações diretas vinculadas a residente
+          db.collection('financeiro_movimentacoes').aggregate([
+            {
+              $match: {
+                dataMovimento: { $gte: dataInicio, $lte: dataFim },
+                vinculadoTipo: 'residente',
+                vinculadoId:   { $exists: true, $nin: [null, ''] },
+              },
+            },
+            {
+              $group: {
+                _id: { residenteId: '$vinculadoId', mes: { $substr: ['$dataMovimento', 5, 2] } },
+                receita: { $sum: { $cond: [{ $eq: ['$tipoMovimento', 'entrada'] }, '$valor', 0] } },
+                despesa: { $sum: { $cond: [{ $eq: ['$tipoMovimento', 'saida'] },   '$valor', 0] } },
+              },
+            },
+          ]).toArray(),
+
+          // rateios por residente
+          db.collection('financeiro_rateios').aggregate([
+            { $match: { residenteId: { $exists: true, $nin: [null, ''] } } },
+            {
+              $lookup: {
+                from: 'financeiro_movimentacoes',
+                let: { movId: '$movimentacaoId' },
+                pipeline: [
+                  { $match: { $expr: { $eq: [{ $toString: '$_id' }, '$$movId'] } } },
+                  { $match: { dataMovimento: { $gte: dataInicio, $lte: dataFim } } },
+                ],
+                as: '_mov',
+              },
+            },
+            { $unwind: '$_mov' },
+            {
+              $group: {
+                _id: { residenteId: '$residenteId', mes: { $substr: ['$_mov.dataMovimento', 5, 2] } },
+                receita: { $sum: { $cond: [{ $eq: ['$_mov.tipoMovimento', 'entrada'] }, '$valor', 0] } },
+                despesa: { $sum: { $cond: [{ $eq: ['$_mov.tipoMovimento', 'saida'] },   '$valor', 0] } },
+              },
+            },
+          ]).toArray(),
+        ]);
+
+        // ── 2. Merge de movimentações por residenteId + mês ──────────────
+        const mapaMovs: Record<string, Record<string, { receita: number; despesa: number }>> = {};
+        for (const row of [...movDiretas, ...movRateios]) {
+          const rid = row._id.residenteId;
+          const mes = row._id.mes;
+          if (!mapaMovs[rid]) mapaMovs[rid] = {};
+          if (!mapaMovs[rid][mes]) mapaMovs[rid][mes] = { receita: 0, despesa: 0 };
+          mapaMovs[rid][mes].receita += row.receita;
+          mapaMovs[rid][mes].despesa += row.despesa;
+        }
+
+        // ── 3. Ids com movimento mas não ativos (saíram no decorrer do ano) ─
+        const idsComMov = Object.keys(mapaMovs);
+        const idsAtivos = new Set(residentesAtivos.map((r: any) => r._id.toString()));
+        const idsExtraIds = idsComMov.filter((id) => !idsAtivos.has(id) && ObjectId.isValid(id));
+
+        const residentesExtra = idsExtraIds.length
+          ? await db.collection('residentes').find({
+              _id: { $in: idsExtraIds.map((id) => new ObjectId(id)) },
+            }).project({ _id: 1, nome: 1 }).toArray()
+          : [];
+
+        // ── 4. Lista final de residentes (ativos + com movimento no ano) ──
+        const todos = [...residentesAtivos, ...residentesExtra];
+        const mapaNomes: Record<string, string> = {};
+        for (const r of todos) mapaNomes[r._id.toString()] = r.nome ?? r._id.toString();
+
+        // ── 5. Monta a resposta ───────────────────────────────────────────
+        const resultado = todos.map((r: any) => {
+          const rid  = r._id.toString();
+          const mapaM = mapaMovs[rid] ?? {};
+          const meses = mesesRef.map((mes) => ({
+            mes,
+            receita: mapaM[mes]?.receita ?? 0,
+            despesa: mapaM[mes]?.despesa ?? 0,
+            saldo:   (mapaM[mes]?.receita ?? 0) - (mapaM[mes]?.despesa ?? 0),
+          }));
+          const totalReceita = meses.reduce((a, m) => a + m.receita, 0);
+          const totalDespesa = meses.reduce((a, m) => a + m.despesa, 0);
+          return {
+            residenteId:  rid,
+            nome:         r.nome ?? rid,
+            ativo:        true,
+            meses,
+            totalReceita,
+            totalDespesa,
+            totalSaldo:   totalReceita - totalDespesa,
+          };
+        }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+        return res.status(200).json(resultado);
+      }
+
       return res.status(400).json({ message: 'GET: Nenhum query.type identificado.' });
     }
 

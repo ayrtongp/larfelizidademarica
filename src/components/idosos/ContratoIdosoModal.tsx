@@ -30,6 +30,10 @@ const ContratoIdosoModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, usuar
   const [modalidade, setModalidade] = useState<T_ContratoIdoso['modalidade']>('residencia_fixa');
   const [tipoBilling, setTipoBilling] = useState<T_ContratoIdoso['tipoBilling']>('contrato_fechado');
 
+  const [prazo, setPrazo] = useState('');
+  const [tipoPrazo, setTipoPrazo] = useState<'dia' | 'mes' | 'ano'>('mes');
+  const [tipoPagamento, setTipoPagamento] = useState<'a_vencer' | 'vencido'>('a_vencer');
+
   // Contrato fechado
   const [valorMensalBase, setValorMensalBase] = useState('');
   const [diaVencimento, setDiaVencimento] = useState('10');
@@ -66,6 +70,9 @@ const ContratoIdosoModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, usuar
         idosoDetalhesId,
         modalidade,
         tipoBilling,
+        prazo: prazo ? parseInt(prazo) : undefined,
+        tipoPrazo: prazo ? tipoPrazo : undefined,
+        tipoPagamento,
         contratado: tipoBilling === 'contrato_fechado' ? {
           valorMensalBase: parseFloat(valorMensalBase.replace(',', '.')),
           diaVencimento: parseInt(diaVencimento),
@@ -111,6 +118,36 @@ const ContratoIdosoModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, usuar
             <select value={tipoBilling} onChange={(e) => setTipoBilling(e.target.value as any)}
               className={inputClass}>
               {BILLING_TIPOS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Prazo e tipo de pagamento */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t">
+          <div className="sm:col-span-1">
+            <label className={labelClass}>Prazo</label>
+            <input
+              type="number"
+              value={prazo}
+              onChange={(e) => setPrazo(e.target.value)}
+              className={inputClass}
+              min={1}
+              placeholder="Ex: 12"
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Unidade do prazo</label>
+            <select value={tipoPrazo} onChange={(e) => setTipoPrazo(e.target.value as any)} className={inputClass}>
+              <option value="dia">Dia(s)</option>
+              <option value="mes">Mês/Meses</option>
+              <option value="ano">Ano(s)</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Vencimento</label>
+            <select value={tipoPagamento} onChange={(e) => setTipoPagamento(e.target.value as any)} className={inputClass}>
+              <option value="a_vencer">À vencer (paga para usar)</option>
+              <option value="vencido">Vencido (usa para pagar)</option>
             </select>
           </div>
         </div>

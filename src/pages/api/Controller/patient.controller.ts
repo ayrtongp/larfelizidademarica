@@ -113,6 +113,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
+    // Atualizar foto do patient (CDN URL ou base64 legado)
+    if (type === 'updatePhoto' && req.query.id) {
+      try {
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const updates: Record<string, any> = { updatedAt: new Date().toISOString() };
+        if (body.photo_url !== undefined) updates.photo_url = body.photo_url;
+        if (body.photo !== undefined)     updates.photo     = body.photo;
+        await patients.updateOne(
+          { _id: new ObjectId(req.query.id as string) },
+          { $set: updates }
+        );
+        return res.status(200).json({ ok: true });
+      } catch {
+        return res.status(500).json({ message: 'Erro ao atualizar foto.' });
+      }
+    }
+
     // Atualizar status active (quando idoso muda de status)
     if (type === 'updateActive' && req.query.id) {
       try {

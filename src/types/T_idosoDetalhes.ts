@@ -53,9 +53,9 @@ export interface T_DocumentosIdoso {
 // Documento principal
 export interface T_IdosoDetalhes {
   _id?: string;
-  usuarioId: string;          // FK → usuario (auth)
-  patient_id?: string;        // FK → patient (referência clínica canônica)
-  status: 'ativo' | 'alta' | 'falecido' | 'afastado';
+  usuarioId?: string;         // FK → usuario (auth) — opcional; novos registros usam patient_id
+  patient_id?: string;        // FK → patient (referência clínica FHIR)
+  status: 'ativo' | 'inativo' | 'falecido' | 'afastado';
   admissao: T_Admissao;
   responsavel: T_ResponsavelIdoso;
   composicaoFamiliar: T_MembroFamiliar[];

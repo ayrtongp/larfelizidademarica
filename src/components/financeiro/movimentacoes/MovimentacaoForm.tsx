@@ -242,7 +242,7 @@ export default function MovimentacaoForm({ tipoMovimentoFixo, initialData, onSuc
         </select>
       </div>
 
-      {tipoMovimento !== 'transferencia' && (
+      {tipoMovimento !== 'transferencia' && !temRateio && (
         <div>
           <label className="block text-gray-700 text-sm font-bold mb-1">Categoria</label>
           <select
@@ -260,15 +260,17 @@ export default function MovimentacaoForm({ tipoMovimentoFixo, initialData, onSuc
         </div>
       )}
 
-      <div>
-        <label className="block text-gray-700 text-sm font-bold mb-1">Vincular pessoa (opcional)</label>
-        <PessoaCombobox
-          pessoas={pessoas}
-          value={vinculadoId}
-          onChange={(id, tipo) => { setVinculadoId(id); setVinculadoTipo(tipo); }}
-          placeholder="Pesquisar usuário ou residente..."
-        />
-      </div>
+      {!temRateio && (
+        <div>
+          <label className="block text-gray-700 text-sm font-bold mb-1">Vincular pessoa (opcional)</label>
+          <PessoaCombobox
+            pessoas={pessoas}
+            value={vinculadoId}
+            onChange={(id, tipo) => { setVinculadoId(id); setVinculadoTipo(tipo); }}
+            placeholder="Pesquisar usuário ou residente..."
+          />
+        </div>
+      )}
 
       <div>
         <label className="block text-gray-700 text-sm font-bold mb-1">Data do Movimento *</label>
@@ -411,7 +413,13 @@ export default function MovimentacaoForm({ tipoMovimentoFixo, initialData, onSuc
           checked={temRateio}
           onChange={(e) => {
             setTemRateio(e.target.checked);
-            if (!e.target.checked) setRateios([]);
+            if (e.target.checked) {
+              setCategoriaId('');
+              setVinculadoId('');
+              setVinculadoTipo('');
+            } else {
+              setRateios([]);
+            }
           }}
           className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
         />

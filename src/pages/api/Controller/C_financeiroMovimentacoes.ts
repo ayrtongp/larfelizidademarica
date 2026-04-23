@@ -2,6 +2,51 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb';
 
+// ── Filter helpers ────────────────────────────────────────────────────────────
+
+const NUMERIC_FIELDS = new Set(['valor']);
+const BOOLEAN_FIELDS = new Set(['temRateio']);
+
+function escapeRegex(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function condToMongo(c: { field: string; operator: string; value: string; value2?: string }): Record<string, any> {
+  const { field, operator, value, value2 } = c;
+  const coerce = (v: string) => {
+    if (BOOLEAN_FIELDS.has(field)) return v === 'true';
+    if (NUMERIC_FIELDS.has(field)) return Number(v);
+    return v;
+  };
+  switch (operator) {
+    case 'eq':       return { [field]: coerce(value) };
+    case 'neq':      return { [field]: { $ne: coerce(value) } };
+    case 'contains': return { [field]: { $regex: escapeRegex(value), $options: 'i' } };
+    case 'starts':   return { [field]: { $regex: `^${escapeRegex(value)}`, $options: 'i' } };
+    case 'gt':       return { [field]: { $gt:  coerce(value) } };
+    case 'gte':      return { [field]: { $gte: coerce(value) } };
+    case 'lt':       return { [field]: { $lt:  coerce(value) } };
+    case 'lte':      return { [field]: { $lte: coerce(value) } };
+    case 'between':  return { [field]: { $gte: coerce(value), $lte: coerce(value2 ?? value) } };
+    case 'empty':    return { $or: [{ [field]: { $exists: false } }, { [field]: null }, { [field]: '' }] };
+    case 'notempty': return { $and: [{ [field]: { $exists: true } }, { [field]: { $ne: null } }, { [field]: { $ne: '' } }] };
+    default:         return {};
+  }
+}
+
+function buildMongoFilter(conditions: any[], logic: string): Record<string, any> {
+  const active = (conditions ?? []).filter((c: any) =>
+    c.operator === 'empty' || c.operator === 'notempty' || (c.value !== '' && c.value != null),
+  );
+  if (!active.length) return {};
+  const clauses = active.map(condToMongo).filter((c: any) => Object.keys(c).length > 0);
+  if (!clauses.length) return {};
+  if (clauses.length === 1) return clauses[0];
+  return logic === 'or' ? { $or: clauses } : { $and: clauses };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { db } = await connect();
   const collection = db.collection('financeiro_movimentacoes');
@@ -15,20 +60,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // -------------------------
       if (req.query.type === 'getAll') {
         try {
-          const { contaFinanceiraId, tipoMovimento, dataInicio, dataFim } = req.query;
-          const filter: Record<string, any> = {};
+          const { conditions: condStr, logic, skip: skipStr, limit: limitStr } = req.query;
 
-          if (contaFinanceiraId) filter.contaFinanceiraId = contaFinanceiraId as string;
-          if (tipoMovimento) filter.tipoMovimento = tipoMovimento as string;
+          const conditions = condStr ? JSON.parse(condStr as string) : [];
+          const filter = buildMongoFilter(conditions, (logic as string) ?? 'and');
+          const skip  = Math.max(0, parseInt(skipStr  as string) || 0);
+          const limit = Math.min(Math.max(1, parseInt(limitStr as string) || 100), 1000);
 
-          if (dataInicio || dataFim) {
-            filter.dataMovimento = {};
-            if (dataInicio) filter.dataMovimento.$gte = dataInicio as string;
-            if (dataFim) filter.dataMovimento.$lte = dataFim as string;
-          }
+          const pipeline = [
+            { $match: filter },
+            {
+              $lookup: {
+                from: 'financeiro_rateios',
+                let: { movId: { $toString: '$_id' } },
+                pipeline: [
+                  { $match: { $expr: { $eq: ['$movimentacaoId', '$$movId'] } } },
+                  { $count: 'total' },
+                ],
+                as: '_rateiosAgg',
+              },
+            },
+            {
+              $addFields: {
+                rateioCount: { $ifNull: [{ $arrayElemAt: ['$_rateiosAgg.total', 0] }, 0] },
+              },
+            },
+            { $project: { _rateiosAgg: 0 } },
+            { $sort: { dataMovimento: -1 } },
+          ];
 
-          const documents = await collection.find(filter).sort({ dataMovimento: -1 }).toArray();
-          return res.status(200).json(documents);
+          const [items, total] = await Promise.all([
+            collection.aggregate([...pipeline, { $skip: skip }, { $limit: limit }]).toArray(),
+            collection.countDocuments(filter),
+          ]);
+
+          return res.status(200).json({ items, total });
         } catch (err) {
           console.error(err);
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
@@ -390,6 +456,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } catch (err) {
           console.error(err);
           return res.status(500).json({ message: 'update: Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
+      // UPDATE MANY (bulk)
+      // -------------------------
+      if (req.query.type === 'updateMany') {
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const { ids, update } = body;
+
+          if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'ids deve ser um array não-vazio.' });
+          }
+
+          const allowedFields = ['categoriaId', 'competencia', 'vinculadoId', 'vinculadoTipo'];
+          const hasField = allowedFields.some((f) => f in update);
+          if (!hasField) {
+            return res.status(400).json({ message: 'update deve conter ao menos um campo válido.' });
+          }
+
+          const setFields: Record<string, any> = { updatedAt: new Date().toISOString() };
+          const unsetFields: Record<string, string> = {};
+
+          for (const field of allowedFields) {
+            if (!(field in update)) continue;
+            if (update[field] === null || update[field] === '') {
+              unsetFields[field] = '';
+            } else {
+              setFields[field] = update[field];
+            }
+          }
+
+          const objectIds = ids.map((id: string) => new ObjectId(id));
+          const updateOp: Record<string, any> = { $set: setFields };
+          if (Object.keys(unsetFields).length > 0) updateOp.$unset = unsetFields;
+
+          const result = await collection.updateMany({ _id: { $in: objectIds } }, updateOp);
+          return res.status(200).json({ updated: result.modifiedCount });
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'updateMany: Erro não identificado. Procure um administrador.' });
         }
       }
 
