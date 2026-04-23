@@ -20,6 +20,9 @@ const S_contratosIdoso = {
     idosoDetalhesId: string;
     modalidade: T_ContratoIdoso['modalidade'];
     tipoBilling: T_ContratoIdoso['tipoBilling'];
+    prazo?: number;
+    tipoPrazo?: T_ContratoIdoso['tipoPrazo'];
+    tipoPagamento?: T_ContratoIdoso['tipoPagamento'];
     contratado?: T_ContratoFechado;
     pacote?: Omit<T_PacoteAvulso, 'diasUtilizados'>;
     avulso?: T_ContratoAvulso;
