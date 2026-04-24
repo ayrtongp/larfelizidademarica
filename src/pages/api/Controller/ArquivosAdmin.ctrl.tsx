@@ -37,7 +37,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, db: any) {
     try {
         const docs = await col.find(filter).sort({ createdAt: -1 }).limit(limit).toArray();
 
-        const userIds = [...new Set(docs.map((d: any) => d.createdBy).filter(Boolean))] as string[];
+        const userIds = Array.from(new Set(docs.map((d: any) => d.createdBy).filter(Boolean))) as string[];
         const userMap: Record<string, string> = {};
         if (userIds.length > 0) {
             const objectIds = userIds.flatMap((id: string) => { try { return [new ObjectId(id)]; } catch { return []; } });
