@@ -73,6 +73,7 @@ export interface T_IdosoDetalhesComUsuario extends T_IdosoDetalhes {
     _id: string;
     nome: string;
     sobrenome: string;
+    apelido?: string;
     email?: string;
     cpf?: string;
     data_nascimento?: string;

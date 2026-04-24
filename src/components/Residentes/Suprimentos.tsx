@@ -69,6 +69,12 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
   const [pageHistorico, setPageHistorico] = useState(1);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
 
+  const [historicoInsumo, setHistoricoInsumo] = useState<{ id: string; nome: string } | null>(null);
+  const [modalHistorico, setModalHistorico] = useState<HistoricoItem[]>([]);
+  const [modalCount, setModalCount] = useState(0);
+  const [modalPage, setModalPage] = useState(1);
+  const [modalLoading, setModalLoading] = useState(false);
+
   const [insumos, setInsumos] = useState<InsumoOption[]>([]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -108,6 +114,21 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
     }
   }, [ResidenteId]);
 
+  const loadModalHistorico = useCallback(async (page: number, append: boolean, insumoId: string) => {
+    setModalLoading(true);
+    try {
+      const params = new URLSearchParams({ type: 'getHistoricoPaginado', residenteId: ResidenteId, page: String(page), insumo_id: insumoId });
+      const res = await fetch(`/api/Controller/InsumoEstoque?${params}`);
+      if (res.ok) {
+        const { data, count } = await res.json();
+        setModalHistorico((prev) => append ? [...prev, ...(data ?? [])] : (data ?? []));
+        setModalCount(count ?? 0);
+      }
+    } finally {
+      setModalLoading(false);
+    }
+  }, [ResidenteId]);
+
   useEffect(() => {
     fetch('/api/Controller/Insumos?type=getAll')
       .then((r) => r.ok ? r.json() : [])
@@ -117,6 +138,14 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
 
   useEffect(() => { loadEstoque(); }, [loadEstoque]);
   useEffect(() => { loadHistorico(1, false); }, [loadHistorico]);
+
+  function openHistoricoInsumo(item: EstoqueItem) {
+    setHistoricoInsumo({ id: item._id, nome: item.nome_insumo });
+    setModalHistorico([]);
+    setModalCount(0);
+    setModalPage(1);
+    loadModalHistorico(1, false, item._id);
+  }
 
   // ── Modal helpers ─────────────────────────────────────────────────────────
 
@@ -214,59 +243,68 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
             </button>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                <th className="px-4 py-2.5 text-left">Categoria</th>
-                <th className="px-4 py-2.5 text-left">Insumo</th>
-                <th className="px-4 py-2.5 text-center">Unidade</th>
-                <th className="px-4 py-2.5 text-right">Qtd</th>
-                <th className="px-4 py-2.5" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {estoque.map((item, i) => (
-                <tr key={item._id ?? i} className="odd:bg-white even:bg-gray-50 hover:bg-yellow-50 transition-colors">
-                  <td className="px-4 py-2.5">
-                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold ${catColor(item.cod_categoria)}`}>
-                      {item.cod_categoria}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 font-medium text-gray-800">{item.nome_insumo}</td>
-                  <td className="px-4 py-2.5 text-center text-xs text-gray-500">{item.unidade}</td>
-                  <td className={`px-4 py-2.5 text-right tabular-nums text-sm ${stockColor(item.soma)}`}>
-                    {item.soma}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => openModal('entrada', item._id, item.nome_insumo)}
-                        title="Entrada"
-                        className="w-6 h-6 flex items-center justify-center rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                      >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => openModal('saida', item._id, item.nome_insumo)}
-                        title="Saída"
-                        className="w-6 h-6 flex items-center justify-center rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-                      >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[380px]">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <th className="px-3 sm:px-4 py-2.5 text-left">Categoria</th>
+                  <th className="px-3 sm:px-4 py-2.5 text-left">Insumo</th>
+                  <th className="hidden sm:table-cell px-4 py-2.5 text-center">Unidade</th>
+                  <th className="px-3 sm:px-4 py-2.5 text-right">Qtd</th>
+                  <th className="px-3 sm:px-4 py-2.5" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {estoque.map((item, i) => (
+                  <tr
+                    key={item._id ?? i}
+                    onClick={() => openHistoricoInsumo(item)}
+                    className="cursor-pointer odd:bg-white even:bg-gray-50 hover:bg-indigo-50 transition-colors"
+                  >
+                    <td className="px-3 sm:px-4 py-2.5">
+                      <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold ${catColor(item.cod_categoria)}`}>
+                        {item.cod_categoria}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-4 py-2.5 font-medium text-gray-800">
+                      <span className="block truncate max-w-[140px] sm:max-w-none">{item.nome_insumo}</span>
+                      <span className="sm:hidden text-[10px] text-gray-400">{item.unidade}</span>
+                    </td>
+                    <td className="hidden sm:table-cell px-4 py-2.5 text-center text-xs text-gray-500">{item.unidade}</td>
+                    <td className={`px-3 sm:px-4 py-2.5 text-right tabular-nums text-sm ${stockColor(item.soma)}`}>
+                      {item.soma}
+                    </td>
+                    <td className="px-3 sm:px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openModal('entrada', item._id, item.nome_insumo)}
+                          title="Entrada"
+                          className="w-6 h-6 flex items-center justify-center rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => openModal('saida', item._id, item.nome_insumo)}
+                          title="Saída"
+                          className="w-6 h-6 flex items-center justify-center rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
-      {/* ── Histórico ──────────────────────────────────────────────────── */}
+      {/* ── Histórico geral ────────────────────────────────────────────── */}
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-3">Histórico de Movimentações</p>
         <HistoricoSuprimentos
@@ -281,6 +319,33 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
         />
       </div>
 
+      {/* ── Modal histórico por insumo ─────────────────────────────────── */}
+      {historicoInsumo && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black bg-opacity-40 p-4" onClick={() => setHistoricoInsumo(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Histórico</p>
+                <h3 className="text-base font-semibold text-gray-800 truncate">{historicoInsumo.nome}</h3>
+              </div>
+              <button onClick={() => setHistoricoInsumo(null)} className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none ml-3 shrink-0">&times;</button>
+            </div>
+            <div className="overflow-y-auto flex-1 px-5 py-4">
+              <HistoricoSuprimentos
+                historico={modalHistorico}
+                count={modalCount}
+                loading={modalLoading}
+                onLoadMore={() => {
+                  const next = modalPage + 1;
+                  setModalPage(next);
+                  loadModalHistorico(next, true, historicoInsumo.id);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Modal ──────────────────────────────────────────────────────── */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
@@ -291,7 +356,7 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none">&times;</button>
             </div>
 
-            <div className="px-5 py-4 space-y-4">
+            <div className="px-4 sm:px-5 py-4 space-y-4">
 
               {/* Tabs entrada / saída */}
               <div className="flex rounded-xl border border-gray-200 overflow-hidden">
@@ -379,7 +444,7 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
               </div>
             </div>
 
-            <div className="flex gap-2 px-5 pb-5">
+            <div className="flex gap-2 px-4 sm:px-5 pb-5">
               <button
                 onClick={closeModal}
                 className="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"

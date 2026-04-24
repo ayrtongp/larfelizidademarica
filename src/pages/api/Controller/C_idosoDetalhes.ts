@@ -61,6 +61,7 @@ const lookupUsuarioPipeline = [
         _id:             { $ifNull: [{ $toString: '$_p._id' }, { $toString: '$_u._id' }] },
         nome:            { $ifNull: ['$_p.given_name',   '$_u.nome'] },
         sobrenome:       { $ifNull: ['$_p.family_name',  '$_u.sobrenome'] },
+        apelido:         { $ifNull: ['$_u.apelido',      null] },
         email:           { $ifNull: ['$_p.email',        '$_u.email'] },
         cpf:             { $ifNull: ['$_p.cpf',          '$_u.cpf'] },
         data_nascimento: { $ifNull: ['$_p.birth_date',   '$_u.data_nascimento'] },

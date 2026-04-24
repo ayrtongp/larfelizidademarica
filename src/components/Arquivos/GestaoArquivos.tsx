@@ -159,7 +159,7 @@ const GestaoArquivos = ({ entityId, entityName }: Props) => {
 
             {/* Lista */}
             {viewMode === 'table'
-                ? <Arquivos_TableView listaArquivos={arquivosFiltrados} onDelete={handleDelete} />
+                ? <Arquivos_TableView listaArquivos={arquivosFiltrados} onDelete={handleDelete} onRefresh={() => setTriggerRefresh(prev => !prev)} />
                 : <Arquivos_GridView listaArquivos={arquivosFiltrados} onDelete={handleDelete} />
             }
 

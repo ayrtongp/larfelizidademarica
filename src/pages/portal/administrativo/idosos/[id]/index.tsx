@@ -54,8 +54,6 @@ const IdosoDetalhes = () => {
   const [classeAtiva, setClasseAtiva] = useState('menuVisaoGeral');
   const [savingStatus, setSavingStatus] = useState(false);
 
-  const efeitoClasseAtiva = 'bg-slate-100 border-l-2 border-purple-500';
-
   const tabs: MenuTab[] = [
     { id: 'menuVisaoGeral',   label: 'Visão Geral',   icon: <FaUser />,         color: 'text-blue-600' },
     { id: 'menuAdmissao',     label: 'Admissão',       icon: <FaBook />,         color: 'text-indigo-600' },
@@ -178,71 +176,84 @@ const IdosoDetalhes = () => {
               <p className="text-gray-500 text-sm">{loadingData ? 'Carregando...' : 'Idoso não encontrado.'}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="space-y-4">
 
-              {/* MENU ESQUERDO */}
-              <div className="col-span-3 sm:col-span-1 bg-white">
-                <div className="p-3 border shadow-md rounded-md">
+              {/* ── PERFIL HEADER ────────────────────────────────────────── */}
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
 
-                  {/* Avatar + nome */}
-                  <div className="flex flex-row gap-3 items-center mb-4">
-                    <div className="flex-shrink-0">
+                {/* Avatar + Info */}
+                <div className="px-5 sm:px-8 pb-0">
+                  <div className="flex flex-col items-center sm:flex-row sm:items-center gap-3 sm:gap-5 py-5">
+                    {/* Avatar */}
+                    <div className="shrink-0">
                       {isAdmin ? (
                         <AvatarCropper
                           returnType="blob"
                           defaultImage={foto || undefined}
                           onImageCropped={handleFotoUpload}
-                          size={16}
+                          size={20}
                         />
                       ) : foto ? (
-                        <Image src={foto} width={64} height={64} alt={nomeCompleto} className="w-16 h-16 rounded-full object-cover" />
+                        <Image src={foto} width={80} height={80} alt={nomeCompleto} className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md" />
                       ) : (
-                        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-lg font-bold">
+                        <div className="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 text-2xl font-bold border-4 border-white shadow-md">
                           {nomeCompleto.charAt(0).toUpperCase()}
                         </div>
                       )}
                     </div>
-                    <div>
-                      <p className="font-bold text-slate-700 text-base leading-tight">{nomeCompleto}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {MODALIDADE_LABELS[idoso.admissao?.modalidadePrincipal] || '—'}
+
+                    {/* Nome + meta */}
+                    <div className="min-w-0 flex-1 text-center sm:text-left">
+                      <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                        <h1 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight">{nomeCompleto}</h1>
+                        {statusInfo && (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusInfo.className}`}>
+                            {statusInfo.label}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {idoso.usuario?.apelido && (
+                          <span>"{idoso.usuario.apelido}" · </span>
+                        )}
+                        {idoso.usuario?.data_nascimento ? (
+                          <>
+                            {formatDateBR(idoso.usuario.data_nascimento)}
+                            <span className="text-gray-400"> ({calcIdade(idoso.usuario.data_nascimento)} anos)</span>
+                          </>
+                        ) : '—'}
                       </p>
-                      {idoso.admissao?.numProntuario && (
-                        <p className="text-xs text-gray-400">Prontuário: {idoso.admissao.numProntuario}</p>
-                      )}
-                      {statusInfo && (
-                        <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold ${statusInfo.className}`}>
-                          {statusInfo.label}
-                        </span>
-                      )}
                     </div>
                   </div>
+                </div>
 
-                  {/* Menu de abas */}
-                  <ul className="flex flex-col gap-0.5">
+                {/* Tab bar horizontal */}
+                <div className="border-t border-gray-100 mt-1">
+                  <div className="flex flex-wrap px-4 sm:px-6">
                     {tabs.map((tab) => (
-                      <li key={tab.id}
+                      <button
+                        key={tab.id}
                         onClick={() => setClasseAtiva(tab.id)}
-                        className={`cursor-pointer flex px-2 py-1.5 flex-row items-center rounded ${classeAtiva === tab.id ? efeitoClasseAtiva : 'hover:bg-gray-50'}`}
+                        title={tab.label}
+                        className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
+                          classeAtiva === tab.id
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200'
+                        }`}
                       >
-                        <span className={`p-1 ${tab.color} w-8 text-sm`}>{tab.icon}</span>
-                        <p className="ml-2 text-sm text-slate-700">{tab.label}</p>
-                      </li>
+                        <span className={`text-sm sm:text-xs ${classeAtiva === tab.id ? 'text-indigo-600' : tab.color}`}>
+                          {tab.icon}
+                        </span>
+                        <span className="hidden sm:inline">{tab.label}</span>
+                      </button>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               </div>
 
-              {/* PAINEL DIREITO */}
-              <div className="col-span-3 sm:col-span-2 bg-white">
-                <div className="px-5 pt-5 pb-2">
-                  <h2 className="text-lg font-bold text-slate-700">
-                    {tabs.find((t) => t.id === classeAtiva)?.label}
-                  </h2>
-                  <hr className="my-2" />
-                </div>
-
-                <div className="p-4">
+              {/* ── CONTEÚDO DA ABA ──────────────────────────────────────── */}
+              <div className="bg-white rounded-xl shadow-sm">
+                <div className="p-5 sm:p-6">
 
                   {/* VISÃO GERAL */}
                   {classeAtiva === 'menuVisaoGeral' && (
@@ -369,6 +380,16 @@ function formatDateBR(dateStr?: string) {
   const [year, month, day] = dateStr.split('-');
   if (!year || !month || !day) return dateStr;
   return `${day}/${month}/${year}`;
+}
+
+function calcIdade(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const hoje = new Date();
+  const nasc = new Date(dateStr);
+  let idade = hoje.getFullYear() - nasc.getFullYear();
+  const m = hoje.getMonth() - nasc.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+  return idade;
 }
 
 const InfoCard: React.FC<{ label: string; value?: string | null }> = ({ label, value }) => (
