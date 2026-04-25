@@ -1,141 +1,108 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
-import { ObjectId } from 'mongodb'
+import { ObjectId } from 'mongodb';
 import { getCurrentDateTime } from '@/utils/Functions';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse,) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { db } = await connect();
+  const col = db.collection('datas_importantes');
 
-    const { db } = await connect();
-    const mainCollection = db.collection('datas_importantes')
+  switch (req.method) {
 
-    switch (req.method) {
-        case 'GET':
+    // ── GET ──────────────────────────────────────────────────────────────────
+    case 'GET':
+      if (req.query.type === 'getAll') {
+        try {
+          const docs = await col.find().sort({ data: 1 }).toArray();
+          return res.status(200).json(docs);
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'getAll: erro interno.' });
+        }
+      }
+      return res.status(400).json({ message: 'GET: type não reconhecido.' });
 
-            // -------------------------
-            // GET All 
-            // -------------------------
+    // ── POST ─────────────────────────────────────────────────────────────────
+    case 'POST':
+      if (req.query.type === 'new') {
+        try {
+          const body = JSON.parse(req.body);
+          const { titulo, data, recorrente, categoria, horario, observacao } = body;
 
-            if (req.query.type === 'getAll') {
-                try {
-                    const documents = await mainCollection.find().sort({}).toArray();
-                    return res.status(200).json(documents);
-                } catch (err) {
-                    console.error(err)
-                    return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
-                }
-            }
+          if (!titulo || !data || !categoria) {
+            return res.status(400).json({ error: 'titulo, data e categoria são obrigatórios.' });
+          }
 
-            // -------------------------
-            // SE NENHUMA CONDIÇÃR BATER DEVE RETORNAR ERRO
-            // -------------------------
+          const doc = {
+            titulo,
+            data,
+            recorrente: Boolean(recorrente),
+            categoria,
+            horario:    horario    || '',
+            observacao: observacao || '',
+            createdAt:  getCurrentDateTime(),
+            updatedAt:  getCurrentDateTime(),
+          };
 
-            else {
-                return res.status(500).json({ message: 'GET Não encontrou nenhuma condição (IF)' });
-            }
+          const result = await col.insertOne(doc);
+          return res.status(201).json({ id: result.insertedId });
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'new: erro interno.' });
+        }
+      }
+      return res.status(400).json({ message: 'POST: type não reconhecido.' });
 
-            break;
+    // ── PUT ──────────────────────────────────────────────────────────────────
+    case 'PUT':
+      if (req.query.type === 'update' && req.query.id) {
+        try {
+          const id  = new ObjectId(req.query.id as string);
+          const body = JSON.parse(req.body);
+          const { titulo, data, recorrente, categoria, horario, observacao } = body;
 
-        case 'POST':
+          if (!titulo || !data || !categoria) {
+            return res.status(400).json({ error: 'titulo, data e categoria são obrigatórios.' });
+          }
 
-            // -------------------------
-            // CRIAR NOVO 
-            // -------------------------
+          await col.updateOne({ _id: id }, {
+            $set: {
+              titulo,
+              data,
+              recorrente: Boolean(recorrente),
+              categoria,
+              horario:    horario    || '',
+              observacao: observacao || '',
+              updatedAt:  getCurrentDateTime(),
+            },
+          });
+          return res.status(200).json({ message: 'Atualizado.' });
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'update: erro interno.' });
+        }
+      }
+      return res.status(400).json({ message: 'PUT: type ou id não reconhecido.' });
 
-            if (req.query.type == 'new') {
-                try {
-                    const data = JSON.parse(req.body)
+    // ── DELETE ───────────────────────────────────────────────────────────────
+    case 'DELETE':
+      if (req.query.id) {
+        try {
+          const id     = new ObjectId(req.query.id as string);
+          const result = await col.deleteOne({ _id: id });
+          if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'Data não encontrada.' });
+          }
+          return res.status(200).json({ message: 'Excluída.' });
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'delete: erro interno.' });
+        }
+      }
+      return res.status(400).json({ message: 'DELETE: id não informado.' });
 
-                    const dataFields = {
-                        nome_insumo: data['nome_insumo'],
-                        unidade: data['unidade'],
-                        cod_categoria: data['cod_categoria'],
-                        descricao: data['descricao'],
-                        createdAt: getCurrentDateTime(),
-                        updatedAt: getCurrentDateTime(),
-                    }
-
-                    // Verifica se todos os campos necessários estão presentes no req.body
-                    const requiredFields = ['nome_insumo', 'unidade', 'cod_categoria', 'descricao'];
-                    const missingFields = requiredFields.filter(field => !data[field]);
-                    const alreadyExists = await mainCollection.findOne({ nome_insumo: dataFields.nome_insumo })
-
-                    if (missingFields.length > 0) {
-                        return res.status(400).json({ error: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
-                    }
-                    else if (alreadyExists) {
-                        return res.status(400).json({ message: `Insumo já cadastrado: ${dataFields.nome_insumo} na data ${alreadyExists.createdAt}.`, method: 'POST', });
-                    }
-                    else {
-                        const novoRegitro = await mainCollection.insertOne(dataFields);
-                        return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
-                    }
-                } catch (err) {
-                    console.error(err)
-
-                    return res.status(500).json({ message: 'new: Erro não identificado. Procure um administrador.' });
-                }
-            }
-
-            else {
-                return res.status(400).json({ message: `Nenhum query.type indetificado`, method: 'POST', });
-            }
-            break;
-
-        // -------------------------
-        // ALTERA USUÁRIO | FOTO | SENHA | TUDO
-        // -------------------------
-
-        case 'PUT':
-            try {
-                const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-                const bodyObject = JSON.parse(req.body)
-
-                if (req.query.type === 'changePhoto' && bodyObject.foto_base64) {
-                    const novaFoto = bodyObject.foto_base64
-                    await mainCollection.updateOne({ _id: myObjectId }, { $set: { foto_base64: novaFoto } },);
-                    return res.status(201).json({ message: 'Foto do usuário alterada com sucesso!', method: 'PUT', url: `ResidentesController?type=${req.query.tipo}&id=${req.query.id}` });
-                }
-
-                else if (req.query.type === 'changeData') {
-                    const myBody = JSON.parse(req.body)
-                    await mainCollection.updateOne({ _id: myObjectId }, { $set: myBody },);
-                    return res.status(201).json({ message: 'Dados do sinal vital alterados com sucesso!', method: 'PUT', url: `SinaisVitaisControllerid=${req.query.id}` });
-                }
-
-                else {
-                    return res.status(404).json({ message: 'Residente não encontrado!', });
-                }
-
-            } catch (err) {
-                return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
-            }
-            break;
-
-        // -------------------------
-        // EXCLUI UM USUÁRIO
-        // -------------------------
-
-        case 'DELETE':
-            try {
-                const myObjectId = new ObjectId(req.query.id as unknown as ObjectId);
-                const url = `SinaisVitaisController?id=${req.query.id}`
-                const result = await mainCollection.deleteOne({ _id: myObjectId });
-
-                if (result.deletedCount === 0) {
-                    return res.status(404).json({ message: 'Residente não encontrado!', });
-                }
-
-                return res.status(201).json({ message: 'Residente deletado com sucesso', method: 'DELETE' });
-            } catch (err) {
-
-                return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
-            }
-            break;
-
-        default:
-            res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-            return res.status(405).json({ message: `Method ${req.method} not allowed` });
-    }
-
-
+    default:
+      res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+      return res.status(405).json({ message: `Method ${req.method} not allowed` });
+  }
 }

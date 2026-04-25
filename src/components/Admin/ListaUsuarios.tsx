@@ -15,6 +15,7 @@ type ListaData = {
   email: string;
   foto_base64: string;
   funcao: string;
+  funcoes?: string[];
   nome: string;
   registro: string;
   sobrenome: string;
@@ -41,9 +42,11 @@ const ModalGruposUsuario = ({
   user,
   allGrupos,
   onClose,
+  onFuncoesChange,
 }: {
   user: ListaData;
   allGrupos: Grupo[];
+  onFuncoesChange?: (userId: string, funcoes: string[]) => void;
   onClose: () => void;
 }) => {
   const [gruposDoUsuario, setGruposDoUsuario] = useState<GrupoUsuario[]>([]);
@@ -52,6 +55,46 @@ const ModalGruposUsuario = ({
   const [saving, setSaving] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
+
+  // Funções (áreas de atuação)
+  const [funcoes, setFuncoes] = useState<string[]>(
+    Array.isArray(user.funcoes) && user.funcoes.length > 0
+      ? user.funcoes
+      : user.funcao ? [user.funcao] : []
+  );
+  const [novaFuncao, setNovaFuncao] = useState('');
+  const [savingFuncao, setSavingFuncao] = useState(false);
+
+  async function saveFuncoes(next: string[]) {
+    setSavingFuncao(true);
+    try {
+      const res = await fetch(`/api/Controller/Usuario?tipo=alteraDados&id=${user._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ funcoes: next, funcao: next[0] ?? '' }),
+      });
+      if (!res.ok) throw new Error((await res.json()).message || 'Erro');
+      setFuncoes(next);
+      onFuncoesChange?.(user._id, next);
+      notifySuccess('Áreas de atuação atualizadas!');
+    } catch {
+      notifyError('Erro ao salvar funções.');
+    } finally {
+      setSavingFuncao(false);
+    }
+  }
+
+  function handleAddFuncao() {
+    const val = novaFuncao.trim();
+    if (!val || funcoes.includes(val)) return;
+    const next = [...funcoes, val];
+    setNovaFuncao('');
+    saveFuncoes(next);
+  }
+
+  function handleRemoveFuncao(f: string) {
+    saveFuncoes(funcoes.filter(x => x !== f));
+  }
 
   const fetchGruposDoUsuario = async () => {
     setLoadingGrupos(true);
@@ -187,6 +230,61 @@ const ModalGruposUsuario = ({
             </div>
           </div>
 
+          {/* Áreas de Atuação */}
+          <div className="border-t pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Áreas de Atuação
+              </p>
+              {savingFuncao && <span className="text-xs text-gray-400">salvando...</span>}
+            </div>
+
+            {funcoes.length === 0 && (
+              <p className="text-sm text-gray-400 italic mb-2">Nenhuma área cadastrada.</p>
+            )}
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              {funcoes.map((f, i) => (
+                <span
+                  key={f}
+                  className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 border border-rose-200 text-xs px-2.5 py-1 rounded-full"
+                >
+                  {i === 0 && <span className="text-rose-400 font-bold text-[10px]">●</span>}
+                  <span className="font-medium">{f}</span>
+                  <button
+                    onClick={() => handleRemoveFuncao(f)}
+                    disabled={savingFuncao}
+                    className="ml-0.5 text-rose-300 hover:text-red-500 transition disabled:opacity-40"
+                    title="Remover"
+                  >
+                    <FaTimes size={9} />
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                value={novaFuncao}
+                onChange={e => setNovaFuncao(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddFuncao(); } }}
+                placeholder="Nova área (ex: Fisioterapeuta)"
+                className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-rose-400"
+              />
+              <button
+                onClick={handleAddFuncao}
+                disabled={!novaFuncao.trim() || savingFuncao}
+                className="flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 disabled:opacity-40 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors whitespace-nowrap"
+              >
+                <FaPlus size={10} />
+                Add
+              </button>
+            </div>
+            <p className="text-[10px] text-gray-400 mt-1.5">
+              A primeira área (●) é a principal — usada quando o usuário tiver só uma.
+            </p>
+          </div>
+
           {/* Adicionar grupo */}
           <div className="border-t pt-4">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -301,6 +399,11 @@ const ListaUsuarios = () => {
           user={selectedUser}
           allGrupos={allGrupos}
           onClose={() => setSelectedUser(null)}
+          onFuncoesChange={(userId, funcoes) =>
+            setListaUsuarios(prev =>
+              prev.map(u => u._id === userId ? { ...u, funcoes } : u)
+            )
+          }
         />
       )}
 

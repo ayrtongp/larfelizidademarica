@@ -31,7 +31,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         if (response) {
           const secret = process.env.JWT_SECRET as string;
           const token = jwt.sign({ userId: response._id }, secret, { expiresIn: '1h' });
-          const userInfo = { id: response._id, nome: response.nome + " " + response.sobrenome, fotoPerfil: response.foto_base64, funcao: response.funcao }
+          const funcoes: string[] = Array.isArray(response.funcoes) && response.funcoes.length > 0
+            ? response.funcoes
+            : response.funcao ? [response.funcao] : [];
+          const userInfo = { id: response._id, nome: response.nome + " " + response.sobrenome, fotoPerfil: response.foto_base64, funcao: response.funcao, funcoes }
           return res.status(200).json({ message: "Logado com sucesso", token, userInfo });
         } else {
           return res.status(401).json({ message: "Usuário ou senha inválidos" });

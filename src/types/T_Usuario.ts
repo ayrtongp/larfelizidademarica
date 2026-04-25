@@ -8,6 +8,7 @@ export interface T_Usuario {
   usuario: string;
   email?: string;
   funcao?: string;
+  funcoes?: string[];  // múltiplas áreas de atuação
   registro?: string;
   senha?: string;
   ativo: 'S' | 'N';

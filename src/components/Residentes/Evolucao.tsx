@@ -1,5 +1,5 @@
 import { notifyError, notifySuccess } from '@/utils/Functions';
-import { getUserFuncao } from '@/utils/Login';
+import { getUserFuncao, getUserFuncoes } from '@/utils/Login';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
@@ -21,6 +21,7 @@ const Evolucao = () => {
 
   const [loading, setLoading] = useState(false);
   const [funcao, setFuncao] = useState(getUserFuncao());
+  const funcoes = getUserFuncoes();
   const [ultimoRegistro, setUltimoRegistro] = useState();
   const [linhaEvolucao, setLinhaEvolucao] = useState(camposLinhaGrid);
   const [categoriaValue, setCategoriaValue] = useState('Selecione uma Opção');
@@ -130,8 +131,24 @@ const Evolucao = () => {
 
         <div className='col-span-1 xs:col-span-1'>
           <label className='text-xs font-bold' htmlFor="area">Área de Atuação</label>
-          <input type="text" name='area' disabled value={funcao as unknown as string} onChange={handleEvolucao}
-            className="w-full p-3 rounded-md border border-gray-300 focus:ring focus:ring-blue-300" />
+          {funcoes.length > 1 ? (
+            <select
+              name='area'
+              value={linhaEvolucao.area}
+              onChange={e => {
+                setFuncao(e.target.value);
+                handleEvolucao(e);
+              }}
+              className="w-full p-3 rounded-md border border-gray-300 focus:ring focus:ring-blue-300"
+            >
+              {funcoes.map((f: string) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          ) : (
+            <input type="text" name='area' disabled value={funcao as unknown as string} onChange={handleEvolucao}
+              className="w-full p-3 rounded-md border border-gray-300 focus:ring focus:ring-blue-300" />
+          )}
         </div>
 
         <div className='col-span-1 xs:col-span-2'>

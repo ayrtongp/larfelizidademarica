@@ -34,6 +34,12 @@ export function getUserFuncao() {
   return funcao
 }
 
+export function getUserFuncoes() {
+  const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  if (Array.isArray(info.funcoes) && info.funcoes.length > 0) return info.funcoes
+  return info.funcao ? [info.funcao] : []
+}
+
 export function updateProfile() {
   if (typeof window !== 'undefined') {
     const userIdString = localStorage.getItem('userInfo');

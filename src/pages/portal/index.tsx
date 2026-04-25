@@ -13,6 +13,7 @@ import CalendarioM1 from '@/components/Diversos/CalendarioM1';
 import { Residentes_GET_getAniversarios } from '@/actions/Residentes';
 import { formatDateBR } from '@/utils/Functions';
 import { DatasImportantes_GET_getAll } from '@/actions/DatasImportante';
+import { datasImportantesToEventos } from '@/types/T_datasImportantes';
 // import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 // import DashboardAvatars from '../partials/dashboard/DashboardAvatars';
 // import FilterButton from '../partials/actions/FilterButton';
@@ -47,7 +48,8 @@ function Index() {
 
   async function getDatasImportantes() {
     const res = await DatasImportantes_GET_getAll();
-    setEventos((prevEventos: any) => [...prevEventos, ...res])
+    const mapped = datasImportantesToEventos(res);
+    setEventos((prev: any) => [...prev, ...mapped]);
   }
 
   // -------------------------

@@ -43,9 +43,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   ]
 
   const administrativoMenu = [
-    { title: 'Página Principal', path: '/portal/administrativo' },
-    { title: 'Arquivos', path: '/portal/administrativo/arquivos' },
-    { title: 'AI Studio', path: '/portal/administrativo/ai-studio' },
+    { title: 'Página Principal',   path: '/portal/administrativo' },
+    { title: 'Arquivos',           path: '/portal/administrativo/arquivos' },
+    { title: 'Datas Importantes',  path: '/portal/administrativo/datas-importantes' },
+    { title: 'Família',            path: '/portal/administrativo/familia' },
+    { title: 'AI Studio',          path: '/portal/administrativo/ai-studio' },
   ]
 
   const ocorrenciasMenu = [
