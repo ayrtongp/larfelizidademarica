@@ -8,7 +8,9 @@ export type MeasurementTypeCode =
   // Avaliações clínicas
   | 'PAIN_SCORE' | 'DIURESIS' | 'GCS'
   // Escalas geriátricas
-  | 'BRADEN' | 'BARTHEL' | 'MMSE' | 'GDS';
+  | 'BRADEN' | 'BARTHEL' | 'MMSE' | 'GDS' | 'KATZ' | 'IMRC'
+  // Antropométrico adicional
+  | 'CALF_CIRC';
 
 export type MeasurementCategory =
   | 'vitals'
@@ -99,6 +101,7 @@ export const MEASUREMENT_TYPES: MeasurementTypeMeta[] = [
   { code: 'WEIGHT',     label: 'Peso',                    shortLabel: 'Peso',     unit: 'kg',   category: 'anthropometric',                                         min: 20,  max: 300, step: 0.1, loinc: '29463-7' },
   { code: 'HEIGHT',     label: 'Altura',                  shortLabel: 'Altura',   unit: 'cm',   category: 'anthropometric',                                         min: 50,  max: 250, loinc: '8302-2' },
   { code: 'ABD_CIRC',   label: 'Circ. Abdominal',         shortLabel: 'C. Abd.',  unit: 'cm',   category: 'anthropometric', reference_min: 0, reference_max: 88,    min: 40,  max: 200, loinc: '8287-5', hint: 'Risco metabólico: >88cm (♀) / >102cm (♂)' },
+  { code: 'CALF_CIRC',  label: 'Circ. Panturrilha',       shortLabel: 'C. Pant.', unit: 'cm',   category: 'anthropometric', reference_min: 31, reference_max: 50,   min: 15,  max: 60,  step: 0.1, loinc: '8280-0', hint: '<31 cm indica risco de sarcopenia' },
 
   // ── Avaliações Clínicas ────────────────────────────────
   { code: 'PAIN_SCORE', label: 'Escala de Dor (EVA)',     shortLabel: 'Dor',      unit: '/10',  category: 'clinical',      reference_min: 0,    reference_max: 3,    min: 0,   max: 10,  loinc: '72514-3', hint: '0 = sem dor · 10 = dor máxima' },
@@ -110,6 +113,8 @@ export const MEASUREMENT_TYPES: MeasurementTypeMeta[] = [
   { code: 'BARTHEL',    label: 'Índice de Barthel',       shortLabel: 'Barthel',  unit: 'pts',  category: 'geriatric',     reference_min: 91,   reference_max: 100,  min: 0,   max: 100, loinc: '72107-6', hint: '0–20 dependência total · 21–60 severa · 61–90 moderada · 91–99 leve · 100 independente' },
   { code: 'MMSE',       label: 'MMSE (Mini-Mental)',      shortLabel: 'MMSE',     unit: 'pts',  category: 'geriatric',     reference_min: 24,   reference_max: 30,   min: 0,   max: 30,  loinc: '72106-8', hint: '≥24 normal · 19–23 leve · 10–18 moderado · <10 grave' },
   { code: 'GDS',        label: 'Escala de Depressão (GDS)',shortLabel: 'GDS',     unit: 'pts',  category: 'geriatric',     reference_min: 0,    reference_max: 5,    min: 0,   max: 15,  loinc: '35088-6', hint: '0–5 normal · 6–10 depressão leve · 11–15 depressão grave' },
+  { code: 'KATZ',       label: 'Índice de Katz',          shortLabel: 'Katz',    unit: 'pts',  category: 'geriatric',     reference_min: 4,    reference_max: 6,    min: 0,   max: 6,   hint: '6 independente · 4–5 dep. leve · 2–3 dep. moderada · 0–1 dep. grave' },
+  { code: 'IMRC',       label: 'Força Muscular (MRC)',     shortLabel: 'IMRC',    unit: 'pts',  category: 'geriatric',     reference_min: 48,   reference_max: 60,   min: 0,   max: 60,  hint: '60 força normal · <48 fraqueza significativa · <36 fraqueza grave' },
 ];
 
 export const CATEGORY_LABELS: Record<MeasurementCategory, string> = {
@@ -128,7 +133,7 @@ export function calcAbnormalFlag(code: MeasurementTypeCode, value: number): Abno
   if (!meta || meta.reference_min === undefined || meta.reference_max === undefined) return undefined;
 
   // Escalas com lógica invertida (menor = pior risco)
-  if (code === 'BRADEN' || code === 'BARTHEL' || code === 'MMSE') {
+  if (code === 'BRADEN' || code === 'BARTHEL' || code === 'MMSE' || code === 'KATZ' || code === 'IMRC' || code === 'CALF_CIRC') {
     if (value < meta.reference_min * 0.5) return 'LL';
     if (value < meta.reference_min)       return 'L';
     return 'N';

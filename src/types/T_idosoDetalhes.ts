@@ -1,3 +1,18 @@
+export type T_GrauDependencia =
+  | 'independente'
+  | 'dependencia_leve'
+  | 'dependencia_moderada'
+  | 'dependencia_grave'
+  | 'dependencia_total';
+
+export const GRAU_DEPENDENCIA_LABELS: Record<T_GrauDependencia, string> = {
+  independente:        'Independente',
+  dependencia_leve:    'Dep. Leve',
+  dependencia_moderada:'Dep. Moderada',
+  dependencia_grave:   'Dep. Grave',
+  dependencia_total:   'Dep. Total',
+};
+
 // Dados de admissão e modalidade principal
 export interface T_Admissao {
   dataEntrada: string;        // YYYY-MM-DD
@@ -6,6 +21,7 @@ export interface T_Admissao {
   motivoSaida?: string;
   numProntuario?: string;
   modalidadePrincipal: 'residencia_fixa' | 'residencia_temporaria' | 'centro_dia' | 'hotelaria';
+  grauDependencia?: T_GrauDependencia;
 }
 
 // Responsável legal / curador

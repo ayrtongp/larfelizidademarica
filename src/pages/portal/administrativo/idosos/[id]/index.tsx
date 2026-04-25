@@ -21,6 +21,7 @@ import { notifyError, notifySuccess } from '@/utils/Functions';
 import {
   FaUser, FaFileContract, FaUsers, FaBook, FaFolder, FaSignOutAlt, FaPills, FaHeartbeat,
 } from 'react-icons/fa';
+import { GRAU_DEPENDENCIA_LABELS } from '@/types/T_idosoDetalhes';
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   ativo:    { label: 'Ativo',    className: 'bg-green-100 text-green-800' },
@@ -52,7 +53,13 @@ const IdosoDetalhes = () => {
   const [idoso, setIdoso] = useState<T_IdosoDetalhesComUsuario | null>(null);
   const [loadingData, setLoadingData] = useState(false);
   const [classeAtiva, setClasseAtiva] = useState('menuVisaoGeral');
+  const [visitedTabs, setVisitedTabs] = useState<string[]>(['menuVisaoGeral']);
   const [savingStatus, setSavingStatus] = useState(false);
+
+  function goToTab(tabId: string) {
+    setClasseAtiva(tabId);
+    if (!visitedTabs.includes(tabId)) setVisitedTabs(prev => [...prev, tabId]);
+  }
 
   const tabs: MenuTab[] = [
     { id: 'menuVisaoGeral',   label: 'Visão Geral',   icon: <FaUser />,         color: 'text-blue-600' },
@@ -233,7 +240,7 @@ const IdosoDetalhes = () => {
                     {tabs.map((tab) => (
                       <button
                         key={tab.id}
-                        onClick={() => setClasseAtiva(tab.id)}
+                        onClick={() => goToTab(tab.id)}
                         title={tab.label}
                         className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
                           classeAtiva === tab.id
@@ -262,6 +269,7 @@ const IdosoDetalhes = () => {
                         <InfoCard label="Modalidade" value={MODALIDADE_LABELS[idoso.admissao?.modalidadePrincipal]} />
                         <InfoCard label="Data de Entrada" value={formatDateBR(idoso.admissao?.dataEntrada)} />
                         <InfoCard label="Prontuário" value={idoso.admissao?.numProntuario} />
+                        <InfoCard label="Grau de Dependência" value={idoso.admissao?.grauDependencia ? GRAU_DEPENDENCIA_LABELS[idoso.admissao.grauDependencia] : undefined} />
                         <InfoCard label="Responsável" value={idoso.responsavel?.nome} />
                         <InfoCard label="Parentesco" value={idoso.responsavel?.parentesco} />
                         <InfoCard label="Contato" value={idoso.responsavel?.contato} />
@@ -272,7 +280,7 @@ const IdosoDetalhes = () => {
                       {idoso.patient_id && (
                         <ClinicalSummary
                           patientId={idoso.patient_id}
-                          onNavigate={() => setClasseAtiva('menuClinico')}
+                          onNavigate={() => goToTab('menuClinico')}
                         />
                       )}
 
@@ -285,58 +293,72 @@ const IdosoDetalhes = () => {
                   )}
 
                   {/* ADMISSÃO */}
-                  {classeAtiva === 'menuAdmissao' && (
-                    <Tab_Admissao
-                      idosoId={idoso._id!}
-                      admissao={idoso.admissao}
-                      responsavel={idoso.responsavel ?? {}}
-                      onUpdate={(data) => setIdoso((prev) => prev ? { ...prev, ...data } : prev)}
-                    />
+                  {visitedTabs.includes('menuAdmissao') && (
+                    <div className={classeAtiva !== 'menuAdmissao' ? 'hidden' : ''}>
+                      <Tab_Admissao
+                        idosoId={idoso._id!}
+                        admissao={idoso.admissao}
+                        responsavel={idoso.responsavel ?? {}}
+                        onUpdate={(data) => setIdoso((prev) => prev ? { ...prev, ...data } : prev)}
+                      />
+                    </div>
                   )}
 
                   {/* FAMÍLIA */}
-                  {classeAtiva === 'menuFamilia' && (
-                    <Tab_Familia
-                      idosoId={idoso._id!}
-                      composicaoFamiliar={idoso.composicaoFamiliar ?? []}
-                      onUpdate={(composicaoFamiliar) => setIdoso((prev) => prev ? { ...prev, composicaoFamiliar } : prev)}
-                    />
+                  {visitedTabs.includes('menuFamilia') && (
+                    <div className={classeAtiva !== 'menuFamilia' ? 'hidden' : ''}>
+                      <Tab_Familia
+                        idosoId={idoso._id!}
+                        composicaoFamiliar={idoso.composicaoFamiliar ?? []}
+                        onUpdate={(composicaoFamiliar) => setIdoso((prev) => prev ? { ...prev, composicaoFamiliar } : prev)}
+                      />
+                    </div>
                   )}
 
                   {/* HISTÓRICO */}
-                  {classeAtiva === 'menuHistorico' && (
-                    <Tab_Historico
-                      idosoId={idoso._id!}
-                      historico={idoso.historico ?? {}}
-                      documentos={idoso.documentos ?? {}}
-                      onUpdate={(data) => setIdoso((prev) => prev ? { ...prev, ...data } : prev)}
-                    />
+                  {visitedTabs.includes('menuHistorico') && (
+                    <div className={classeAtiva !== 'menuHistorico' ? 'hidden' : ''}>
+                      <Tab_Historico
+                        idosoId={idoso._id!}
+                        historico={idoso.historico ?? {}}
+                        documentos={idoso.documentos ?? {}}
+                        onUpdate={(data) => setIdoso((prev) => prev ? { ...prev, ...data } : prev)}
+                      />
+                    </div>
                   )}
 
                   {/* CONTRATOS */}
-                  {classeAtiva === 'menuContratos' && idoso._id && (
-                    <Tab_Contratos
-                      idosoDetalhesId={idoso._id}
-                      usuarioId={idoso.usuarioId ?? ''}
-                    />
+                  {visitedTabs.includes('menuContratos') && idoso._id && (
+                    <div className={classeAtiva !== 'menuContratos' ? 'hidden' : ''}>
+                      <Tab_Contratos
+                        idosoDetalhesId={idoso._id}
+                        usuarioId={idoso.usuarioId ?? ''}
+                      />
+                    </div>
                   )}
 
                   {/* PRESCRIÇÕES */}
-                  {classeAtiva === 'menuPrescricoes' && idoso._id && (
-                    <Prescricao idosoData={{ _id: idoso._id, nome: nomeCompleto }} />
+                  {visitedTabs.includes('menuPrescricoes') && idoso._id && (
+                    <div className={classeAtiva !== 'menuPrescricoes' ? 'hidden' : ''}>
+                      <Prescricao idosoData={{ _id: idoso._id, nome: nomeCompleto }} />
+                    </div>
                   )}
 
                   {/* CLÍNICO */}
-                  {classeAtiva === 'menuClinico' && (
-                    <Tab_Clinico patientId={idoso.patient_id ?? ''} />
+                  {visitedTabs.includes('menuClinico') && (
+                    <div className={classeAtiva !== 'menuClinico' ? 'hidden' : ''}>
+                      <Tab_Clinico patientId={idoso.patient_id ?? ''} />
+                    </div>
                   )}
 
                   {/* DOCUMENTOS */}
-                  {classeAtiva === 'menuDocumentos' && idoso._id && (
-                    <GestaoArquivos
-                      entityId={idoso._id}
-                      entityName={nomeCompleto}
-                    />
+                  {visitedTabs.includes('menuDocumentos') && idoso._id && (
+                    <div className={classeAtiva !== 'menuDocumentos' ? 'hidden' : ''}>
+                      <GestaoArquivos
+                        entityId={idoso._id}
+                        entityName={nomeCompleto}
+                      />
+                    </div>
                   )}
 
                   {/* STATUS (apenas admin) */}

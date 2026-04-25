@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Button_M3 from '@/components/Formularios/Button_M3';
-import { T_Admissao, T_ResponsavelIdoso } from '@/types/T_idosoDetalhes';
+import { T_Admissao, T_GrauDependencia, T_ResponsavelIdoso, GRAU_DEPENDENCIA_LABELS } from '@/types/T_idosoDetalhes';
 import S_idosoDetalhes from '@/services/S_idosoDetalhes';
 import { notifyError, notifySuccess } from '@/utils/Functions';
 
@@ -69,6 +69,16 @@ const Tab_Admissao: React.FC<Props> = ({ idosoId, admissao, responsavel, onUpdat
             <label className={labelClass}>Nº Prontuário</label>
             <input type="text" value={adm.numProntuario ?? ''} onChange={(e) => setAdm(prev => ({ ...prev, numProntuario: e.target.value }))}
               className={inputClass} placeholder="Ex: PRN-001" />
+          </div>
+          <div>
+            <label className={labelClass}>Grau de Dependência</label>
+            <select value={adm.grauDependencia ?? ''} onChange={(e) => setAdm(prev => ({ ...prev, grauDependencia: e.target.value as T_GrauDependencia || undefined }))}
+              className={inputClass}>
+              <option value="">Não informado</option>
+              {(Object.keys(GRAU_DEPENDENCIA_LABELS) as T_GrauDependencia[]).map(k => (
+                <option key={k} value={k}>{GRAU_DEPENDENCIA_LABELS[k]}</option>
+              ))}
+            </select>
           </div>
           <div className="sm:col-span-2">
             <label className={labelClass}>Motivo da Entrada</label>
