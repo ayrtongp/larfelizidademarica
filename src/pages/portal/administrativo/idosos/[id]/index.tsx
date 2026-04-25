@@ -221,7 +221,7 @@ const IdosoDetalhes = () => {
                       </div>
                       <p className="text-sm text-gray-500 mt-0.5">
                         {idoso.usuario?.apelido && (
-                          <span>"{idoso.usuario.apelido}" · </span>
+                          <span>&quot;{idoso.usuario.apelido}&quot; · </span>
                         )}
                         {idoso.usuario?.data_nascimento ? (
                           <>
