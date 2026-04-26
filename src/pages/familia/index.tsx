@@ -31,7 +31,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     props: {
       nomeLogado:  session.nome,
       idResidente,
-      residentes:  vinculos.map(v => ({ id: String(v.residente_id), parentesco: v.parentesco })),
+      residentes:  vinculos.map((v: any) => ({ id: String(v.residente_id), parentesco: v.parentesco })),
     },
   };
 }
