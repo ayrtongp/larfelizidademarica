@@ -43,13 +43,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  // Valida sessão e extrai id_residente do cookie (nunca da URL)
+  // Valida sessão
   const session = verifyFamiliaSession(req as any);
   if (!session) return res.status(401).json({ message: 'Não autenticado.' });
 
-  const { id_residente } = session;
-  const { type } = req.query;
+  // residente_id vem da URL — validamos que o familiar tem vínculo ativo
+  const { type, residente_id } = req.query;
+  if (!residente_id) return res.status(400).json({ message: 'residente_id é obrigatório.' });
+
   const { db } = await connect();
+
+  const vinculo = await db.collection('familiar_residente').findOne({
+    usuario_id:   session.userId,
+    residente_id: String(residente_id),
+    ativo:        true,
+  });
+  if (!vinculo) return res.status(403).json({ message: 'Acesso não autorizado a este residente.' });
+
+  const id_residente = String(residente_id);
 
   // ── PERFIL ──────────────────────────────────────────────────────────────
   if (type === 'perfil') {

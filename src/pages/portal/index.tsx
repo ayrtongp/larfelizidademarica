@@ -34,15 +34,20 @@ function Index() {
 
   async function getBirths() {
     const res = await Residentes_GET_getAniversarios()
-    const resMapped = res.map((item: any) => {
-      const [dia, mes, ano] = formatDateBR(item.data_nascimento).split('/')
-      const anoAtual = (new Date()).getFullYear()
-      const dataFormatada = `${dia}/${mes}/${anoAtual}`
-      return ({
-        data: dataFormatada,
-        titulo: `Aniversário - ${item.apelido}`
+    const anoAtual = (new Date()).getFullYear()
+    const resMapped = res
+      .filter((item: any) => item.data_nascimento)
+      .map((item: any) => {
+        const formatted = formatDateBR(item.data_nascimento)
+        if (!formatted) return null
+        const [dia, mes] = formatted.split('/')
+        if (!dia || !mes) return null
+        return {
+          data: `${dia}/${mes}/${anoAtual}`,
+          titulo: `Aniversário - ${item.apelido}`
+        }
       })
-    });
+      .filter(Boolean);
     setEventos(resMapped)
   }
 

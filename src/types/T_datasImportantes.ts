@@ -41,16 +41,22 @@ export function datasImportantesToEventos(
   items: T_DataImportante[],
   anoRef: number = new Date().getFullYear(),
 ): { data: string; titulo: string; horario?: string; observacao?: string }[] {
-  return items.map(item => {
-    const [, mes, dia] = item.data.split('-');
-    const ano = item.recorrente ? String(anoRef) : item.data.split('-')[0];
-    return {
-      data: `${dia}/${mes}/${ano}`,
-      titulo: item.titulo,
-      horario: item.horario,
-      observacao: item.observacao,
-    };
-  });
+  return items
+    .filter(item => item.data && item.data.includes('-'))
+    .map(item => {
+      const parts = item.data.split('-');
+      if (parts.length < 3) return null;
+      const [anoOriginal, mes, dia] = parts;
+      if (!dia || !mes) return null;
+      const ano = item.recorrente ? String(anoRef) : anoOriginal;
+      return {
+        data: `${dia}/${mes}/${ano}`,
+        titulo: item.titulo,
+        horario: item.horario,
+        observacao: item.observacao,
+      };
+    })
+    .filter(Boolean) as { data: string; titulo: string; horario?: string; observacao?: string }[];
 }
 
 /** Ordena por mês/dia (ignora ano) para exibição no admin */

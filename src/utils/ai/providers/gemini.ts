@@ -1,6 +1,6 @@
 import { IAIProvider, T_AIRequest, T_AIResponse } from '@/types/T_ai';
 
-const DEFAULT_MODEL = process.env.GEMINI_DEFAULT_MODEL || 'gemini-2.5-flash';
+const DEFAULT_MODEL = process.env.GEMINI_DEFAULT_MODEL || 'gemini-2.0-flash';
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 export class GeminiProvider implements IAIProvider {

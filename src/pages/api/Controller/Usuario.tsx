@@ -83,6 +83,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
+      // LISTAR POR FUNCAO (ex: type=getByFuncao&funcao=familiar)
+      // -------------------------
+
+      else if (req.query.type === 'getByFuncao') {
+        const { funcao } = req.query;
+        if (!funcao) return res.status(400).json({ message: 'funcao é obrigatório.' });
+        try {
+          const docs = await mainCollection.find(
+            { funcoes: funcao },
+            { projection: { _id: 1, nome: 1, sobrenome: 1, usuario: 1, email: 1, ativo: 1, funcoes: 1 } }
+          ).sort({ nome: 1 }).toArray();
+          return res.status(200).json(docs);
+        } catch (err) {
+          return res.status(500).json({ message: 'getByFuncao: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
       // LISTAR TODOS OS USUÁRIOS
       // -------------------------
 
@@ -127,6 +145,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
         } catch (error) {
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
+      // CRIAR USUÁRIO FAMILIAR (campos simplificados, sem CPF/telefone)
+      // -------------------------
+
+      if (req.query.type === 'newFamiliar') {
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const { nome, sobrenome, usuario, email, senha, funcoes = ['familiar'], ativo = 'S' } = body;
+
+          if (!nome?.trim() || !usuario?.trim() || !senha) {
+            return res.status(400).json({ message: 'nome, usuario e senha são obrigatórios.' });
+          }
+          if (String(senha).length < 6) {
+            return res.status(400).json({ message: 'Senha deve ter mínimo 6 caracteres.' });
+          }
+
+          const jaExiste = await mainCollection.findOne({ usuario: usuario.trim() });
+          if (jaExiste) {
+            return res.status(400).json({ message: `Usuário já existe: ${usuario.trim()}` });
+          }
+
+          const senhaHash = await bcrypt.hash(String(senha), 10);
+          const doc = {
+            nome:       nome.trim(),
+            sobrenome:  sobrenome?.trim() || '',
+            usuario:    usuario.trim(),
+            email:      email?.trim() || null,
+            senha:      senhaHash,
+            funcoes:    Array.isArray(funcoes) ? funcoes : [funcoes],
+            ativo,
+            admin:      'N',
+            createdAt:  Date.now(),
+            updatedAt:  Date.now(),
+          };
+
+          const result = await mainCollection.insertOne(doc);
+          return res.status(201).json({ id: result.insertedId });
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'newFamiliar: Erro não identificado.' });
         }
       }
 

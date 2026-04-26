@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getProvider } from '@/utils/ai';
 import { T_AIRequest, T_AIProviderName } from '@/types/T_ai';
 
-// Aumenta limite para suportar imagens em base64 (~10MB)
+// Aumenta limite para suportar imagens em base64
 export const config = {
   api: { bodyParser: { sizeLimit: '10mb' } },
 };

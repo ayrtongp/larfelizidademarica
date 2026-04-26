@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'nex
 import Image from 'next/image';
 import LogoLar from '../../../public/images/lar felizidade logo transparente.png';
 import { verifyFamiliaSession } from '@/utils/familiaSession';
+import connect from '@/utils/Database';
 
 // ── getServerSideProps ────────────────────────────────────────────────────────
 
@@ -11,10 +12,26 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   if (!session) {
     return { redirect: { destination: '/familia/login', permanent: false } };
   }
+
+  // Busca vínculos ativos do familiar para descobrir seus residentes
+  const { db } = await connect();
+  const vinculos = await db.collection('familiar_residente')
+    .find({ usuario_id: session.userId, ativo: true })
+    .toArray();
+
+  if (vinculos.length === 0) {
+    // Conta existe mas não tem nenhum residente vinculado
+    return { redirect: { destination: '/familia/sem-acesso', permanent: false } };
+  }
+
+  // Por enquanto usa o primeiro residente — futuramente UI de seleção
+  const idResidente = String(vinculos[0].residente_id);
+
   return {
     props: {
-      nomeLogado:   session.nome,
-      idResidente:  session.id_residente,
+      nomeLogado:  session.nome,
+      idResidente,
+      residentes:  vinculos.map(v => ({ id: String(v.residente_id), parentesco: v.parentesco })),
     },
   };
 }
@@ -107,14 +124,13 @@ export default function FamiliaPage({
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   useEffect(() => {
-    const base = '/api/Controller/C_familiaPortal';
+    const base = `/api/Controller/C_familiaPortal?residente_id=${idResidente}`;
     Promise.all([
-      fetch(`${base}?type=perfil`).then(r => r.json()).then(d => setPerfil(d)),
-      fetch(`${base}?type=vitals`).then(r => r.json()).then(d => setVitais(d.vitais ?? [])),
-      fetch(`${base}?type=eventos`).then(r => r.json()).then(d => setEventos(d.eventos ?? [])),
-      fetch(`${base}?type=fotos`).then(r => r.json()).then(d => setFotos(d.fotos ?? [])),
+      fetch(`${base}&type=perfil`).then(r => r.json()).then(d => setPerfil(d)),
+      fetch(`${base}&type=vitals`).then(r => r.json()).then(d => setVitais(d.vitais ?? [])),
+      fetch(`${base}&type=eventos`).then(r => r.json()).then(d => setEventos(d.eventos ?? [])),
+      fetch(`${base}&type=fotos`).then(r => r.json()).then(d => setFotos(d.fotos ?? [])),
     ]).catch(console.error);
-    void idResidente; // idResidente vem do cookie no servidor, não precisa ser passado ao fetch
   }, [idResidente]);
 
   async function handleLogout() {

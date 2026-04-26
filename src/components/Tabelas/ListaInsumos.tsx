@@ -6,7 +6,7 @@ interface Categoria {
   _id: string;
 
   nome_insumo: string;
-  unidade: string;
+  unidade_base: string;
   cod_categoria: string;
   descricao: string;
 
@@ -58,7 +58,7 @@ const ListaInsumos = () => {
             <tr key={index} className={`${index % 2 === 0 ? "bg-gray-100" : "bg-white"}`}>
               <td className="hidden px-4 py-1 border">{obj._id}</td>
               <td className="px-4 py-1 border">{obj.nome_insumo}</td>
-              <td className="px-4 py-1 border">{obj.unidade}</td>
+              <td className="px-4 py-1 border">{obj.unidade_base}</td>
               <td className="px-4 py-1 border">{obj.cod_categoria}</td>
               <td className="px-4 py-1 border">{obj.descricao}</td>
             </tr>

@@ -203,7 +203,7 @@ export default function MovimentacoesPage() {
         )}
 
         {/* Tabela */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white rounded-lg shadow" style={{ maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
           {loadingMovs ? (
             <div className="text-center py-10 text-gray-500">Carregando movimentações...</div>
           ) : erro ? (

@@ -3,7 +3,6 @@ import type { IncomingMessage } from 'http';
 
 export interface FamiliaSessionPayload {
   userId: string;
-  id_residente: string;
   nome: string;
 }
 

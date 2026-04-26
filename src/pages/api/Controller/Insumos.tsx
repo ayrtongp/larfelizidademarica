@@ -122,6 +122,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
+      // INSUMOS ABAIXO DO ESTOQUE MÍNIMO
+      // -------------------------
+
+      else if (req.query.type == 'getAbaixoMinimo') {
+        try {
+          const pipeline = [
+            {
+              $lookup: {
+                from: 'insumo_estoque',
+                let: { insumoId: '$_id' },
+                pipeline: [
+                  { $addFields: { insumoObjectId: { $toObjectId: '$insumo_id' } } },
+                  { $match: { $expr: { $eq: ['$insumoObjectId', '$$insumoId'] } } },
+                  { $project: { quantidade: 1 } }
+                ],
+                as: 'estoques'
+              }
+            },
+            { $addFields: { totalQuantidade: { $sum: '$estoques.quantidade' } } },
+            {
+              $match: {
+                estoque_minimo: { $gt: 0 },
+                $expr: { $lt: ['$totalQuantidade', '$estoque_minimo'] }
+              }
+            },
+            { $sort: { cod_categoria: 1, nome_insumo: 1 } },
+            { $project: { estoques: 0 } }
+          ];
+          const data = await mainCollection.aggregate(pipeline as any).toArray();
+          return res.status(200).json(data);
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'getAbaixoMinimo: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
       // SE NENHUMA CONDIÇÃR BATER DEVE RETORNAR ERRO
       // -------------------------
 
@@ -143,7 +180,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           const dataFields = {
             nome_insumo: data['nome_insumo'],
-            unidade: data['unidade'],
+            unidade_base: data['unidade_base'],
+            unidade_entrada: data['unidade_entrada'] || null,
+            fator_conversao: data['fator_conversao'] ? Number(data['fator_conversao']) : 1,
+            estoque_minimo: data['estoque_minimo'] ? Number(data['estoque_minimo']) : 0,
             cod_categoria: data['cod_categoria'],
             descricao: data['descricao'],
             createdAt: getCurrentDateTime(),
@@ -151,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           }
 
           // Verifica se todos os campos necessários estão presentes no req.body
-          const requiredFields = ['nome_insumo', 'unidade', 'cod_categoria', 'descricao'];
+          const requiredFields = ['nome_insumo', 'unidade_base', 'cod_categoria', 'descricao'];
           const missingFields = requiredFields.filter(field => !data[field]);
           const alreadyExists = await mainCollection.findOne({ nome_insumo: dataFields.nome_insumo })
 

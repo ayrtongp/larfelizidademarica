@@ -120,8 +120,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             { $match: { residente_id: req.query.idResidente } },
             { $lookup: { from: "insumos", let: { insumoId: "$insumo_id" }, pipeline: [{ $addFields: { convertedId: { $toString: "$_id" } } }, { $match: { $expr: { $eq: ["$convertedId", "$$insumoId"] } } },], as: "insumoDetails" } },
             { $unwind: "$insumoDetails" },
-            { $project: { insumo_id: "$insumo_id", quantidade: "$quantidade", unidade: "$insumoDetails.unidade", nome_insumo: "$insumoDetails.nome_insumo", cod_categoria: "$insumoDetails.cod_categoria", } },
-            { $group: { _id: "$insumo_id", soma: { $sum: "$quantidade" }, unidade: { $first: "$unidade" }, nome_insumo: { $first: "$nome_insumo" }, cod_categoria: { $first: "$cod_categoria" }, } }
+            { $project: { insumo_id: "$insumo_id", quantidade: "$quantidade", unidade_base: "$insumoDetails.unidade_base", nome_insumo: "$insumoDetails.nome_insumo", cod_categoria: "$insumoDetails.cod_categoria", } },
+            { $group: { _id: "$insumo_id", soma: { $sum: "$quantidade" }, unidade_base: { $first: "$unidade_base" }, nome_insumo: { $first: "$nome_insumo" }, cod_categoria: { $first: "$cod_categoria" }, } }
           ]).sort({ cod_categoria: 1, nome_insumo: 1 }).toArray();
           return res.status(200).json(data);
         } catch (err) {
@@ -141,7 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             { $match: matchStage },
             { $lookup: { from: "insumos", let: { insumoId: "$insumo_id" }, pipeline: [{ $addFields: { convertedId: { $toString: "$_id" } } }, { $match: { $expr: { $eq: ["$convertedId", "$$insumoId"] } } },], as: "insumoDetails" } },
             { $unwind: "$insumoDetails" },
-            { $project: { insumo_id: "$insumo_id", quantidade: "$quantidade", unidade: "$insumoDetails.unidade", nome_insumo: "$insumoDetails.nome_insumo", cod_categoria: "$insumoDetails.cod_categoria", createdAt: 1, nomeUsuario: 1, idUsuario: 1, observacoes: 1 } },
+            { $project: { insumo_id: "$insumo_id", quantidade: "$quantidade", unidade_base: "$insumoDetails.unidade_base", quantidade_entrada: 1, fator_utilizado: 1, nome_insumo: "$insumoDetails.nome_insumo", cod_categoria: "$insumoDetails.cod_categoria", createdAt: 1, nomeUsuario: 1, idUsuario: 1, observacoes: 1 } },
           ]).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray();
           const count = await mainCollection.countDocuments(matchStage);
 
@@ -171,9 +171,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       if (req.query.type == 'addFraldaResidente') {
         try {
           const data = req.body
-          const dataFields = {
+
+          // Conversão: se o frontend enviou quantidade_entrada + fator_utilizado,
+          // calcula a quantidade em unidade base preservando o sinal (saída = negativo)
+          let quantidade: number;
+          if (data['quantidade_entrada'] !== undefined && data['fator_utilizado'] !== undefined) {
+            const fator = Number(data['fator_utilizado']) || 1;
+            const entrada = Number(data['quantidade_entrada']);
+            const sinal = Number(data['quantidade']) < 0 ? -1 : 1;
+            quantidade = Math.abs(entrada) * fator * sinal;
+          } else {
+            quantidade = Number(data['quantidade']);
+          }
+
+          const dataFields: Record<string, unknown> = {
             insumo_id: data['insumo_id'],
-            quantidade: data['quantidade'],
+            quantidade,
             residente_id: data['residente_id'],
             observacoes: data['observacoes'],
             nomeUsuario: data['nomeUsuario'],
@@ -181,6 +194,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             createdAt: getCurrentDateTime(),
             updatedAt: getCurrentDateTime(),
           }
+
+          if (data['quantidade_entrada'] !== undefined) dataFields['quantidade_entrada'] = Number(data['quantidade_entrada']);
+          if (data['fator_utilizado']    !== undefined) dataFields['fator_utilizado']    = Number(data['fator_utilizado']);
+          if (data['unidade_entrada']    !== undefined) dataFields['unidade_entrada']    = data['unidade_entrada'];
+
           // Verifica se todos os campos necessários estão presentes no req.body
           const requiredFields = ['insumo_id', 'quantidade', 'residente_id'];
           const missingFields = requiredFields.filter(field => !data[field]);
@@ -189,8 +207,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             return res.status(400).json({ error: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
           }
           else {
-            const novoRegitro = await mainCollection.insertOne(dataFields);
-            return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
+            const novoRegistro = await mainCollection.insertOne(dataFields);
+            return res.status(201).json({ id: novoRegistro.insertedId, method: 'POST' });
           }
         } catch (err) {
           console.error(err)

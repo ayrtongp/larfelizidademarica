@@ -142,7 +142,7 @@ export default function MovimentacoesTable({ movimentacoes, contas = [], onVerRa
           {widths.map((w, i) => <col key={i} style={{ width: w }} />)}
         </colgroup>
 
-        <thead className="bg-gray-50">
+        <thead className="bg-gray-50 sticky top-0 z-10">
           <tr>
             <th className="px-2 py-3 text-center" style={{ width: 40 }}>
               <input

@@ -7,35 +7,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // ── LOGIN ────────────────────────────────────────────────────────────────
   if (req.method === 'POST') {
-    const { pin } = req.body ?? {};
-    const pinStr = String(pin ?? '').replace(/\D/g, '');
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { usuario, senha } = body ?? {};
 
-    if (pinStr.length !== 6) {
-      return res.status(400).json({ message: 'PIN deve ter 6 dígitos.' });
+    if (!usuario?.trim() || !senha) {
+      return res.status(400).json({ message: 'Usuário e senha são obrigatórios.' });
     }
 
     const { db } = await connect();
     const col = db.collection('usuario');
 
-    // Busca todos os usuários família ativos e testa bcrypt — lista pequena, OK
-    const familyUsers = await col.find({ tipo: 'familia', ativo: 'S' }).toArray();
+    const user = await col.findOne({
+      usuario: usuario.trim(),
+      ativo: 'S',
+      funcoes: 'familiar',
+    });
 
-    let matched: (typeof familyUsers)[number] | null = null;
-    for (const u of familyUsers) {
-      if (u.pin_hash && (await bcrypt.compare(pinStr, u.pin_hash))) {
-        matched = u;
-        break;
-      }
+    if (!user || !user.senha) {
+      return res.status(401).json({ message: 'Usuário ou senha incorretos.' });
     }
 
-    if (!matched) {
-      return res.status(401).json({ message: 'PIN incorreto.' });
+    const senhaOk = await bcrypt.compare(String(senha), user.senha);
+    if (!senhaOk) {
+      return res.status(401).json({ message: 'Usuário ou senha incorretos.' });
     }
 
     const cookie = buildFamiliaSessionCookie({
-      userId:       String(matched._id),
-      id_residente: matched.id_residente,
-      nome:         matched.nome,
+      userId: String(user._id),
+      nome:   `${user.nome}${user.sobrenome ? ` ${user.sobrenome}` : ''}`.trim(),
     });
 
     res.setHeader('Set-Cookie', cookie);

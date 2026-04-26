@@ -21,13 +21,20 @@ const CATEGORIAS = [
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface IdosoOption  { _id: string; nome: string; }
-interface InsumoOption { _id: string; nome_insumo: string; unidade: string; }
+interface InsumoOption {
+  _id: string;
+  nome_insumo: string;
+  unidade_base: string;
+  unidade_entrada?: string;
+  fator_conversao?: number;
+}
 
 interface ReviewRow {
   localId: string;
   nomeDetectado: string;
   insumo_id: string;
-  quantidade: number;
+  quantidade: number;        // embalagens (entrada) — o que a IA detecta
+  fatorLancamento: number;   // conversão aplicada neste lançamento
   observacoes: string;
 }
 
@@ -79,6 +86,21 @@ function findMatchingInsumo(nome: string, descricao: string, insumos: InsumoOpti
 let _localIdCounter = 0;
 function newLocalId() { return String(++_localIdCounter); }
 
+function compressDataUrl(dataUrl: string, maxPx = 1200, quality = 0.82): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
 // ── NovoInsumoModal ────────────────────────────────────────────────────────
 
 interface NovoInsumoModalProps {
@@ -88,14 +110,16 @@ interface NovoInsumoModalProps {
 }
 
 const NovoInsumoModal: React.FC<NovoInsumoModalProps> = ({ initialNome, onClose, onCreated }) => {
-  const [nome,      setNome]      = useState(initialNome);
-  const [unidade,   setUnidade]   = useState('');
-  const [categoria, setCategoria] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [saving,    setSaving]    = useState(false);
+  const [nome,           setNome]           = useState(initialNome);
+  const [unidadeBase,    setUnidadeBase]    = useState('');
+  const [unidadeEntrada, setUnidadeEntrada] = useState('');
+  const [fator,          setFator]          = useState(1);
+  const [categoria,      setCategoria]      = useState('');
+  const [descricao,      setDescricao]      = useState('');
+  const [saving,         setSaving]         = useState(false);
 
   async function handleSave() {
-    if (!nome.trim() || !unidade.trim() || !categoria || !descricao.trim()) {
+    if (!nome.trim() || !unidadeBase.trim() || !categoria || !descricao.trim()) {
       notifyError('Preencha todos os campos obrigatórios.');
       return;
     }
@@ -104,15 +128,17 @@ const NovoInsumoModal: React.FC<NovoInsumoModalProps> = ({ initialNome, onClose,
       const res = await fetch('/api/Controller/Insumos?type=new', {
         method: 'POST',
         body: JSON.stringify({
-          nome_insumo:  nome.trim(),
-          unidade:      unidade.trim(),
-          cod_categoria: categoria,
-          descricao:    descricao.trim(),
+          nome_insumo:    nome.trim(),
+          unidade_base:   unidadeBase.trim(),
+          unidade_entrada: unidadeEntrada.trim() || null,
+          fator_conversao: fator,
+          cod_categoria:  categoria,
+          descricao:      descricao.trim(),
         }),
       });
       const data = await res.json();
       if (!res.ok) { notifyError(data.message || 'Erro ao criar insumo.'); return; }
-      onCreated({ _id: String(data.id), nome_insumo: nome.trim(), unidade: unidade.trim() });
+      onCreated({ _id: String(data.id), nome_insumo: nome.trim(), unidade_base: unidadeBase.trim(), unidade_entrada: unidadeEntrada.trim() || undefined, fator_conversao: fator });
       notifySuccess(`Insumo "${nome.trim()}" criado!`);
     } catch {
       notifyError('Erro ao criar insumo.');
@@ -135,50 +161,54 @@ const NovoInsumoModal: React.FC<NovoInsumoModalProps> = ({ initialNome, onClose,
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Nome *</label>
-            <input
-              value={nome} onChange={e => setNome(e.target.value)} autoFocus
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
-            />
+            <input value={nome} onChange={e => setNome(e.target.value)} autoFocus
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400" />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Unidade *</label>
-            <input
-              value={unidade} onChange={e => setUnidade(e.target.value)}
-              placeholder="ex: comprimido, frasco, pacote..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
-            />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Unidade Base *</label>
+              <input value={unidadeBase} onChange={e => setUnidadeBase(e.target.value)}
+                placeholder="comprimido, ml, g..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Unidade Entrada</label>
+              <input value={unidadeEntrada} onChange={e => setUnidadeEntrada(e.target.value)}
+                placeholder="cx, frasco..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+            </div>
           </div>
+          {unidadeEntrada.trim() && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Fator (1 {unidadeEntrada} = ? {unidadeBase || 'unidade_base'})
+              </label>
+              <input type="number" min={1} value={fator} onChange={e => setFator(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+            </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Categoria *</label>
-            <select
-              value={categoria} onChange={e => setCategoria(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
-            >
+            <select value={categoria} onChange={e => setCategoria(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400">
               <option value="">Selecionar...</option>
               {CATEGORIAS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Descrição *</label>
-            <input
-              value={descricao} onChange={e => setDescricao(e.target.value)}
+            <input value={descricao} onChange={e => setDescricao(e.target.value)}
               placeholder="ex: 50mg comprimido, 100ml frasco..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
-            />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400" />
           </div>
         </div>
 
         <div className="flex gap-2 pt-1">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-          >
+          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
             Cancelar
           </button>
-          <button
-            onClick={handleSave} disabled={saving}
-            className="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
             {saving ? 'Criando...' : 'Criar insumo'}
           </button>
         </div>
@@ -281,7 +311,7 @@ const InsumoCombobox: React.FC<InsumoComboboxProps> = ({ value, insumos, onChang
               className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between gap-2 transition-colors hover:bg-indigo-50 ${value === i._id ? 'bg-indigo-50 text-indigo-700' : 'text-gray-800'}`}
             >
               <span className="truncate">{i.nome_insumo}</span>
-              <span className="text-gray-400 text-xs shrink-0">{i.unidade}</span>
+              <span className="text-gray-400 text-xs shrink-0">{i.unidade_base}</span>
             </button>
           ))}
           <button
@@ -367,7 +397,8 @@ const AIStudioPage = () => {
     setAnalyzing(true);
     setRows([]);
     try {
-      const base64 = croppedDataUrl.split(',')[1];
+      const compressed = await compressDataUrl(croppedDataUrl);
+      const base64 = compressed.split(',')[1];
       const image: T_AIImage = { base64, mimeType: 'image/jpeg' };
 
       const response = await S_ai.complete({
@@ -406,13 +437,18 @@ Responda APENAS com um array JSON válido, sem texto adicional, sem markdown.`,
       }
       const deduped = Array.from(grouped.values());
 
-      setRows(deduped.map(item => ({
-        localId:      newLocalId(),
-        nomeDetectado: item.nome,
-        insumo_id:    findMatchingInsumo(item.nome, item.descricao, insumos),
-        quantidade:   Math.max(1, Math.round(item.quantidade || 1)),
-        observacoes:  [item.marca, item.descricao].filter(Boolean).join(' — '),
-      })));
+      setRows(deduped.map(item => {
+        const matchId = findMatchingInsumo(item.nome, item.descricao, insumos);
+        const matchInsumo = insumos.find(i => i._id === matchId);
+        return {
+          localId:       newLocalId(),
+          nomeDetectado: item.nome,
+          insumo_id:     matchId,
+          quantidade:    Math.max(1, Math.round(item.quantidade || 1)),
+          fatorLancamento: matchInsumo?.fator_conversao ?? 1,
+          observacoes:   [item.marca, item.descricao].filter(Boolean).join(' — '),
+        };
+      }));
     } catch (err) {
       console.error(err);
       notifyError('Erro ao analisar imagem com IA.');
@@ -431,8 +467,16 @@ Responda APENAS com um array JSON válido, sem texto adicional, sem markdown.`,
     setRows(prev => prev.filter(r => r.localId !== localId));
   }
 
+  function handleInsumoChange(localId: string, id: string) {
+    const opt = insumos.find(i => i._id === id);
+    setRows(prev => prev.map(r => r.localId === localId
+      ? { ...r, insumo_id: id, fatorLancamento: opt?.fator_conversao ?? 1 }
+      : r
+    ));
+  }
+
   function addRow() {
-    setRows(prev => [...prev, { localId: newLocalId(), nomeDetectado: '', insumo_id: '', quantidade: 1, observacoes: '' }]);
+    setRows(prev => [...prev, { localId: newLocalId(), nomeDetectado: '', insumo_id: '', quantidade: 1, fatorLancamento: 1, observacoes: '' }]);
   }
 
   function addInsumoToList(newInsumo: InsumoOption) {
@@ -449,20 +493,28 @@ Responda APENAS com um array JSON válido, sem texto adicional, sem markdown.`,
     const { nome: nomeUsuario, id: idUsuario } = getUserInfo();
     setSubmitting(true);
     try {
-      await Promise.all(validRows.map(row =>
-        fetch('/api/Controller/InsumoEstoque?type=addFraldaResidente', {
+      await Promise.all(validRows.map(row => {
+        const qtdBase = row.quantidade * row.fatorLancamento;
+        const opt = insumos.find(i => i._id === row.insumo_id);
+        const body: Record<string, unknown> = {
+          insumo_id:    row.insumo_id,
+          quantidade:   qtdBase,
+          residente_id: residente._id,
+          observacoes:  row.observacoes || '—',
+          nomeUsuario,
+          idUsuario,
+        };
+        if (row.fatorLancamento > 1) {
+          body.quantidade_entrada = row.quantidade;
+          body.fator_utilizado    = row.fatorLancamento;
+          body.unidade_entrada    = opt?.unidade_entrada ?? undefined;
+        }
+        return fetch('/api/Controller/InsumoEstoque?type=addFraldaResidente', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            insumo_id:   row.insumo_id,
-            quantidade:  row.quantidade,
-            residente_id: residente._id,
-            observacoes: row.observacoes || '—',
-            nomeUsuario,
-            idUsuario,
-          }),
-        })
-      ));
+          body: JSON.stringify(body),
+        });
+      }));
       setDoneCount(validRows.length);
       setDone(true);
       notifySuccess(`${validRows.length} entrada(s) registrada(s) com sucesso!`);
@@ -678,7 +730,7 @@ Responda APENAS com um array JSON válido, sem texto adicional, sem markdown.`,
                         <InsumoCombobox
                           value={row.insumo_id}
                           insumos={insumos}
-                          onChange={id => updateRow(row.localId, 'insumo_id', id)}
+                          onChange={id => handleInsumoChange(row.localId, id)}
                           onNewInsumo={addInsumoToList}
                           hasError={!row.insumo_id}
                         />
@@ -686,9 +738,24 @@ Responda APENAS com um array JSON válido, sem texto adicional, sem markdown.`,
                       <input
                         type="number" min={1} value={row.quantidade}
                         onChange={e => updateRow(row.localId, 'quantidade', Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-20 shrink-0 border border-gray-200 rounded-lg px-2 py-2 text-sm text-center bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                        className="w-16 shrink-0 border border-gray-200 rounded-lg px-2 py-2 text-sm text-center bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                       />
+                      {row.fatorLancamento > 1 && (
+                        <>
+                          <span className="self-center text-gray-400 text-xs shrink-0">×</span>
+                          <input
+                            type="number" min={1} value={row.fatorLancamento}
+                            onChange={e => updateRow(row.localId, 'fatorLancamento', Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-12 shrink-0 border border-indigo-200 rounded-lg px-1 py-2 text-xs text-center bg-indigo-50 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                          />
+                        </>
+                      )}
                     </div>
+                    {row.fatorLancamento > 1 && row.insumo_id && (
+                      <p className="text-xs text-indigo-600 text-right">
+                        = {row.quantidade * row.fatorLancamento} {insumos.find(i => i._id === row.insumo_id)?.unidade_base}
+                      </p>
+                    )}
 
                     {/* Linha 3: observações largura total */}
                     <input

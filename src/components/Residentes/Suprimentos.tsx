@@ -6,7 +6,7 @@ import { notifyError, notifySuccess } from '@/utils/Functions';
 interface EstoqueItem {
   _id: string;
   nome_insumo: string;
-  unidade: string;
+  unidade_base: string;
   cod_categoria: string;
   soma: number;
 }
@@ -14,8 +14,10 @@ interface EstoqueItem {
 interface HistoricoItem {
   _id?: string;
   nome_insumo: string;
-  unidade?: string;
+  unidade_base?: string;
   quantidade: number;
+  quantidade_entrada?: number;
+  fator_utilizado?: number;
   nomeUsuario: string;
   observacoes: string;
   createdAt: string;
@@ -24,7 +26,9 @@ interface HistoricoItem {
 interface InsumoOption {
   _id: string;
   nome_insumo: string;
-  unidade: string;
+  unidade_base: string;
+  unidade_entrada?: string;
+  fator_conversao?: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -81,7 +85,14 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
   const [mode, setMode] = useState<'entrada' | 'saida'>('entrada');
   const [selectedId, setSelectedId] = useState('');
   const [selectedNome, setSelectedNome] = useState('');
-  const [quantidade, setQuantidade] = useState(1);
+  // campos de conversão do insumo selecionado
+  const [selectedFator, setSelectedFator] = useState(1);
+  const [selectedUnidadeBase, setSelectedUnidadeBase] = useState('');
+  const [selectedUnidadeEntrada, setSelectedUnidadeEntrada] = useState('');
+  // campos de lançamento
+  const [quantidade, setQuantidade] = useState(1);           // usado quando fator=1
+  const [quantidadeEntrada, setQuantidadeEntrada] = useState(1); // embalagens (fator>1)
+  const [fatorLancamento, setFatorLancamento] = useState(1); // editável por lançamento
   const [observacoes, setObservacoes] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -92,7 +103,7 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
     try {
       const res = await fetch(`/api/Controller/InsumoEstoque?type=getListaInsumosResidente&idResidente=${ResidenteId}`);
       const data = res.ok ? await res.json() : [];
-      setEstoque(Array.isArray(data) ? data.filter((i: any) => i.soma !== 0) : []);
+      setEstoque(Array.isArray(data) ? data : []);
     } catch {
       notifyError('Erro ao carregar estoque.');
     } finally {
@@ -149,45 +160,78 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
 
   // ── Modal helpers ─────────────────────────────────────────────────────────
 
-  function openModal(m: 'entrada' | 'saida', id = '', nome = '') {
-    setMode(m);
+  function selectInsumo(id: string, nome: string) {
+    const opt = insumos.find(i => i._id === id);
+    const fator = opt?.fator_conversao ?? 1;
     setSelectedId(id);
     setSelectedNome(nome);
+    setSelectedFator(fator);
+    setFatorLancamento(fator);
+    setSelectedUnidadeBase(opt?.unidade_base ?? '');
+    setSelectedUnidadeEntrada(opt?.unidade_entrada ?? opt?.unidade_base ?? '');
     setQuantidade(1);
+    setQuantidadeEntrada(1);
+  }
+
+  function openModal(m: 'entrada' | 'saida', id = '', nome = '') {
+    setMode(m);
     setObservacoes('');
     setModalOpen(true);
+    if (id) {
+      selectInsumo(id, nome);
+    } else {
+      setSelectedId('');
+      setSelectedNome('');
+      setSelectedFator(1);
+      setFatorLancamento(1);
+      setSelectedUnidadeBase('');
+      setSelectedUnidadeEntrada('');
+      setQuantidade(1);
+      setQuantidadeEntrada(1);
+    }
   }
 
   function closeModal() { setModalOpen(false); }
 
+  // Quantidade em unidades base que será movimentada
+  const qtdBase = selectedFator > 1 ? quantidadeEntrada * fatorLancamento : quantidade;
+
   async function handleSubmit() {
     if (!selectedId) { notifyError('Selecione um insumo.'); return; }
-    if (quantidade < 1) { notifyError('Quantidade deve ser pelo menos 1.'); return; }
+    if (qtdBase < 1) { notifyError('Quantidade deve ser pelo menos 1.'); return; }
 
     if (mode === 'saida') {
       const item = estoque.find((e) => e._id === selectedId);
-      if (item && item.soma < quantidade) {
-        notifyError(`Estoque insuficiente. Disponível: ${item.soma} ${item.unidade}.`);
+      if (item && item.soma < qtdBase) {
+        notifyError(`Estoque insuficiente. Disponível: ${item.soma} ${item.unidade_base}.`);
         return;
       }
     }
 
     const { nome: nomeUsuario, id: idUsuario } = getUserInfo();
-    const qtd = mode === 'saida' ? -Math.abs(quantidade) : Math.abs(quantidade);
+    const sinal = mode === 'saida' ? -1 : 1;
+
+    const body: Record<string, unknown> = {
+      insumo_id: selectedId,
+      quantidade: qtdBase * sinal,
+      residente_id: ResidenteId,
+      observacoes: observacoes.trim() || '—',
+      nomeUsuario,
+      idUsuario,
+    };
+
+    if (selectedFator > 1) {
+      body.quantidade_entrada = quantidadeEntrada;
+      body.fator_utilizado = fatorLancamento;
+      body.unidade_entrada = selectedUnidadeEntrada;
+    }
 
     setSaving(true);
     try {
       const res = await fetch('/api/Controller/InsumoEstoque?type=addFraldaResidente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          insumo_id: selectedId,
-          quantidade: qtd,
-          residente_id: ResidenteId,
-          observacoes: observacoes.trim() || '—',
-          nomeUsuario,
-          idUsuario,
-        }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
         notifySuccess(mode === 'entrada' ? 'Entrada registrada!' : 'Saída registrada!');
@@ -268,11 +312,18 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
                     </td>
                     <td className="px-3 sm:px-4 py-2.5 font-medium text-gray-800">
                       <span className="block truncate max-w-[140px] sm:max-w-none">{item.nome_insumo}</span>
-                      <span className="sm:hidden text-[10px] text-gray-400">{item.unidade}</span>
+                      <span className="sm:hidden text-[10px] text-gray-400">{item.unidade_base}</span>
                     </td>
-                    <td className="hidden sm:table-cell px-4 py-2.5 text-center text-xs text-gray-500">{item.unidade}</td>
-                    <td className={`px-3 sm:px-4 py-2.5 text-right tabular-nums text-sm ${stockColor(item.soma)}`}>
-                      {item.soma}
+                    <td className="hidden sm:table-cell px-4 py-2.5 text-center text-xs text-gray-500">{item.unidade_base}</td>
+                    <td className="px-3 sm:px-4 py-2.5 text-right">
+                      {item.soma <= 0 ? (
+                        <span className="inline-flex flex-col items-end gap-0.5">
+                          <span className="text-sm font-bold text-red-600 tabular-nums">0</span>
+                          <span className="text-[10px] bg-red-100 text-red-600 font-semibold px-1.5 py-0.5 rounded-full leading-none">Zerado</span>
+                        </span>
+                      ) : (
+                        <span className={`tabular-nums text-sm ${stockColor(item.soma)}`}>{item.soma}</span>
+                      )}
                     </td>
                     <td className="px-3 sm:px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
@@ -346,7 +397,7 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
         </div>
       )}
 
-      {/* ── Modal ──────────────────────────────────────────────────────── */}
+      {/* ── Modal movimentação ─────────────────────────────────────────── */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
@@ -381,7 +432,7 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
                   <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
                     <span className="text-sm font-medium text-gray-800 flex-1">{selectedNome}</span>
                     <button
-                      onClick={() => { setSelectedId(''); setSelectedNome(''); }}
+                      onClick={() => { setSelectedId(''); setSelectedNome(''); setSelectedFator(1); }}
                       className="text-xs text-gray-400 hover:text-gray-600 shrink-0"
                     >
                       trocar
@@ -392,14 +443,13 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
                     value={selectedId}
                     onChange={(e) => {
                       const opt = insumos.find((i) => i._id === e.target.value);
-                      setSelectedId(e.target.value);
-                      setSelectedNome(opt ? `${opt.nome_insumo} (${opt.unidade})` : '');
+                      selectInsumo(e.target.value, opt ? `${opt.nome_insumo} (${opt.unidade_base})` : '');
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
                   >
                     <option value="">— Selecione —</option>
                     {insumos.map((i) => (
-                      <option key={i._id} value={i._id}>{i.nome_insumo} ({i.unidade})</option>
+                      <option key={i._id} value={i._id}>{i.nome_insumo} ({i.unidade_base})</option>
                     ))}
                   </select>
                 )}
@@ -408,27 +458,64 @@ const Suprimentos = ({ ResidenteId }: { ResidenteId: string }) => {
               {/* Quantidade */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Quantidade</label>
-                <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                  <button
-                    onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
-                    className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xl font-bold transition-colors select-none"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="number"
-                    min={1}
-                    value={quantidade}
-                    onChange={(e) => setQuantidade(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="flex-1 text-center text-xl font-bold text-gray-800 py-2 bg-transparent focus:outline-none"
-                  />
-                  <button
-                    onClick={() => setQuantidade((q) => q + 1)}
-                    className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xl font-bold transition-colors select-none"
-                  >
-                    +
-                  </button>
-                </div>
+
+                {selectedFator > 1 ? (
+                  /* Calculadora de conversão — layout em 2 linhas para caber em qualquer tela */
+                  <div className="space-y-2">
+                    {/* Linha 1: stepper de embalagens */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50 flex-1">
+                        <button onClick={() => setQuantidadeEntrada(q => Math.max(1, q - 1))} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-lg font-bold transition-colors select-none">−</button>
+                        <input
+                          type="number" min={1} value={quantidadeEntrada}
+                          onChange={e => setQuantidadeEntrada(Math.max(1, parseInt(e.target.value) || 1))}
+                          className="flex-1 text-center text-lg font-bold text-gray-800 py-2 bg-transparent focus:outline-none"
+                        />
+                        <button onClick={() => setQuantidadeEntrada(q => q + 1)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-lg font-bold transition-colors select-none">+</button>
+                      </div>
+                      <span className="text-sm font-medium text-gray-600 shrink-0 w-16">{selectedUnidadeEntrada}</span>
+                    </div>
+
+                    {/* Linha 2: × fator */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 font-bold text-base w-5 text-center shrink-0">×</span>
+                      <input
+                        type="number" min={1} value={fatorLancamento}
+                        onChange={e => setFatorLancamento(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="flex-1 border border-indigo-200 rounded-lg px-2 py-2 text-sm text-center bg-indigo-50 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                      />
+                      <span className="text-xs text-gray-500 shrink-0 w-16">{selectedUnidadeBase} / un</span>
+                    </div>
+
+                    {/* Total calculado */}
+                    <div className="text-center text-sm font-semibold text-indigo-700 bg-indigo-50 rounded-lg py-1.5">
+                      = {qtdBase} {selectedUnidadeBase}
+                    </div>
+                  </div>
+                ) : (
+                  /* Input simples */
+                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                    <button
+                      onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xl font-bold transition-colors select-none"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      min={1}
+                      value={quantidade}
+                      onChange={(e) => setQuantidade(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="flex-1 text-center text-xl font-bold text-gray-800 py-2 bg-transparent focus:outline-none"
+                    />
+                    <button
+                      onClick={() => setQuantidade((q) => q + 1)}
+                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xl font-bold transition-colors select-none"
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Observações */}
@@ -485,6 +572,11 @@ function HistoricoSuprimentos({ historico, count, loading, onLoadMore }: Histori
       <ul className="space-y-2">
         {historico.map((h, i) => {
           const isEnt = h.quantidade > 0;
+          const unidade = h.unidade_base ?? '';
+          const labelQtd = h.quantidade_entrada && h.fator_utilizado && h.fator_utilizado > 1
+            ? `${isEnt ? '+' : ''}${h.quantidade_entrada} emb. = ${isEnt ? '+' : ''}${h.quantidade}${unidade ? ` ${unidade}` : ''}`
+            : `${isEnt ? '+' : ''}${h.quantidade}${unidade ? ` ${unidade}` : ''}`;
+
           return (
             <li
               key={h._id ?? i}
@@ -497,7 +589,7 @@ function HistoricoSuprimentos({ historico, count, loading, onLoadMore }: Histori
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-sm font-medium text-gray-800 truncate">{h.nome_insumo}</span>
                   <span className={`shrink-0 text-sm font-bold tabular-nums ${isEnt ? 'text-emerald-600' : 'text-red-500'}`}>
-                    {isEnt ? '+' : ''}{h.quantidade}{h.unidade ? ` ${h.unidade}` : ''}
+                    {labelQtd}
                   </span>
                 </div>
                 <p className="text-xs text-gray-400 mt-0.5">
