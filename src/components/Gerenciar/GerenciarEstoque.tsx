@@ -36,7 +36,7 @@ const GerenciarEstoque = ({ insumos }: Props) => {
   const [catFilter, setCatFilter] = useState('');
 
   const categorias = useMemo(
-    () => [...new Set(insumos.map(i => i.cod_categoria))].sort(),
+    () => Array.from(new Set(insumos.map(i => i.cod_categoria))).sort(),
     [insumos]
   );
 
