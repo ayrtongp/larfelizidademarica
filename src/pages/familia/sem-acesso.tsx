@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import LogoLar from '../../../public/images/lar felizidade logo transparente.png';
 
 export default function SemAcessoPage() {
@@ -10,12 +11,12 @@ export default function SemAcessoPage() {
       <p className="text-gray-500 text-base max-w-sm mb-6">
         Sua conta não possui nenhum residente vinculado. Entre em contato com a equipe do Lar Felizidade para solicitar o acesso.
       </p>
-      <a
+      <Link
         href="/familia/login"
         className="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-2xl transition-colors"
       >
         Voltar ao login
-      </a>
+      </Link>
     </div>
   );
 }
