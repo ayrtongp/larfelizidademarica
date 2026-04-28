@@ -7,6 +7,7 @@ interface Props {
   onSave: (data: T_Categoria) => void;
   initialData?: T_Categoria;
   loading?: boolean;
+  categorias?: T_Categoria[];
 }
 
 const defaultForm: T_Categoria = {
@@ -17,7 +18,7 @@ const defaultForm: T_Categoria = {
   ativo: true,
 };
 
-const CategoriaForm: React.FC<Props> = ({ onSave, initialData, loading = false }) => {
+const CategoriaForm: React.FC<Props> = ({ onSave, initialData, loading = false, categorias = [] }) => {
   const [form, setForm] = useState<T_Categoria>(defaultForm);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const CategoriaForm: React.FC<Props> = ({ onSave, initialData, loading = false }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value === '' ? null : value }));
   };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +43,11 @@ const CategoriaForm: React.FC<Props> = ({ onSave, initialData, loading = false }
     e.preventDefault();
     onSave(form);
   };
+
+  // Only categories of the same tipo that aren't the current category
+  const categoriasDisponiveis = categorias.filter(
+    (c) => c.tipo === form.tipo && c._id !== initialData?._id && !c.categoriaPaiId
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -60,13 +66,39 @@ const CategoriaForm: React.FC<Props> = ({ onSave, initialData, loading = false }
           id="tipo"
           name="tipo"
           value={form.tipo}
-          onChange={handleChange}
+          onChange={(e) => {
+            handleChange(e);
+            setForm((prev) => ({ ...prev, tipo: e.target.value as 'receita' | 'despesa' | 'transferencia' | 'sistema', categoriaPaiId: null }));
+          }}
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           required
         >
           <option value="receita">Receita</option>
           <option value="despesa">Despesa</option>
+          <option value="transferencia">Transferência entre contas</option>
+          <option value="sistema">Sistema (uso interno)</option>
         </select>
+      </div>
+
+      <div>
+        <label className="block text-gray-700 text-left pl-1 text-sm font-bold mb-1" htmlFor="categoriaPaiId">
+          Categoria Pai (opcional)
+        </label>
+        <select
+          id="categoriaPaiId"
+          name="categoriaPaiId"
+          value={form.categoriaPaiId ?? ''}
+          onChange={handleChange}
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        >
+          <option value="">Nenhuma (categoria raiz)</option>
+          {categoriasDisponiveis.map((c) => (
+            <option key={c._id} value={c._id}>{c.nome}</option>
+          ))}
+        </select>
+        {categoriasDisponiveis.length === 0 && categorias.filter((c) => c.tipo === form.tipo && c._id !== initialData?._id).length > 0 && (
+          <p className="text-xs text-gray-400 mt-1">Apenas categorias raiz podem ser pai.</p>
+        )}
       </div>
 
       <div>

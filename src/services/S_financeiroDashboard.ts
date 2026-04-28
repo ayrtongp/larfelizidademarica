@@ -1,4 +1,4 @@
-import { T_DashboardResumo, T_TituloVencimento, T_SaldoConta } from '@/types/T_financeiroDashboard';
+import { T_DashboardResumo, T_TituloVencimento, T_SaldoConta, T_EvolucaoMensal } from '@/types/T_financeiroDashboard';
 
 const BASE = '/api/Controller/C_financeiroDashboard';
 
@@ -27,6 +27,18 @@ export const S_financeiroDashboard = {
   async getSaldoContas(): Promise<T_SaldoConta[]> {
     const res = await fetch(`${BASE}?type=saldoContas`);
     if (!res.ok) throw new Error('Erro ao buscar saldo das contas.');
+    return res.json();
+  },
+
+  async getEvolucaoMensal(meses = 6): Promise<T_EvolucaoMensal[]> {
+    const res = await fetch(`${BASE}?type=evolucaoMensal&meses=${meses}`);
+    if (!res.ok) throw new Error('Erro ao buscar evolução mensal.');
+    return res.json();
+  },
+
+  async getSaldoNaData(data: string): Promise<{ data: string; contas: (T_SaldoConta & { saldoNaData: number })[]; totalGeral: number }> {
+    const res = await fetch(`${BASE}?type=saldoNaData&data=${encodeURIComponent(data)}`);
+    if (!res.ok) throw new Error('Erro ao buscar saldo na data.');
     return res.json();
   },
 };

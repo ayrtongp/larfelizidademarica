@@ -22,15 +22,29 @@ module.exports = {
     ],
   },
 
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+        ],
+      },
+    ];
+  },
+
   future: {
-    webpack5: true, // by default, if you customize webpack config, they switch back to version 4. 
-    // Looks like backward compatibility approach.
+    webpack5: true,
   },
   webpack(config) {
     config.resolve.fallback = {
-      ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
-      // by next.js will be dropped. Doesn't make much sense, but how it is
-      fs: false, // the solution
+      ...config.resolve.fallback,
+      fs: false,
     };
 
     return config;

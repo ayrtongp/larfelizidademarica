@@ -71,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ sinalVital, message: 'Sinal Vital Localizado', url: url, method: 'GET' });
 
         } catch (error) {
-          console.error(error)
+          console.error('[SinaisVitaisController]', error)
 
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
@@ -88,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ sinalVital, message: 'Sinal Vital Localizado', url: url, method: 'GET' });
 
         } catch (error) {
-          console.error(error)
+          console.error('[SinaisVitaisController]', error)
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -155,7 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           }
 
         } catch (err) {
-          console.error(err)
+          console.error('[SinaisVitaisController]', err)
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }

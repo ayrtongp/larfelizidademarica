@@ -6,6 +6,14 @@ import { ObjectId } from 'mongodb';
 
 const NUMERIC_FIELDS = new Set(['valor']);
 const BOOLEAN_FIELDS = new Set(['temRateio']);
+const BALANCE_DATE_FIELDS = new Set(['dataMovimento', 'competencia']);
+
+type FilterCondition = {
+  field: string;
+  operator: string;
+  value: string;
+  value2?: string;
+};
 
 function escapeRegex(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -45,6 +53,79 @@ function buildMongoFilter(conditions: any[], logic: string): Record<string, any>
   return logic === 'or' ? { $or: clauses } : { $and: clauses };
 }
 
+function isActiveCondition(c: FilterCondition): boolean {
+  return c.operator === 'empty' || c.operator === 'notempty' || (c.value !== '' && c.value != null);
+}
+
+function matchStringCondition(raw: string, c: FilterCondition): boolean {
+  const value = String(raw ?? '');
+
+  switch (c.operator) {
+    case 'eq':
+      return value === c.value;
+    case 'neq':
+      return value !== c.value;
+    case 'contains':
+      return value.toLowerCase().includes(String(c.value ?? '').toLowerCase());
+    case 'starts':
+      return value.toLowerCase().startsWith(String(c.value ?? '').toLowerCase());
+    case 'gt':
+      return value > c.value;
+    case 'gte':
+      return value >= c.value;
+    case 'lt':
+      return value < c.value;
+    case 'lte':
+      return value <= c.value;
+    case 'between': {
+      const value2 = c.value2 ?? c.value;
+      return value >= c.value && value <= value2;
+    }
+    case 'empty':
+      return value === '';
+    case 'notempty':
+      return value !== '';
+    default:
+      return true;
+  }
+}
+
+function filterAccountsForBalance(contas: any[], conditions: FilterCondition[], logic: string) {
+  const accountConditions = (conditions ?? []).filter((c) => c.field === 'contaFinanceiraId' && isActiveCondition(c));
+  if (!accountConditions.length) return contas;
+
+  return contas.filter((conta) => {
+    const contaId = conta._id?.toString?.() ?? String(conta._id ?? '');
+    const matches = accountConditions.map((condition) => matchStringCondition(contaId, condition));
+    return logic === 'or' ? matches.some(Boolean) : matches.every(Boolean);
+  });
+}
+
+function buildBalanceDateFilter(conditions: FilterCondition[], logic: string): Record<string, any> {
+  if (logic !== 'and') return {};
+
+  const transformed = (conditions ?? [])
+    .filter((c) => BALANCE_DATE_FIELDS.has(c.field) && isActiveCondition(c))
+    .flatMap((c): FilterCondition[] => {
+      switch (c.operator) {
+        case 'eq':
+          return [{ ...c, operator: 'lte' }];
+        case 'lt':
+        case 'lte':
+          return [c];
+        case 'between':
+          return [{ ...c, operator: 'lte', value: c.value2 ?? c.value, value2: undefined }];
+        case 'gt':
+        case 'gte':
+          return [];
+        default:
+          return [];
+      }
+    });
+
+  return buildMongoFilter(transformed, 'and');
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -55,6 +136,101 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   switch (req.method) {
     case 'GET': {
+      // -------------------------
+      // TOTAIS (somatórios do filtro atual)
+      // -------------------------
+      if (req.query.type === 'totals') {
+        try {
+          const { conditions: condStr, logic } = req.query;
+          const conditions: FilterCondition[] = condStr ? JSON.parse(condStr as string) : [];
+          const filterLogic = (logic as string) ?? 'and';
+          const filter = buildMongoFilter(conditions, filterLogic);
+
+          // Exclude transfer-category records from P&L totals
+          const categoriasCollection = db.collection('financeiro_categorias');
+          const transferCatDocs = await categoriasCollection
+            .find({ tipo: 'transferencia' }, { projection: { _id: 1 } })
+            .toArray();
+          const transferCatIds = transferCatDocs.map((c: any) => c._id.toString());
+
+          const plExclude = transferCatIds.length > 0 ? { categoriaId: { $nin: transferCatIds } } : {};
+          const plFilter = Object.keys(filter).length
+            ? (Object.keys(plExclude).length ? { $and: [filter, plExclude] } : filter)
+            : (Object.keys(plExclude).length ? plExclude : {});
+
+          const agg = await collection.aggregate([
+            { $match: plFilter },
+            {
+              $group: {
+                _id:   '$tipoMovimento',
+                total: { $sum: '$valor' },
+                count: { $sum: 1 },
+              },
+            },
+          ]).toArray();
+
+          const contas = await contasCollection
+            .find({}, { projection: { saldoInicial: 1 } })
+            .toArray();
+          const contasSaldo = filterAccountsForBalance(contas, conditions, filterLogic);
+          const saldoInicial = contasSaldo.reduce((acc: number, conta: any) => acc + Number(conta.saldoInicial || 0), 0);
+
+          const accountConditions = conditions.filter((c) => c.field === 'contaFinanceiraId' && isActiveCondition(c));
+          const balanceDateFilter = buildBalanceDateFilter(conditions, filterLogic);
+          const balanceClauses: Record<string, any>[] = [];
+
+          if (accountConditions.length > 0) {
+            balanceClauses.push({
+              contaFinanceiraId: { $in: contasSaldo.map((conta: any) => conta._id.toString()) },
+            });
+          }
+          if (Object.keys(balanceDateFilter).length > 0) {
+            balanceClauses.push(balanceDateFilter);
+          }
+
+          const balanceFilter =
+            balanceClauses.length === 0
+              ? {}
+              : balanceClauses.length === 1
+                ? balanceClauses[0]
+                : { $and: balanceClauses };
+
+          const balanceAgg = await collection.aggregate([
+            { $match: balanceFilter },
+            {
+              $group: {
+                _id: '$tipoMovimento',
+                total: { $sum: '$valor' },
+              },
+            },
+          ]).toArray();
+
+          let totalEntradas = 0;
+          let totalSaidas   = 0;
+          let count         = 0;
+          for (const row of agg) {
+            count += row.count;
+            if (row._id === 'entrada') totalEntradas = row.total;
+            if (row._id === 'saida')   totalSaidas   = row.total;
+          }
+
+          let totalEntradasSaldo = 0;
+          let totalSaidasSaldo   = 0;
+          for (const row of balanceAgg) {
+            if (row._id === 'entrada') totalEntradasSaldo = row.total;
+            if (row._id === 'saida')   totalSaidasSaldo   = row.total;
+          }
+
+          const resultado = totalEntradas - totalSaidas;
+          const saldo = saldoInicial + totalEntradasSaldo - totalSaidasSaldo;
+
+          return res.status(200).json({ totalEntradas, totalSaidas, resultado, saldoInicial, saldo, count });
+        } catch (err) {
+          console.error('[C_financeiroMovimentacoes]', err);
+          return res.status(500).json({ message: 'totals: Erro interno.' });
+        }
+      }
+
       // -------------------------
       // GET ALL (com filtros)
       // -------------------------
@@ -96,7 +272,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           return res.status(200).json({ items, total });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroMovimentacoes]', err);
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -113,7 +289,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           return res.status(200).json(result);
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroMovimentacoes]', err);
           return res.status(500).json({ message: 'getById: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -127,8 +303,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const rateios = await rateiosCollection.find({ movimentacaoId: id }).toArray();
           return res.status(200).json(rateios);
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroMovimentacoes]', err);
           return res.status(500).json({ message: 'getRateios: Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      // -------------------------
+      // TRANSFERÊNCIA STATUS (balanço de categorias de transferência)
+      // -------------------------
+      if (req.query.type === 'transferenciaStatus') {
+        try {
+          const categoriasCollection2 = db.collection('financeiro_categorias');
+          const transferCatDocs2 = await categoriasCollection2
+            .find({ tipo: 'transferencia' }, { projection: { _id: 1 } })
+            .toArray();
+          const transferCatIds2 = transferCatDocs2.map((c: any) => c._id.toString());
+
+          if (!transferCatIds2.length) return res.status(200).json({ net: 0, entradas: 0, saidas: 0 });
+
+          const agg = await collection.aggregate([
+            { $match: { categoriaId: { $in: transferCatIds2 } } },
+            { $group: { _id: '$tipoMovimento', total: { $sum: '$valor' } } },
+          ]).toArray();
+
+          let entradas = 0, saidas = 0;
+          for (const row of agg) {
+            if (row._id === 'entrada') entradas = row.total;
+            if (row._id === 'saida')   saidas   = row.total;
+          }
+          return res.status(200).json({ net: entradas - saidas, entradas, saidas });
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'transferenciaStatus: Erro interno.' });
         }
       }
 
@@ -168,6 +374,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             emprestimoContraparteId,
             emprestimoContraparteNome,
             emprestimoVencimento,
+            // par de transferência entre contas
+            criarPar,
+            contaParId,
           } = body;
 
           // Validar campos obrigatórios
@@ -271,97 +480,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             await rateiosCollection.insertMany(rateiosDocs);
           }
 
+          // Criar registro par de transferência se solicitado
+          if (criarPar && contaParId) {
+            const tipoPar = tipoMovimento === 'entrada' ? 'saida' : tipoMovimento === 'saida' ? 'entrada' : tipoMovimento;
+            const parDoc: Record<string, any> = {
+              tipoMovimento: tipoPar,
+              contaFinanceiraId: contaParId,
+              dataMovimento,
+              competencia: competenciaFinal,
+              valor: Number(valor),
+              historico,
+              origem: 'manual',
+              temRateio: false,
+              createdAt: now,
+              updatedAt: now,
+            };
+            if (categoriaId) parDoc.categoriaId = categoriaId;
+            await collection.insertOne(parDoc);
+          }
+
           return res.status(201).json({ id: movimentacaoId });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroMovimentacoes]', err);
           return res.status(500).json({ message: 'new: Erro não identificado. Procure um administrador.' });
         }
       }
 
       // -------------------------
-      // CRIAR TRANSFERENCIA
-      // -------------------------
-      if (req.query.type === 'transferencia') {
-        try {
-          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-          const {
-            contaFinanceiraId,
-            contaDestinoId,
-            dataMovimento,
-            competencia,
-            valor,
-            historico,
-            observacoes,
-          } = body;
-
-          if (!contaFinanceiraId || !contaDestinoId || !dataMovimento || valor === undefined || valor === null || !historico) {
-            return res.status(400).json({ message: 'Campos obrigatórios ausentes: contaFinanceiraId, contaDestinoId, dataMovimento, valor, historico.' });
-          }
-
-          // Validar contas
-          const contaOrigem = await contasCollection.findOne({ _id: new ObjectId(contaFinanceiraId) });
-          if (!contaOrigem) {
-            return res.status(400).json({ message: 'Conta de origem não encontrada.' });
-          }
-          if (contaOrigem.ativo === false || contaOrigem.status === 'inativo') {
-            return res.status(400).json({ message: 'Conta de origem está inativa e não pode ser usada em transferências.' });
-          }
-
-          const contaDestino = await contasCollection.findOne({ _id: new ObjectId(contaDestinoId) });
-          if (!contaDestino) {
-            return res.status(400).json({ message: 'Conta de destino não encontrada.' });
-          }
-          if (contaDestino.ativo === false || contaDestino.status === 'inativo') {
-            return res.status(400).json({ message: 'Conta de destino está inativa e não pode ser usada em transferências.' });
-          }
-
-          const now = new Date().toISOString();
-          const valorNum = Number(valor);
-          const competenciaFinal = competencia || (dataMovimento as string).substring(0, 7);
-
-          const docSaida: Record<string, any> = {
-            tipoMovimento: 'transferencia',
-            contaFinanceiraId,
-            contaDestinoId,
-            dataMovimento,
-            competencia: competenciaFinal,
-            valor: valorNum,
-            historico,
-            origem: 'manual',
-            temRateio: false,
-            createdAt: now,
-            updatedAt: now,
-          };
-          if (observacoes) docSaida.observacoes = observacoes;
-
-          const docEntrada: Record<string, any> = {
-            tipoMovimento: 'transferencia',
-            contaFinanceiraId: contaDestinoId,
-            contaDestinoId: contaFinanceiraId,
-            dataMovimento,
-            competencia: competenciaFinal,
-            valor: valorNum,
-            historico,
-            origem: 'manual',
-            temRateio: false,
-            createdAt: now,
-            updatedAt: now,
-          };
-          if (observacoes) docEntrada.observacoes = observacoes;
-
-          const resultSaida = await collection.insertOne(docSaida);
-          const resultEntrada = await collection.insertOne(docEntrada);
-
-          return res.status(201).json({
-            idSaida: resultSaida.insertedId.toString(),
-            idEntrada: resultEntrada.insertedId.toString(),
-          });
-        } catch (err) {
-          console.error(err);
-          return res.status(500).json({ message: 'transferencia: Erro não identificado. Procure um administrador.' });
-        }
-      }
-
       // -------------------------
       // IMPORTAR EXTRATO EM LOTE
       // -------------------------
@@ -400,7 +545,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const result = await collection.insertMany(docs);
           return res.status(201).json({ inseridos: result.insertedCount });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroMovimentacoes]', err);
           return res.status(500).json({ message: 'importar: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -424,15 +569,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
 
           const now = new Date().toISOString();
-          const { rateios: rateiosBody, ...restBody } = body;
+          const { rateios: rateiosBody, criarPar, contaParId, ...restBody } = body;
 
-          const updateFields: Record<string, any> = { ...restBody, updatedAt: now };
+          // Campos que podem ser explicitamente zerados (null → $unset)
+          const NULLABLE = new Set(['vinculadoId', 'vinculadoTipo', 'categoriaId', 'emprestimoId', 'observacoes', 'formaPagamento', 'numeroDocumento', 'contaDestinoId']);
 
-          // Não permitir alterar campos de controle via update genérico
-          delete updateFields._id;
-          delete updateFields.createdAt;
+          const setFields: Record<string, any> = { updatedAt: now };
+          const unsetFields: Record<string, any> = {};
 
-          await collection.updateOne({ _id: new ObjectId(id) }, { $set: updateFields });
+          for (const [key, val] of Object.entries(restBody)) {
+            if (key === '_id' || key === 'createdAt') continue;
+            if (val === null && NULLABLE.has(key)) {
+              unsetFields[key] = '';
+            } else if (val !== undefined) {
+              setFields[key] = val;
+            }
+          }
+
+          const updateOp: Record<string, any> = { $set: setFields };
+          if (Object.keys(unsetFields).length) updateOp.$unset = unsetFields;
+
+          await collection.updateOne({ _id: new ObjectId(id) }, updateOp);
+
+          // Criar par de transferência se solicitado
+          if (criarPar && contaParId) {
+            const tipoAtual = restBody.tipoMovimento ?? existingDoc.tipoMovimento;
+            const tipoPar   = tipoAtual === 'entrada' ? 'saida' : tipoAtual === 'saida' ? 'entrada' : tipoAtual;
+            const parDoc: Record<string, any> = {
+              tipoMovimento:     tipoPar,
+              contaFinanceiraId: contaParId,
+              dataMovimento:     restBody.dataMovimento  ?? existingDoc.dataMovimento,
+              competencia:       restBody.competencia    ?? existingDoc.competencia,
+              valor:             Number(restBody.valor   ?? existingDoc.valor),
+              historico:         restBody.historico      ?? existingDoc.historico,
+              origem:            'manual',
+              temRateio:         false,
+              createdAt:         now,
+              updatedAt:         now,
+            };
+            const catId = restBody.categoriaId ?? existingDoc.categoriaId;
+            if (catId) parDoc.categoriaId = catId;
+            await collection.insertOne(parDoc);
+          }
 
           // Se rateios foram enviados, substituir os existentes
           if (Array.isArray(rateiosBody)) {
@@ -454,7 +632,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           return res.status(200).json({ message: 'Movimentação atualizada com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroMovimentacoes]', err);
           return res.status(500).json({ message: 'update: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -496,7 +674,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const result = await collection.updateMany({ _id: { $in: objectIds } }, updateOp);
           return res.status(200).json({ updated: result.modifiedCount });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroMovimentacoes]', err);
           return res.status(500).json({ message: 'updateMany: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -504,8 +682,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'PUT: Nenhum query.type identificado.' });
     }
 
+    case 'DELETE': {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ message: 'id é obrigatório.' });
+      try {
+        const result = await collection.deleteOne({ _id: new ObjectId(id) });
+        if (result.deletedCount === 0) return res.status(404).json({ message: 'Movimentação não encontrada.' });
+        await rateiosCollection.deleteMany({ movimentacaoId: id });
+        return res.status(200).json({ message: 'Movimentação excluída com sucesso.' });
+      } catch (err) {
+        console.error('[C_financeiroMovimentacoes]', err);
+        return res.status(500).json({ message: 'delete: Erro não identificado.' });
+      }
+    }
+
     default:
-      res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+      res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
       return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 }

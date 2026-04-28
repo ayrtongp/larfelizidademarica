@@ -27,6 +27,8 @@ interface FieldDef {
   inputType: 'date' | 'month' | 'text' | 'number' | 'select';
   operators: OpOpt[];
   options?:  SelectOpt[];
+  hint?:     string;
+  min?:      number;
 }
 
 // ── Field / operator definitions ─────────────────────────────────────────────
@@ -71,7 +73,7 @@ function buildFields(contas: SelectOpt[], categorias: SelectOpt[]): FieldDef[] {
     { key: 'contaFinanceiraId', label: 'Conta',         inputType: 'select', operators: EQ_NEQ,   options: contas     },
     { key: 'categoriaId',       label: 'Categoria',     inputType: 'select', operators: NULLABLE_OPS, options: categorias },
     { key: 'historico',         label: 'Histórico',     inputType: 'text',   operators: TEXT_OPS     },
-    { key: 'valor',             label: 'Valor (R$)',    inputType: 'number', operators: NUM_OPS   },
+    { key: 'valor', label: 'Valor (R$)', inputType: 'number', operators: NUM_OPS, min: 0, hint: 'O valor é sempre positivo — combine com filtro de Tipo para filtrar entradas/saídas' },
     {
       key: 'temRateio', label: 'Tem rateio', inputType: 'select',
       operators: [{ value: 'eq', label: 'é' }],
@@ -188,20 +190,30 @@ export default function FiltrosSidebar({
         </select>
       );
     }
+    const numProps = fd.inputType === 'number'
+      ? { step: '0.01', min: fd.min !== undefined ? String(fd.min) : undefined }
+      : {};
+
     if (cond.operator === 'between') {
       return (
-        <div className="flex items-center gap-2">
-          <input type={fd.inputType} step={fd.inputType === 'number' ? '0.01' : undefined}
-            value={cond.value} onChange={e => patch(cond.id, { value: e.target.value })} className={cls} placeholder="De…" />
-          <span className="text-xs text-gray-400 shrink-0">e</span>
-          <input type={fd.inputType} step={fd.inputType === 'number' ? '0.01' : undefined}
-            value={cond.value2 ?? ''} onChange={e => patch(cond.id, { value2: e.target.value })} className={cls} placeholder="Até…" />
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <input type={fd.inputType} {...numProps}
+              value={cond.value} onChange={e => patch(cond.id, { value: e.target.value })} className={cls} placeholder="De…" />
+            <span className="text-xs text-gray-400 shrink-0">e</span>
+            <input type={fd.inputType} {...numProps}
+              value={cond.value2 ?? ''} onChange={e => patch(cond.id, { value2: e.target.value })} className={cls} placeholder="Até…" />
+          </div>
+          {fd.hint && <p className="text-[10px] text-amber-600">{fd.hint}</p>}
         </div>
       );
     }
     return (
-      <input type={fd.inputType} step={fd.inputType === 'number' ? '0.01' : undefined}
-        value={cond.value} onChange={e => patch(cond.id, { value: e.target.value })} className={cls} placeholder="Valor…" />
+      <div className="space-y-1">
+        <input type={fd.inputType} {...numProps}
+          value={cond.value} onChange={e => patch(cond.id, { value: e.target.value })} className={cls} placeholder="Valor…" />
+        {fd.hint && <p className="text-[10px] text-amber-600">{fd.hint}</p>}
+      </div>
     );
   }
 

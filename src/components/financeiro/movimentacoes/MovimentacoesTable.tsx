@@ -125,7 +125,8 @@ export default function MovimentacoesTable({ movimentacoes, contas = [], onVerRa
     return contas.find((c) => c._id === id)?.nome ?? id;
   }
 
-  function getNomeCategoria(id?: string) {
+  function getNomeCategoria(id?: string, isRateio?: boolean) {
+    if (isRateio) return 'Rateio';
     if (!id) return '-';
     return categorias.find((c) => c._id === id)?.nome ?? '-';
   }
@@ -220,7 +221,7 @@ export default function MovimentacoesTable({ movimentacoes, contas = [], onVerRa
 
                 {/* Categoria */}
                 <td className="px-3 py-1.5 text-xs text-gray-500 overflow-hidden">
-                  <span className="block truncate">{getNomeCategoria(mov.categoriaId)}</span>
+                  <span className="block truncate">{getNomeCategoria(mov.categoriaId, mov.temRateio)}</span>
                 </td>
 
                 {/* Valor */}

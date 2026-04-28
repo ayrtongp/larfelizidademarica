@@ -85,7 +85,7 @@ async function getLesoes(req: NextApiRequest, res: NextApiResponse, collection: 
         const lesoes = await collection.find().sort({ createdAt: -1 }).toArray();
         res.status(200).json(lesoes);
     } catch (error) {
-        console.error(error);
+        console.error('[Lesoes]', error);
         res.status(500).json({ message: 'Erro ao buscar lesões.' });
     }
 }
@@ -98,7 +98,7 @@ async function getLesoesByUserId(req: NextApiRequest, res: NextApiResponse, coll
         const lesoes = await collection.find({ userId }).sort({ createdAt: -1 }).toArray();
         res.status(200).json(lesoes);
     } catch (error) {
-        console.error(error);
+        console.error('[Lesoes]', error);
         res.status(500).json({ message: 'Erro ao buscar lesões.' });
     }
 }
@@ -129,7 +129,7 @@ async function postLesao(req: NextApiRequest, res: NextApiResponse, collection: 
             insertedId: result.insertedId,
         });
     } catch (error) {
-        console.error(error);
+        console.error('[Lesoes]', error);
         res.status(500).json({ message: 'Erro ao cadastrar lesão.' });
     }
 }
@@ -147,7 +147,7 @@ async function getLesaoById(id: string, res: NextApiResponse, collection: any) {
 
         return res.status(200).json(lesao);
     } catch (error) {
-        console.error(error);
+        console.error('[Lesoes]', error);
         return res.status(500).json({ message: 'Erro ao buscar lesão.' });
     }
 }
@@ -163,7 +163,7 @@ async function deleteLesao(id: string, res: NextApiResponse, collection: any) {
 
         return res.status(200).json({ message: 'Lesão removida com sucesso.' });
     } catch (error) {
-        console.error(error);
+        console.error('[Lesoes]', error);
         return res.status(500).json({ message: 'Erro ao deletar lesão.' });
     }
 }
@@ -203,7 +203,7 @@ async function updateLesao(id: string, req: NextApiRequest, res: NextApiResponse
 
         return res.status(200).json({ message: 'Lesão atualizada com sucesso.' });
     } catch (error) {
-        console.error(error);
+        console.error('[Lesoes]', error);
         return res.status(500).json({ message: 'Erro ao atualizar lesão.' });
     }
 }
@@ -230,7 +230,7 @@ async function updateStatusLesao(id: string, req: NextApiRequest, res: NextApiRe
 
         return res.status(200).json({ message: 'Status da lesão atualizado com sucesso.' });
     } catch (error) {
-        console.error(error);
+        console.error('[Lesoes]', error);
         return res.status(500).json({ message: 'Erro ao atualizar status da lesão.' });
     }
 }

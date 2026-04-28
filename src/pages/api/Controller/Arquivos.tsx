@@ -39,8 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             else if (req.query.type == 'getBydbNameAndId') {
                 try {
-                    const dbName = req.query.dbName;
-                    const residenteId = req.query.residenteId
+                    const dbName = typeof req.query.dbName === 'string' ? req.query.dbName : undefined;
+                    const residenteId = typeof req.query.residenteId === 'string' ? req.query.residenteId : undefined;
+                    if (!dbName || !residenteId) {
+                        return res.status(400).json({ error: 'Parâmetros inválidos' });
+                    }
                     const result = await collection.find({ dbName, residenteId }).sort({ createdAt: -1 }).toArray();
                     return res.status(200).json(result)
                 } catch (error) {

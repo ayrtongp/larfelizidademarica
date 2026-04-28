@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json(docs);
       } catch (err) {
-        console.error(err);
+        console.error('[C_familiarResidente]', err);
         return res.status(500).json({ message: 'Erro ao listar familiares do residente.' });
       }
     }
@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json(docs);
       } catch (err) {
-        console.error(err);
+        console.error('[C_familiarResidente]', err);
         return res.status(500).json({ message: 'Erro ao listar residentes do familiar.' });
       }
     }
@@ -103,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const result = await col.insertOne(doc);
         return res.status(201).json({ id: result.insertedId });
       } catch (err) {
-        console.error(err);
+        console.error('[C_familiarResidente]', err);
         return res.status(500).json({ message: 'Erro ao criar vínculo.' });
       }
     }
@@ -128,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json({ message: 'Vínculo atualizado.', ativo: !doc.ativo });
       } catch (err) {
-        console.error(err);
+        console.error('[C_familiarResidente]', err);
         return res.status(500).json({ message: 'Erro ao atualizar vínculo.' });
       }
     }
@@ -147,7 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(200).json({ message: 'Vínculo removido.' });
     } catch (err) {
-      console.error(err);
+      console.error('[C_familiarResidente]', err);
       return res.status(500).json({ message: 'Erro ao remover vínculo.' });
     }
   }

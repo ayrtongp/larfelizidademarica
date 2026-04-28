@@ -1,5 +1,13 @@
 // components/DataTable.tsx
 import { useEffect, useState } from 'react';
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+}
 import axios from 'axios';
 import TabelaPadrao from '@/components/TabelaPadrao';
 import PortalBase from '@/components/Portal/PortalBase'
@@ -84,7 +92,7 @@ const DataTable: React.FC = () => {
             <p className='m-1'>{arrayModal.area} - {arrayModal.usuario_nome}</p>
             <div className='p-1 border shadow-sm rounded-md bg-gray-50'>
               <p className='my-1 text-lg font-bold'>Descrição:</p>
-              <div dangerouslySetInnerHTML={{ __html: arrayModal.descricao }} />
+              <p style={{ whiteSpace: 'pre-wrap' }}>{stripHtml(arrayModal.descricao ?? '')}</p>
             </div>
             <button onClick={closeModal} className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
               Fechar

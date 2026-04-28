@@ -1,26 +1,21 @@
-import { MongoClient, Db, } from "mongodb";
-
-let db = null
+import { MongoClient } from "mongodb";
 
 if (!process.env.DATABASE_URI) {
   throw new Error("Please add your Mongo URI to .env.local");
 }
 
+// Em dev, o HMR recarrega módulos mas não o objeto global do Node.
+// Guardar aqui evita abrir uma nova conexão a cada reload.
+const cache = global._mongoCache ?? (global._mongoCache = { client: null, db: null });
+
 export default async function connect() {
-  if (db) {
-    return { db }
-  }
+  if (cache.db) return { db: cache.db };
 
-  const DATABASE_URI = process.env.DATABASE_URI
+  const client = new MongoClient(process.env.DATABASE_URI);
+  await client.connect();
 
-  const client = new MongoClient(DATABASE_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+  cache.client = client;
+  cache.db     = client.db(process.env.DB_LAR);
 
-  await client.connect()
-  db = client.db(process.env.DB_LAR)
-
-  return { db }
-
+  return { db: cache.db };
 }

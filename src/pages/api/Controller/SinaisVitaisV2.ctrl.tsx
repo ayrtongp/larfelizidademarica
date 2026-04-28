@@ -60,7 +60,7 @@ async function getAllSinais(req: NextApiRequest, res: NextApiResponse, collectio
         const sinais = await collection.find().sort({ createdAt: -1 }).toArray();
         res.status(200).json(sinais);
     } catch (error) {
-        console.error(error);
+        console.error('[SinaisVitaisV2.ctrl]', error);
         res.status(500).json({ message: 'Erro ao buscar sinais vitais.' });
     }
 }
@@ -98,7 +98,7 @@ async function getPagesSinais(req: NextApiRequest, res: NextApiResponse, collect
             .toArray();
         res.status(200).json({ total, page, pageSize, sinais });
     } catch (error) {
-        console.error(error);
+        console.error('[SinaisVitaisV2.ctrl]', error);
         res.status(500).json({ message: 'Erro ao buscar sinais vitais paginados.' });
     }
 }
@@ -114,7 +114,7 @@ async function getSinalById(id: string, res: NextApiResponse, collection: any) {
         }
         return res.status(200).json(sinal);
     } catch (error) {
-        console.error(error);
+        console.error('[SinaisVitaisV2.ctrl]', error);
         return res.status(500).json({ message: 'Erro ao buscar sinal vital.' });
     }
 }
@@ -145,7 +145,7 @@ async function insertSinal(req: NextApiRequest, res: NextApiResponse, collection
             insertedId: result.insertedId,
         });
     } catch (error) {
-        console.error(error);
+        console.error('[SinaisVitaisV2.ctrl]', error);
         res.status(500).json({ message: 'Erro ao cadastrar sinal vital.' });
     }
 }
@@ -179,7 +179,7 @@ async function updateSinal(id: string, req: NextApiRequest, res: NextApiResponse
         );
         return res.status(200).json({ message: 'Sinal vital atualizado com sucesso.' });
     } catch (error) {
-        console.error(error);
+        console.error('[SinaisVitaisV2.ctrl]', error);
         return res.status(500).json({ message: 'Erro ao atualizar sinal vital.' });
     }
 }
@@ -197,7 +197,7 @@ async function deleteSinal(id: string, res: NextApiResponse, collection: any) {
 
         return res.status(200).json({ message: 'Sinal vital removido com sucesso.' });
     } catch (error) {
-        console.error(error);
+        console.error('[SinaisVitaisV2.ctrl]', error);
         return res.status(500).json({ message: 'Erro ao deletar sinal vital.' });
     }
 }

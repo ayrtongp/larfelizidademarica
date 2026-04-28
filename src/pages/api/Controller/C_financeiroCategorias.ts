@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroCategorias]', err);
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           return res.status(200).json(document);
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroCategorias]', err);
           return res.status(500).json({ message: 'getById: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -60,8 +60,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ message: 'Campos obrigatórios ausentes: nome, tipo, ativo.' });
           }
 
-          if (!['receita', 'despesa'].includes(body.tipo)) {
-            return res.status(400).json({ message: 'Tipo inválido. Use "receita" ou "despesa".' });
+          if (!['receita', 'despesa', 'transferencia', 'sistema'].includes(body.tipo)) {
+            return res.status(400).json({ message: 'Tipo inválido. Use "receita", "despesa", "transferencia" ou "sistema".' });
+          }
+
+          const duplicado = await collection.findOne({
+            nome: { $regex: `^${body.nome.trim()}$`, $options: 'i' },
+            tipo: body.tipo,
+          });
+          if (duplicado) {
+            return res.status(400).json({ message: `Já existe uma categoria do tipo "${body.tipo}" com o nome "${body.nome}".` });
           }
 
           const dataFields = {
@@ -79,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const result = await collection.insertOne(dataFields);
           return res.status(201).json({ id: result.insertedId, message: 'Categoria criada com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroCategorias]', err);
           return res.status(500).json({ message: 'new: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -97,6 +105,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const reqId = req.query.id as string;
         try {
           const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+          if (body.nome && body.tipo) {
+            const duplicado = await collection.findOne({
+              _id: { $ne: new ObjectId(reqId) },
+              nome: { $regex: `^${body.nome.trim()}$`, $options: 'i' },
+              tipo: body.tipo,
+            });
+            if (duplicado) {
+              return res.status(400).json({ message: `Já existe uma categoria do tipo "${body.tipo}" com o nome "${body.nome}".` });
+            }
+          }
+
           const updateData = { ...body, updatedAt: new Date().toISOString() };
           delete updateData._id;
 
@@ -111,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           return res.status(200).json({ message: 'Categoria atualizada com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroCategorias]', err);
           return res.status(500).json({ message: 'update: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -135,7 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           return res.status(200).json({ message: `Categoria ${novoAtivo ? 'ativada' : 'desativada'} com sucesso.` });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroCategorias]', err);
           return res.status(500).json({ message: 'toggleAtivo: Erro não identificado. Procure um administrador.' });
         }
       }

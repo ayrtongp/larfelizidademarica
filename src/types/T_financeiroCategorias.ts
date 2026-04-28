@@ -1,7 +1,7 @@
 export interface T_Categoria {
   _id?: string;
   nome: string;
-  tipo: 'receita' | 'despesa';
+  tipo: 'receita' | 'despesa' | 'transferencia' | 'sistema';
   categoriaPaiId?: string | null;
   cor?: string;
   icone?: string;

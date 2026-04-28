@@ -1,5 +1,8 @@
 export type T_DataImportanteCat =
   | 'feriado_nacional'
+  | 'feriado_estadual'
+  | 'feriado_municipal'
+  | 'ponto_facultativo'
   | 'feriado_local'
   | 'data_comemorativa'
   | 'evento_institucional'
@@ -8,6 +11,9 @@ export type T_DataImportanteCat =
 
 export const DATA_IMPORTANTE_CAT_LABELS: Record<T_DataImportanteCat, string> = {
   feriado_nacional:     'Feriado Nacional',
+  feriado_estadual:     'Feriado Estadual',
+  feriado_municipal:    'Feriado Municipal',
+  ponto_facultativo:    'Ponto Facultativo',
   feriado_local:        'Feriado Local',
   data_comemorativa:    'Data Comemorativa',
   evento_institucional: 'Evento Institucional',
@@ -17,6 +23,9 @@ export const DATA_IMPORTANTE_CAT_LABELS: Record<T_DataImportanteCat, string> = {
 
 export const DATA_IMPORTANTE_CAT_COLORS: Record<T_DataImportanteCat, string> = {
   feriado_nacional:     'bg-red-100 text-red-700',
+  feriado_estadual:     'bg-orange-100 text-orange-700',
+  feriado_municipal:    'bg-amber-100 text-amber-700',
+  ponto_facultativo:    'bg-sky-100 text-sky-700',
   feriado_local:        'bg-orange-100 text-orange-700',
   data_comemorativa:    'bg-pink-100 text-pink-700',
   evento_institucional: 'bg-indigo-100 text-indigo-700',

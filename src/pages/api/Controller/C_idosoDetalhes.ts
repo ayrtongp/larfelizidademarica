@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb';
+import { requireAuth } from '@/utils/authMiddleware';
 
 // Pipeline unificado: usa patient (novos registros) com fallback para usuario (legado).
 // Usa $lookup com pipeline/$expr + $toString:'$_id' para evitar $toObjectId em campos
@@ -76,6 +77,8 @@ const lookupUsuarioPipeline = [
 ];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!requireAuth(req, res)) return;
+
   const { db } = await connect();
   const collection = db.collection('idoso_detalhes');
 
@@ -105,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(200).json(documents);
         } catch (err) {
           console.error('[C_idosoDetalhes] getAll error:', err);
-          return res.status(500).json({ message: 'getAll: Erro não identificado.', error: String(err) });
+          return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
 
@@ -123,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!result.length) return res.status(404).json({ message: 'Idoso não encontrado.' });
           return res.status(200).json(result[0]);
         } catch (err) {
-          console.error(err);
+          console.error('[C_idosoDetalhes]', err);
           return res.status(500).json({ message: 'getById: Erro não identificado.' });
         }
       }
@@ -218,7 +221,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           return res.status(201).json({ id: idosoResult.insertedId, message: 'Idoso admitido com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_idosoDetalhes]', err);
           return res.status(500).json({ message: 'new: Erro não identificado.' });
         }
       }
@@ -243,7 +246,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Idoso não encontrado.' });
           return res.status(200).json({ message: 'Admissão atualizada.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_idosoDetalhes]', err);
           return res.status(500).json({ message: 'updateAdmissao: Erro não identificado.' });
         }
       }
@@ -262,7 +265,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Idoso não encontrado.' });
           return res.status(200).json({ message: 'Responsável atualizado.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_idosoDetalhes]', err);
           return res.status(500).json({ message: 'updateResponsavel: Erro não identificado.' });
         }
       }
@@ -281,7 +284,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Idoso não encontrado.' });
           return res.status(200).json({ message: 'Família atualizada.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_idosoDetalhes]', err);
           return res.status(500).json({ message: 'updateFamilia: Erro não identificado.' });
         }
       }
@@ -300,7 +303,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Idoso não encontrado.' });
           return res.status(200).json({ message: 'Histórico atualizado.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_idosoDetalhes]', err);
           return res.status(500).json({ message: 'updateHistorico: Erro não identificado.' });
         }
       }
@@ -328,7 +331,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Idoso não encontrado.' });
           return res.status(200).json({ message: 'Status atualizado.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_idosoDetalhes]', err);
           return res.status(500).json({ message: 'updateStatus: Erro não identificado.' });
         }
       }

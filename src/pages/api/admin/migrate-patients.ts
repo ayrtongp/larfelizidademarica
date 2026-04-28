@@ -9,12 +9,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ObjectId } from 'mongodb';
 import connect from '../../../utils/Database';
+import crypto from 'crypto';
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(405).json({ message: 'Method not allowed.' });
 
   const secret = process.env.MIGRATION_SECRET;
-  if (!secret || req.query.secret !== secret) {
+  const provided = typeof req.query.secret === 'string' ? req.query.secret : '';
+  if (!secret || !provided || !timingSafeEqual(secret, provided)) {
     return res.status(403).json({ message: 'Acesso negado.' });
   }
 

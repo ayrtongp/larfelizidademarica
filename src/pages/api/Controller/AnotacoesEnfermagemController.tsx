@@ -3,6 +3,10 @@ import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb'
 import { formatDateBR, getCurrentDateTime } from '@/utils/Functions';
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse,) {
 
   const { db } = await connect();
@@ -64,11 +68,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       else if (req.query.type === 'search' && (req.query.nome || req.query.data)) {
         let searchObject = {}
         if (req.query.nome) {
-          const regex = new RegExp(req.query.nome as string, 'i');
+          const safe = escapeRegex(req.query.nome as string);
+          const regex = new RegExp(safe, 'i');
           searchObject = Object.assign(searchObject, { idoso: regex });
         }
         if (req.query.data) { searchObject = Object.assign(searchObject, { data: req.query.data }); }
-        const documents = await mainCollection.find(searchObject).toArray();
+        const documents = await mainCollection.find(searchObject).limit(500).toArray();
         return res.status(200).json(documents);
       }
 
@@ -110,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           // const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
           // return res.status(200).json({ data: data });
         } catch (err) {
-          console.error(err)
+          console.error('[AnotacoesEnfermagemController]', err)
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }

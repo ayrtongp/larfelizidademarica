@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getUserID } from '@/utils/Login';
 
 import SidebarLinkGroup from './SidebarLinkGroup';
 import { useRouter } from 'next/router';
@@ -24,6 +25,19 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const { hasGroup: hasCoordenacao } = useHasGroup('coordenacao');
   const { hasGroup: hasMedicina } = useHasGroup('medicina');
   const { hasGroup: hasEnfermagem } = useHasGroup('equipe_enfermagem');
+  const [tarefasBadge, setTarefasBadge] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const uid = getUserID();
+      if (!uid) return;
+      fetch(`/api/Controller/C_tarefas?type=countPendentes&userId=${uid}`)
+        .then(r => r.ok ? r.json() : { count: 0 })
+        .then(d => setTarefasBadge(d.count ?? 0))
+        .catch(() => {});
+    } catch {}
+  }, [pathname]);
 
   const dashboardMenu = [
     { title: 'Início', path: '/portal/dashboard' },
@@ -90,6 +104,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
     { title: 'Recorrências', path: '/portal/financeiro/recorrencias' },
     { title: 'Relatórios', path: '/portal/financeiro/relatorios' },
     { title: 'Matriz Idosos', path: '/portal/financeiro/matriz-idosos' },
+    { title: 'Matriz Categorias', path: '/portal/financeiro/matriz-categorias' },
   ]
 
   const customClasses = {
@@ -296,6 +311,29 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                     );
                   }}
                 </SidebarLinkGroup>
+
+                {/* Tarefas */}
+                <div>
+                  <li className={`px-3 py-2 rounded-sm mb-0.5 last:mb-0 ${pathname.includes('/portal/tarefas') && 'bg-slate-900'}`}>
+                    <Link href="/portal/tarefas" className={`block text-slate-200 truncate transition duration-150 ${pathname.includes('/portal/tarefas') ? 'hover:text-slate-200' : 'hover:text-white'}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <svg className="shrink-0 h-6 w-6" viewBox="0 0 24 24" fill="none">
+                            <path className={`fill-current ${pathname.includes('/portal/tarefas') ? 'text-indigo-500' : 'text-slate-600'}`} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          <span className={`text-sm font-medium ml-3 ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>
+                            Tarefas
+                          </span>
+                          {tarefasBadge > 0 && (
+                            <span className={`ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 leading-none ${sidebarExpanded ? `lg:inline` : `lg:hidden`} 2xl:inline`}>
+                              {tarefasBadge}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  </li>
+                </div>
 
                 {/* RH / Funcionários CLT */}
                 {hasRH && <SidebarLinkGroup activecondition={rhMenu.some((item) => pathname.includes(item.path))}>

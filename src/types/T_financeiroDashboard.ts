@@ -17,6 +17,12 @@ export interface T_SaldoConta {
   saldoAtual: number;
 }
 
+export interface T_EvolucaoMensal {
+  mes: string; // YYYY-MM
+  entradas: number;
+  saidas: number;
+}
+
 export interface T_TituloVencimento {
   _id: string;
   descricao: string;

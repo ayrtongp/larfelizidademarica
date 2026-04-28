@@ -19,6 +19,10 @@ const S_financeiroCategorias = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao criar categoria.');
+    }
     return res.json();
   },
 
@@ -28,6 +32,10 @@ const S_financeiroCategorias = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao atualizar categoria.');
+    }
     return res.json();
   },
 

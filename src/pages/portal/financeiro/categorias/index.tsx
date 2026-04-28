@@ -16,6 +16,7 @@ const CategoriasFinanceiras = () => {
   const [savingData, setSavingData] = useState<boolean>(false);
   const [showForm, setShowForm] = useState<boolean>(false);
   const [editingCategoria, setEditingCategoria] = useState<T_Categoria | undefined>(undefined);
+  const [erroSalvar, setErroSalvar] = useState<string>('');
 
   const loadCategorias = async () => {
     try {
@@ -37,22 +38,26 @@ const CategoriasFinanceiras = () => {
 
   const handleOpenNew = () => {
     setEditingCategoria(undefined);
+    setErroSalvar('');
     setShowForm(true);
   };
 
   const handleEdit = (cat: T_Categoria) => {
     setEditingCategoria(cat);
+    setErroSalvar('');
     setShowForm(true);
   };
 
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingCategoria(undefined);
+    setErroSalvar('');
   };
 
   const handleSave = async (data: T_Categoria) => {
     try {
       setSavingData(true);
+      setErroSalvar('');
       if (editingCategoria?._id) {
         await S_financeiroCategorias.update(editingCategoria._id, data);
       } else {
@@ -60,8 +65,8 @@ const CategoriasFinanceiras = () => {
       }
       handleCloseForm();
       await loadCategorias();
-    } catch (error) {
-      console.error('Erro ao salvar categoria:', error);
+    } catch (error: any) {
+      setErroSalvar(error.message || 'Erro ao salvar categoria.');
     } finally {
       setSavingData(false);
     }
@@ -124,10 +129,16 @@ const CategoriasFinanceiras = () => {
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             {editingCategoria ? 'Editar Categoria' : 'Nova Categoria'}
           </h2>
+          {erroSalvar && (
+            <div className="mb-4 px-3 py-2 rounded bg-red-50 border border-red-200 text-red-700 text-sm">
+              {erroSalvar}
+            </div>
+          )}
           <CategoriaForm
             onSave={handleSave}
             initialData={editingCategoria}
             loading={savingData}
+            categorias={categorias}
           />
         </ModalPadrao>
       </PortalBase>

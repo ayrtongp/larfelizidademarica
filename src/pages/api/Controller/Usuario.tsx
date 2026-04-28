@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ usuario, message: 'Usuário Localizado', url: url, method: 'GET' });
 
         } catch (error) {
-          console.error(error)
+          console.error('[Usuario]', error)
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
       }
@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             .sort({ nome: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err)
+          console.error('[Usuario]', err)
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -77,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ result: result[0], message: 'Usuário Localizado', method: 'GET' });
 
         } catch (err) {
-          console.error(err)
+          console.error('[Usuario]', err)
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -186,7 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const result = await mainCollection.insertOne(doc);
           return res.status(201).json({ id: result.insertedId });
         } catch (err) {
-          console.error(err);
+          console.error('[Usuario]', err);
           return res.status(500).json({ message: 'newFamiliar: Erro não identificado.' });
         }
       }

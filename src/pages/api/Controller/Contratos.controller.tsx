@@ -24,7 +24,7 @@ export default async function handler(
                         .toArray();
                     return res.status(200).json(contratos);
                 } catch (error) {
-                    console.error(error);
+                    console.error('[Contratos.controller]', error);
                     return res.status(500).json({ message: 'Erro ao buscar contratos.' });
                 }
             }
@@ -39,7 +39,7 @@ export default async function handler(
                         .toArray();
                     return res.status(200).json(contratos);
                 } catch (error) {
-                    console.error(error);
+                    console.error('[Contratos.controller]', error);
                     return res.status(500).json({ message: 'Erro ao buscar contratos do usuário.' });
                 }
             }
@@ -56,7 +56,7 @@ export default async function handler(
                     }
                     return res.status(200).json(contrato);
                 } catch (error) {
-                    console.error(error);
+                    console.error('[Contratos.controller]', error);
                     return res.status(500).json({ message: 'Erro ao buscar contrato.' });
                 }
             }
@@ -67,7 +67,7 @@ export default async function handler(
                     const count = await mainCollection.countDocuments();
                     return res.status(200).json({ count });
                 } catch (error) {
-                    console.error(error);
+                    console.error('[Contratos.controller]', error);
                     return res.status(500).json({ message: 'Erro ao contar contratos.' });
                 }
             }
@@ -91,7 +91,7 @@ export default async function handler(
 
                     return res.status(200).json({ page, limit, total: metadata, data });
                 } catch (error) {
-                    console.error(error);
+                    console.error('[Contratos.controller]', error);
                     return res.status(500).json({ message: 'Erro na paginação.' });
                 }
             }
@@ -151,7 +151,7 @@ export default async function handler(
                     const result = await mainCollection.insertOne(toInsert as any);
                     return res.status(201).json({ id: result.insertedId, numero_contrato });
                 } catch (error) {
-                    console.error(error);
+                    console.error('[Contratos.controller]', error);
                     return res.status(500).json({ message: 'Erro ao criar contrato.' });
                 }
             }
@@ -176,7 +176,7 @@ export default async function handler(
                     }
                     return res.status(200).json({ message: 'Contrato atualizado.' });
                 } catch (error) {
-                    console.error(error);
+                    console.error('[Contratos.controller]', error);
                     return res.status(500).json({ message: 'Erro ao atualizar contrato.' });
                 }
             }
@@ -194,7 +194,7 @@ export default async function handler(
                     }
                     return res.status(200).json({ message: 'Contrato removido.' });
                 } catch (error) {
-                    console.error(error);
+                    console.error('[Contratos.controller]', error);
                     return res.status(500).json({ message: 'Erro ao deletar contrato.' });
                 }
             }

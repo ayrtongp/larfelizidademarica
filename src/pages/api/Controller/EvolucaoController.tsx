@@ -50,7 +50,7 @@ async function getAll(req: NextApiRequest, res: NextApiResponse, mainCollection:
     const documents = await mainCollection.find().sort().toArray();
     return res.status(200).json(documents);
   } catch (err) {
-    console.error(err);
+    console.error('[EvolucaoController]', err);
     return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
   }
 }
@@ -63,7 +63,7 @@ async function getLast50(req: NextApiRequest, res: NextApiResponse, mainCollecti
     const count = await mainCollection.countDocuments();
     return res.status(200).json({ count, data: documents });
   } catch (err) {
-    console.error(err);
+    console.error('[EvolucaoController]', err);
     return res.status(500).json({ message: 'getLast50: Erro não identificado. Procure um administrador.' });
   }
 }
@@ -96,7 +96,7 @@ async function getPages(req: NextApiRequest, res: NextApiResponse, mainCollectio
     const data = await mainCollection.find().sort({ data: -1 }).skip(skip).limit(limit).toArray();
     return res.status(200).json({ data });
   } catch (err) {
-    console.error(err);
+    console.error('[EvolucaoController]', err);
     return res.status(500).json({ message: 'pages: Erro não identificado. Procure um administrador.' });
   }
 }
@@ -110,7 +110,7 @@ async function getById(req: NextApiRequest, res: NextApiResponse, mainCollection
     }
     return res.status(200).json({ result, message: 'Residente Localizado', method: 'GET' });
   } catch (error) {
-    console.error(error);
+    console.error('[EvolucaoController]', error);
     return res.status(500).json({ message: 'getById: Erro não identificado. Procure um administrador.' });
   }
 }

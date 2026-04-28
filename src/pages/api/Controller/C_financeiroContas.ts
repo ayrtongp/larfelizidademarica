@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroContas]', err);
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroContas]', err);
           return res.status(500).json({ message: 'getAtivas: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           return res.status(200).json(document);
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroContas]', err);
           return res.status(500).json({ message: 'getById: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -95,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const result = await collection.insertOne(dataFields);
           return res.status(201).json({ id: result.insertedId, message: 'Conta financeira criada com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroContas]', err);
           return res.status(500).json({ message: 'new: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -131,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           return res.status(200).json({ message: 'Conta atualizada com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroContas]', err);
           return res.status(500).json({ message: 'update: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -155,7 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           return res.status(200).json({ message: `Conta ${novoAtivo ? 'ativada' : 'desativada'} com sucesso.` });
         } catch (err) {
-          console.error(err);
+          console.error('[C_financeiroContas]', err);
           return res.status(500).json({ message: 'toggleAtivo: Erro não identificado. Procure um administrador.' });
         }
       }

@@ -10,6 +10,13 @@ export interface GetAllParams {
   limit?: number;
 }
 
+export interface TotaisResult {
+  totalEntradas: number;
+  totalSaidas: number;
+  resultado: number;
+  count: number;
+}
+
 export interface GetAllResult {
   items: T_Movimentacao[];
   total: number;
@@ -102,6 +109,18 @@ const S_financeiroMovimentacoes = {
       const text = await res.text();
       throw new Error(`Erro ao atualizar movimentação: ${text}`);
     }
+  },
+
+  getTotals: async (p?: Pick<GetAllParams, 'conditions' | 'logic'>): Promise<TotaisResult> => {
+    const params = new URLSearchParams({ type: 'totals' });
+    const active = (p?.conditions ?? []).filter(c =>
+      c.operator === 'empty' || c.operator === 'notempty' || c.value !== '',
+    );
+    if (active.length) params.append('conditions', JSON.stringify(active));
+    if (p?.logic)      params.append('logic', p.logic);
+    const res = await fetch(`${baseUrl}?${params.toString()}`);
+    if (!res.ok) throw new Error('Erro ao buscar totais.');
+    return res.json();
   },
 
   updateMany: async (

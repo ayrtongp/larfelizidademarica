@@ -122,9 +122,23 @@ const Index = () => {
                         <div className="grid grid-cols-12 gap-5 p-2 mt-4 justify-center text-lg font-serif">
                             {comunicados.length > 0 && comunicados.map((comunicado: any, index: number) => {
                                 return (
-                                    <Topic key={index} _id={comunicado._id} read={comunicado.isRead}
-                                        title={slice3Points(comunicado.title, 15, 0)} description={slice3Points(comunicado.description, 25, 0)}
-                                        href={`/portal/comunicados/${comunicado._id}`} date={formatDateBR(comunicado.createdAt)} />
+                                    <div key={index} className="col-span-full md:col-span-6 lg:col-span-4 relative">
+                                        <Topic _id={comunicado._id} read={comunicado.isRead}
+                                            title={slice3Points(comunicado.title, 15, 0)} description={slice3Points(comunicado.description, 25, 0)}
+                                            href={`/portal/comunicados/${comunicado._id}`} date={formatDateBR(comunicado.createdAt)} />
+                                        {isAdmin && (
+                                            <button
+                                                onClick={async () => {
+                                                    await fetch(`/api/Controller/Comunicados?type=togglePublico&id=${comunicado._id}`, { method: 'PUT' });
+                                                    fetchComunicados();
+                                                }}
+                                                title={comunicado.publico ? 'Visível às famílias — clique para ocultar' : 'Oculto das famílias — clique para publicar'}
+                                                className={`absolute top-2 right-2 text-xs px-2 py-0.5 rounded-full font-semibold transition-colors ${comunicado.publico ? 'bg-rose-100 text-rose-600 hover:bg-rose-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                                            >
+                                                {comunicado.publico ? '👨‍👩‍👧 Família' : 'Oculto'}
+                                            </button>
+                                        )}
+                                    </div>
                                 )
                             })}
                         </div>

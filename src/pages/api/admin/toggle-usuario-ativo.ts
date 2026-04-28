@@ -1,9 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connect from '@/utils/Database';
 import { ObjectId } from 'mongodb';
+import { requireAuth } from '@/utils/authMiddleware';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'PUT') return res.status(405).json({ ok: false });
+
+    if (!requireAuth(req, res)) return;
 
     const { id, ativo } = req.query;
 
@@ -18,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         );
         return res.status(200).json({ ok: true });
     } catch (err: any) {
-        return res.status(500).json({ ok: false, message: err?.message ?? 'Erro interno' });
+        console.error('[toggle-usuario-ativo]', err);
+        return res.status(500).json({ ok: false, message: 'Erro interno. Contate um administrador.' });
     }
 }

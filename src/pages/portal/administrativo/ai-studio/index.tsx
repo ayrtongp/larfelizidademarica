@@ -403,16 +403,16 @@ const AIStudioPage = () => {
 
       const response = await S_ai.complete({
         provider: 'gemini',
-        prompt: `Analise esta imagem e identifique todos os produtos/itens visíveis (higiene, fraldas, medicamentos, alimentos, materiais hospitalares, etc).
+        prompt: `Analise esta imagem e identifique TODOS os itens visíveis, de qualquer categoria: medicamentos, fraldas, higiene pessoal, roupas, calçados, acessórios, alimentos, materiais de limpeza, equipamentos, utensílios, ou qualquer outro objeto contável.
 Para cada item retorne um objeto com:
-- nome: nome completo do produto incluindo dosagem e forma farmacêutica (ex: "Losartana 50mg comprimido", "Fralda Geriátrica G", "Pomada Bepantol 30g")
+- nome: nome descritivo completo do item (ex: "Losartana 50mg comprimido", "Fralda Geriátrica G", "Camiseta manga curta azul M", "Calça de moletom cinza G", "Sabonete Dove 90g")
 - marca: marca visível (string, "" se não identificável)
 - quantidade: quantidade de unidades visíveis ou estimada (number, mínimo 1)
-- descricao: informação extra relevante não incluída no nome (string, "" se não aplicável)
+- descricao: informação extra relevante não incluída no nome como cor, tamanho, modelo (string, "" se não aplicável)
 
-IMPORTANTE: Se o mesmo produto aparecer mais de uma vez na imagem, agrupe em uma única linha somando a quantidade. Não repita linhas para o mesmo produto.
+IMPORTANTE: Se o mesmo item aparecer mais de uma vez na imagem, agrupe em uma única linha somando a quantidade. Não repita linhas para o mesmo item.
 Responda APENAS com um array JSON válido, sem texto adicional, sem markdown.`,
-        systemPrompt: 'Você é um assistente de controle de estoque hospitalar. Analise imagens e retorne dados estruturados em JSON.',
+        systemPrompt: 'Você é um assistente de controle de estoque e inventário. Analise imagens e identifique todos os itens visíveis de qualquer categoria, retornando dados estruturados em JSON.',
         image,
         jsonMode: true,
       });

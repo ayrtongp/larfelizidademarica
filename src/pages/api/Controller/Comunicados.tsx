@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const documents = await mainCollection.find().sort({ ano: -1, numero: -1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err)
+          console.error('[Comunicados]', err)
           return res.status(500).json({ message: `type: ${type}: Erro não identificado. Procure um administrador.` });
         }
       }
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ result, message: 'Residente Localizado', method: 'GET' });
 
         } catch (error) {
-          console.error(error)
+          console.error('[Comunicados]', error)
 
           return res.status(500).json({ message: `type: ${type}: Erro não identificado. Procure um administrador.` });
         }
@@ -122,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(201).json({ message: 'OK', id: novoRegitro.insertedId, method: 'POST' });
 
         } catch (err) {
-          console.error(err)
+          console.error('[Comunicados]', err)
 
           return res.status(500).json({ message: `type ${type}: Erro não identificado. Procure um administrador.` });
         }
@@ -138,6 +138,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     // -------------------------
 
     case 'PUT':
+
+      if (type === 'togglePublico') {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ message: 'id é obrigatório.' });
+        try {
+          const doc = await mainCollection.findOne({ _id: new ObjectId(id as string) });
+          const publico = !(doc?.publico ?? false);
+          await mainCollection.updateOne(
+            { _id: new ObjectId(id as string) },
+            { $set: { publico, updatedAt: getCurrentDateTime() } }
+          );
+          return res.status(200).json({ publico });
+        } catch {
+          return res.status(500).json({ message: 'Erro ao atualizar visibilidade.' });
+        }
+      }
 
       if (type == 'confirmarLeitura') {
         try {

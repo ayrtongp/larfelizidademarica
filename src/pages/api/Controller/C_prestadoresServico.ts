@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const documents = await collection.aggregate(pipeline).toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err);
+          console.error('[C_prestadoresServico]', err);
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!result.length) return res.status(404).json({ message: 'Prestador não encontrado.' });
           return res.status(200).json(result[0]);
         } catch (err) {
-          console.error(err);
+          console.error('[C_prestadoresServico]', err);
           return res.status(500).json({ message: 'getById: Erro não identificado.' });
         }
       }
@@ -129,7 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const result = await collection.insertOne(doc);
           return res.status(201).json({ id: result.insertedId, message: 'Prestador cadastrado com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_prestadoresServico]', err);
           return res.status(500).json({ message: 'new: Erro não identificado.' });
         }
       }
@@ -154,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Prestador não encontrado.' });
           return res.status(200).json({ message: 'Contrato atualizado com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_prestadoresServico]', err);
           return res.status(500).json({ message: 'updateContrato: Erro não identificado.' });
         }
       }
@@ -173,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Prestador não encontrado.' });
           return res.status(200).json({ message: 'Dados atualizados com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_prestadoresServico]', err);
           return res.status(500).json({ message: 'updateDados: Erro não identificado.' });
         }
       }
@@ -192,7 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Prestador não encontrado.' });
           return res.status(200).json({ message: 'Dados bancários atualizados com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_prestadoresServico]', err);
           return res.status(500).json({ message: 'updateBancarios: Erro não identificado.' });
         }
       }
@@ -211,7 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Prestador não encontrado.' });
           return res.status(200).json({ message: 'Observações atualizadas com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_prestadoresServico]', err);
           return res.status(500).json({ message: 'updateObservacoes: Erro não identificado.' });
         }
       }
@@ -234,7 +234,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Prestador não encontrado.' });
           return res.status(200).json({ message: 'Status atualizado com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_prestadoresServico]', err);
           return res.status(500).json({ message: 'updateStatus: Erro não identificado.' });
         }
       }

@@ -6,11 +6,12 @@ export interface Comunicado {
 
     title: string;
     description: string;
-    
+
     createdBy?: string;
     creatorName?: string;
 
-    readers?: Reader[]
+    readers?: Reader[];
+    publico?: boolean;
 }
 
 interface Reader {

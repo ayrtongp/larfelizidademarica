@@ -45,7 +45,7 @@ async function getAll(req: NextApiRequest, res: NextApiResponse, collection: any
         const result = await collection.find().sort({ createdAt: -1 }).toArray();
         res.status(200).json(result);
     } catch (error) {
-        console.error(error);
+        console.error('[prescricao.controller]', error);
         res.status(500).json({ message: 'Erro ao buscar prescrições.' });
     }
 }
@@ -65,7 +65,7 @@ async function getById(req: NextApiRequest, res: NextApiResponse, collection: an
         if (!result) return res.status(404).json({ message: 'Prescrição não encontrada.' });
         res.status(200).json(result);
     } catch (error) {
-        console.error(error);
+        console.error('[prescricao.controller]', error);
         res.status(500).json({ message: 'Erro ao buscar prescrição.' });
     }
 }
@@ -84,7 +84,7 @@ async function getByResidente(req: NextApiRequest, res: NextApiResponse, collect
         const result = await collection.find({ residenteId }).sort({ createdAt: -1 }).toArray();
         res.status(200).json(result);
     } catch (error) {
-        console.error(error);
+        console.error('[prescricao.controller]', error);
         res.status(500).json({ message: 'Erro ao buscar prescrições.' });
     }
 }
@@ -122,7 +122,7 @@ async function postPrescricao(req: NextApiRequest, res: NextApiResponse, collect
         });
         res.status(201).json({ message: 'Prescrição cadastrada com sucesso.', insertedId: result.insertedId });
     } catch (error) {
-        console.error(error);
+        console.error('[prescricao.controller]', error);
         res.status(500).json({ message: 'Erro ao cadastrar prescrição.' });
     }
 }
@@ -151,7 +151,7 @@ async function updatePrescricao(req: NextApiRequest, res: NextApiResponse, colle
         await collection.updateOne({ _id: new ObjectId(id) }, { $set: updates });
         res.status(200).json({ message: 'Prescrição atualizada com sucesso.' });
     } catch (error) {
-        console.error(error);
+        console.error('[prescricao.controller]', error);
         res.status(500).json({ message: 'Erro ao atualizar prescrição.' });
     }
 }
@@ -180,7 +180,7 @@ async function updateStatus(req: NextApiRequest, res: NextApiResponse, collectio
 
         return res.status(200).json({ message: 'Status atualizado com sucesso.' });
     } catch (error) {
-        console.error(error);
+        console.error('[prescricao.controller]', error);
         return res.status(500).json({ message: 'Erro ao atualizar status.' });
     }
 }
@@ -202,7 +202,7 @@ async function deletePrescricao(req: NextApiRequest, res: NextApiResponse, colle
 
         return res.status(200).json({ message: 'Prescrição removida com sucesso.' });
     } catch (error) {
-        console.error(error);
+        console.error('[prescricao.controller]', error);
         return res.status(500).json({ message: 'Erro ao deletar prescrição.' });
     }
 }

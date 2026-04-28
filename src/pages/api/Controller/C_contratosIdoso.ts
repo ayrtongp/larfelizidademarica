@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err);
+          console.error('[C_contratosIdoso]', err);
           return res.status(500).json({ message: 'getByIdosoId: Erro não identificado.' });
         }
       }
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const documents = await collection.aggregate(pipeline).toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err);
+          console.error('[C_contratosIdoso]', err);
           return res.status(500).json({ message: 'getAll: Erro não identificado.' });
         }
       }
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!doc) return res.status(404).json({ message: 'Contrato não encontrado.' });
           return res.status(200).json(doc);
         } catch (err) {
-          console.error(err);
+          console.error('[C_contratosIdoso]', err);
           return res.status(500).json({ message: 'getById: Erro não identificado.' });
         }
       }
@@ -135,7 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const result = await collection.insertOne(doc);
           return res.status(201).json({ id: result.insertedId, message: 'Contrato criado com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_contratosIdoso]', err);
           return res.status(500).json({ message: 'new: Erro não identificado.' });
         }
       }
@@ -206,7 +206,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const resultTitulo = await titulosCollection.insertOne(titulo);
           return res.status(201).json({ id: resultTitulo.insertedId, valor: valorFinal, message: 'Cobrança gerada com sucesso.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_contratosIdoso]', err);
           return res.status(500).json({ message: 'gerarCobranca: Erro não identificado.' });
         }
       }
@@ -232,7 +232,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           );
           return res.status(200).json({ message: 'Check-in registrado.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_contratosIdoso]', err);
           return res.status(500).json({ message: 'addCheckin: Erro não identificado.' });
         }
       }
@@ -259,7 +259,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Contrato não encontrado.' });
           return res.status(200).json({ message: 'Status atualizado.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_contratosIdoso]', err);
           return res.status(500).json({ message: 'updateStatus: Erro não identificado.' });
         }
       }
@@ -280,7 +280,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Contrato não encontrado.' });
           return res.status(200).json({ message: 'Billing atualizado.' });
         } catch (err) {
-          console.error(err);
+          console.error('[C_contratosIdoso]', err);
           return res.status(500).json({ message: 'updateBilling: Erro não identificado.' });
         }
       }

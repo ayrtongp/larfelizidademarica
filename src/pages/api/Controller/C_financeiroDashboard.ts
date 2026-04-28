@@ -38,12 +38,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Movimentações do mês
         const movEntradas = await db.collection('financeiro_movimentacoes').find({
-          tipo: 'entrada',
+          tipoMovimento: 'entrada',
           dataMovimento: { $gte: inicioMes, $lte: fimMes },
         }).toArray();
 
         const movSaidas = await db.collection('financeiro_movimentacoes').find({
-          tipo: 'saida',
+          tipoMovimento: 'saida',
           dataMovimento: { $gte: inicioMes, $lte: fimMes },
         }).toArray();
 
@@ -128,6 +128,76 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         );
 
         return res.status(200).json(contasComSaldo);
+      }
+
+      if (type === 'saldoNaData') {
+        const { data } = req.query;
+        if (!data) return res.status(400).json({ message: 'data é obrigatório (YYYY-MM-DD).' });
+
+        const contas = await db.collection('financeiro_contas').find({ ativo: true }).toArray();
+
+        const contasComSaldo = await Promise.all(
+          contas.map(async (conta: any) => {
+            const id = conta._id.toString();
+            const filtroBase = { contaFinanceiraId: id, dataMovimento: { $lte: data as string } };
+
+            const entradas = await db.collection('financeiro_movimentacoes')
+              .aggregate([
+                { $match: { ...filtroBase, tipoMovimento: 'entrada' } },
+                { $group: { _id: null, total: { $sum: '$valor' } } },
+              ]).toArray();
+
+            const saidas = await db.collection('financeiro_movimentacoes')
+              .aggregate([
+                { $match: { ...filtroBase, tipoMovimento: 'saida' } },
+                { $group: { _id: null, total: { $sum: '$valor' } } },
+              ]).toArray();
+
+            const totalEntradas = entradas[0]?.total ?? 0;
+            const totalSaidas   = saidas[0]?.total   ?? 0;
+            const saldoNaData   = (conta.saldoInicial || 0) + totalEntradas - totalSaidas;
+
+            return {
+              _id:         id,
+              nome:        conta.nome,
+              tipo:        conta.tipo,
+              banco:       conta.banco,
+              saldoInicial: conta.saldoInicial || 0,
+              saldoNaData,
+            };
+          })
+        );
+
+        const totalGeral = contasComSaldo.reduce((acc, c) => acc + c.saldoNaData, 0);
+        return res.status(200).json({ data, contas: contasComSaldo, totalGeral });
+      }
+
+      if (type === 'evolucaoMensal') {
+        const qtd = Math.min(Number(req.query.meses) || 6, 24);
+        const meses: { mes: string; entradas: number; saidas: number }[] = [];
+
+        const now = new Date();
+        for (let i = qtd - 1; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const comp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const inicioMes = `${comp}-01`;
+          const fimMes = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+          const [entResult, saiResult] = await Promise.all([
+            db.collection('financeiro_movimentacoes').aggregate([
+              { $match: { tipoMovimento: 'entrada', dataMovimento: { $gte: inicioMes, $lte: fimMes } } },
+              { $group: { _id: null, total: { $sum: '$valor' } } },
+            ]).toArray(),
+            db.collection('financeiro_movimentacoes').aggregate([
+              { $match: { tipoMovimento: 'saida', dataMovimento: { $gte: inicioMes, $lte: fimMes } } },
+              { $group: { _id: null, total: { $sum: '$valor' } } },
+            ]).toArray(),
+          ]);
+
+          meses.push({ mes: comp, entradas: entResult[0]?.total ?? 0, saidas: saiResult[0]?.total ?? 0 });
+        }
+
+        return res.status(200).json(meses);
       }
 
       return res.status(400).json({ message: 'GET: Nenhum query.type identificado.' });

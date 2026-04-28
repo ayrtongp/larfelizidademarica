@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       pages: Math.ceil(total / limit),
     });
   } catch (err) {
-    console.error(err);
+    console.error('[auditoria.controller]', err);
     return res.status(500).json({ message: 'Erro ao buscar registros de auditoria.' });
   }
 }

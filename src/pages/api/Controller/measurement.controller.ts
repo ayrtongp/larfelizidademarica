@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json({ sessions: result, total });
       } catch (err) {
-        console.error(err);
+        console.error('[measurement.controller]', err);
         return res.status(500).json({ message: 'Erro ao listar sessões.' });
       }
     }
@@ -124,7 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json(result);
       } catch (err) {
-        console.error(err);
+        console.error('[measurement.controller]', err);
         return res.status(500).json({ message: 'Erro ao gerar painel.' });
       }
     }
@@ -210,7 +210,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(201).json({ message: 'Sessão registrada.', sessionId });
     } catch (err) {
-      console.error(err);
+      console.error('[measurement.controller]', err);
       return res.status(500).json({ message: 'Erro ao registrar sessão.' });
     }
   }

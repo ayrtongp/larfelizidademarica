@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const docs = await col.find().sort({ data: 1 }).toArray();
           return res.status(200).json(docs);
         } catch (err) {
-          console.error(err);
+          console.error('[DatasImportantes]', err);
           return res.status(500).json({ message: 'getAll: erro interno.' });
         }
       }
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const result = await col.insertOne(doc);
           return res.status(201).json({ id: result.insertedId });
         } catch (err) {
-          console.error(err);
+          console.error('[DatasImportantes]', err);
           return res.status(500).json({ message: 'new: erro interno.' });
         }
       }
@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
           return res.status(200).json({ message: 'Atualizado.' });
         } catch (err) {
-          console.error(err);
+          console.error('[DatasImportantes]', err);
           return res.status(500).json({ message: 'update: erro interno.' });
         }
       }
@@ -95,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           return res.status(200).json({ message: 'Excluída.' });
         } catch (err) {
-          console.error(err);
+          console.error('[DatasImportantes]', err);
           return res.status(500).json({ message: 'delete: erro interno.' });
         }
       }

@@ -98,7 +98,7 @@ async function getByData(req: NextApiRequest, res: NextApiResponse, db: any, col
 
         return res.status(200).json(slots);
     } catch (err) {
-        console.error(err);
+        console.error('[administracao.controller]', err);
         return res.status(500).json({ message: 'Erro ao buscar dados do dia.' });
     }
 }
@@ -135,7 +135,7 @@ async function registrar(req: NextApiRequest, res: NextApiResponse, col: any) {
             return res.status(201).json({ message: 'Registro criado.' });
         }
     } catch (err) {
-        console.error(err);
+        console.error('[administracao.controller]', err);
         return res.status(500).json({ message: 'Erro ao registrar administração.' });
     }
 }
@@ -158,7 +158,7 @@ async function updateStatus(req: NextApiRequest, res: NextApiResponse, col: any)
         if (result.matchedCount === 0) return res.status(404).json({ message: 'Registro não encontrado.' });
         return res.status(200).json({ message: 'Status atualizado.' });
     } catch (err) {
-        console.error(err);
+        console.error('[administracao.controller]', err);
         return res.status(500).json({ message: 'Erro ao atualizar status.' });
     }
 }

@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const documents = await mainCollection.find().sort({ nome_grupo: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err)
+          console.error('[Grupos]', err)
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           const documents = await mainCollection.find({ cod_categoria: cod_categoria }).sort({ nome_insumo: 1 }).toArray();
           return res.status(200).json(documents);
         } catch (err) {
-          console.error(err)
+          console.error('[Grupos]', err)
           return res.status(500).json({ message: 'getCategoria: Erro não identificado. Procure um administrador.' });
         }
       }
@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ result, message: 'Residente Localizado', method: 'GET' });
 
         } catch (error) {
-          console.error(error)
+          console.error('[Grupos]', error)
 
           return res.status(500).json({ message: 'getID: Erro não identificado. Procure um administrador.' });
         }
@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
           return res.status(200).json({ data: data });
         } catch (err) {
-          console.error(err)
+          console.error('[Grupos]', err)
 
           return res.status(500).json({ message: 'Erro não identificado. Procure um administrador.' });
         }
@@ -137,7 +137,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             return res.status(201).json({ id: novoRegitro.insertedId, method: 'POST' });
           }
         } catch (err) {
-          console.error(err)
+          console.error('[Grupos]', err)
 
           return res.status(500).json({ message: 'new: Erro não identificado. Procure um administrador.' });
         }

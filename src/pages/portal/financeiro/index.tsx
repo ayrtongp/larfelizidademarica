@@ -4,8 +4,9 @@ import DashboardCards from '@/components/financeiro/dashboard/DashboardCards';
 import ProximosVencimentosList from '@/components/financeiro/dashboard/ProximosVencimentosList';
 import VencidosList from '@/components/financeiro/dashboard/VencidosList';
 import SaldoContasList from '@/components/financeiro/dashboard/SaldoContasList';
+import GraficoEvolucaoMensal from '@/components/financeiro/dashboard/GraficoEvolucaoMensal';
 import { S_financeiroDashboard } from '@/services/S_financeiroDashboard';
-import { T_DashboardResumo, T_TituloVencimento, T_SaldoConta } from '@/types/T_financeiroDashboard';
+import { T_DashboardResumo, T_TituloVencimento, T_SaldoConta, T_EvolucaoMensal } from '@/types/T_financeiroDashboard';
 
 export default function FinanceiroDashboard() {
   const now = new Date();
@@ -16,21 +17,24 @@ export default function FinanceiroDashboard() {
   const [proximosVencimentos, setProximosVencimentos] = useState<T_TituloVencimento[]>([]);
   const [vencidos, setVencidos] = useState<T_TituloVencimento[]>([]);
   const [saldoContas, setSaldoContas] = useState<T_SaldoConta[]>([]);
+  const [evolucao, setEvolucao] = useState<T_EvolucaoMensal[]>([]);
   const [loading, setLoading] = useState(true);
 
   const carregar = useCallback(async () => {
     setLoading(true);
     try {
-      const [r, pv, v, sc] = await Promise.all([
+      const [r, pv, v, sc, ev] = await Promise.all([
         S_financeiroDashboard.getResumo(mes, ano),
         S_financeiroDashboard.getProximosVencimentos(),
         S_financeiroDashboard.getVencidos(),
         S_financeiroDashboard.getSaldoContas(),
+        S_financeiroDashboard.getEvolucaoMensal(6),
       ]);
       setResumo(r);
       setProximosVencimentos(pv);
       setVencidos(v);
       setSaldoContas(sc);
+      setEvolucao(ev);
     } catch (e) {
       console.error(e);
     } finally {
@@ -81,6 +85,15 @@ export default function FinanceiroDashboard() {
             {resumo && (
               <div className="mb-6">
                 <DashboardCards resumo={resumo} />
+              </div>
+            )}
+
+            {evolucao.length > 0 && (
+              <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                <h2 className="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wide">
+                  Evolução Mensal — Recebido vs Pago
+                </h2>
+                <GraficoEvolucaoMensal dados={evolucao} />
               </div>
             )}
 
