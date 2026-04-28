@@ -208,9 +208,9 @@ export default function MovimentacaoForm({ tipoMovimentoFixo, initialData, onSuc
         formaPagamento: formaPagamento || undefined,
         numeroDocumento: numeroDocumento || undefined,
         observacoes: observacoes || undefined,
-        vinculadoId: vinculadoId || null,
-        vinculadoTipo: (vinculadoTipo as 'usuario' | 'residente' | null) || null,
-        emprestimoId: emprestimoVinculadoId || null,
+        vinculadoId: vinculadoId || undefined,
+        vinculadoTipo: (vinculadoTipo as 'usuario' | 'residente' | '') || undefined,
+        emprestimoId: emprestimoVinculadoId || undefined,
       };
 
       if (isEditing) {
