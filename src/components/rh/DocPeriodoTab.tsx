@@ -245,7 +245,7 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: 
               )}
               {confirmandoSubstituicao && (
                 <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  O arquivo existente será excluído. Clique em "Confirmar" para prosseguir.
+                  O arquivo existente será excluído. Clique em &quot;Confirmar&quot; para prosseguir.
                 </p>
               )}
 
