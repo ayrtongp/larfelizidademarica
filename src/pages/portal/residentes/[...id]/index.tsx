@@ -11,7 +11,6 @@ import Semiologia from '@/components/Residentes/Semiologia'
 import Evolucao from '@/components/Residentes/Evolucao'
 import AnotacoesEnfermagem from '@/components/Residentes/AnotacoesEnfermagem'
 import { HiAnnotation, HiBriefcase } from 'react-icons/hi'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 import RelatoriosResidente from '@/components/Residentes/RelatoriosResidente'
 import { MdLocalGroceryStore } from 'react-icons/md'
 import Suprimentos from '@/components/Residentes/Suprimentos'
@@ -22,6 +21,7 @@ import { getUserID } from '@/utils/Login'
 import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario'
 import Prescricao from '@/components/Residentes/Prescricao'
 import AvatarCropper from '@/components/AvatarCropper'
+import { useHasGroup } from '@/hooks/useHasGroup'
 
 interface objProps {
   className: string;
@@ -34,7 +34,7 @@ interface objProps {
 const ResidenteDetalhes = () => {
   const [residenteData, setResidenteData] = useState<Residente>();
   const router = useRouter()
-  const isAdmin = useIsAdmin();
+  const { hasGroup: hasRH, loading: loadingRH } = useHasGroup('rh');
   const [funcao, setFuncao] = useState('');
   const [gruposUsuario, setGruposUsuario] = useState<any>([]);
 
@@ -108,6 +108,11 @@ const ResidenteDetalhes = () => {
   // ########################################
 
   const handleCroppedUpload = async (blobUrl: string) => {
+    if (loadingRH || !hasRH) {
+      notifyError('Apenas o RH pode alterar a foto do residente.');
+      return;
+    }
+
     if (!residenteData?._id) return;
     try {
       const EXPRESS_URL = process.env.NEXT_PUBLIC_URLDO ?? "https://lobster-app-gbru2.ondigitalocean.app";
@@ -177,7 +182,7 @@ const ResidenteDetalhes = () => {
                 <div className='p-2 border shadow-md rounded-md'>
 
                   <div className='flex flex-row gap-2 items-center mb-4'>
-                    {isAdmin ? (
+                    {!loadingRH && hasRH ? (
                     <AvatarCropper
                       returnType='blob'
                       defaultImage={residenteData?.foto_cdn || residenteData?.foto_base64}
