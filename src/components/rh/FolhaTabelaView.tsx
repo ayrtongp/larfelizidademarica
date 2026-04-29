@@ -25,8 +25,9 @@ function coletarColunas(itens: T_FolhaPagamentoItem[]): Coluna[] {
       if (!set.has(k)) set.set(k, { tipo: 'desconto', descricao: l.descricao });
     }
   }
-  const proventos = [...set.values()].filter(c => c.tipo === 'provento');
-  const descontos = [...set.values()].filter(c => c.tipo === 'desconto');
+  const colunas = Array.from(set.values());
+  const proventos = colunas.filter(c => c.tipo === 'provento');
+  const descontos = colunas.filter(c => c.tipo === 'desconto');
   return [...proventos, ...descontos];
 }
 
