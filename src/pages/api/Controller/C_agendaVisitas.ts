@@ -10,17 +10,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const toObjId = (id: string) => { try { return new ObjectId(id); } catch { return null; } };
 
   async function withResidenteNames(docs: any[]) {
-    const resIds = Array.from(new Set(docs.map(d => d.residente_id)));
-    const residentes = resIds.length
+    const resIds: string[] = Array.from(
+      new Set(docs.map((d: any) => String(d.residente_id || '')).filter(Boolean))
+    );
+    const residentes: any[] = resIds.length
       ? await db.collection('patient').find(
           { _id: { $in: resIds.map(toObjId).filter(Boolean) } },
           { projection: { _id: 1, display_name: 1 } }
         ).toArray()
       : [];
     const resMap: Record<string, string> = Object.fromEntries(
-      residentes.map(r => [String(r._id), r.display_name])
+      residentes.map((r: any) => [String(r._id), String(r.display_name || '')])
     );
-    return docs.map(d => ({ ...d, _id: String(d._id), nomeResidente: resMap[d.residente_id] || d.residente_id }));
+    return docs.map((d: any) => ({
+      ...d,
+      _id: String(d._id),
+      nomeResidente: resMap[String(d.residente_id)] || d.residente_id,
+    }));
   }
 
   // ── GET ──────────────────────────────────────────────────────────────────────

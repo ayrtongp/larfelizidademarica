@@ -15,14 +15,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const filter: Record<string, unknown> = {};
         if (statusFilter) filter.status = statusFilter;
 
-        const docs = await col.find(filter).sort({ createdAt: -1 }).toArray();
+        const docs: any[] = await col.find(filter).sort({ createdAt: -1 }).toArray();
 
-        const userIds = Array.from(new Set(docs.map(d => d.usuario_id)));
-        const resIds  = Array.from(new Set(docs.map(d => d.residente_id)));
+        const userIds: string[] = Array.from(
+          new Set(docs.map((d: any) => String(d.usuario_id || '')).filter(Boolean))
+        );
+        const resIds: string[] = Array.from(
+          new Set(docs.map((d: any) => String(d.residente_id || '')).filter(Boolean))
+        );
 
         const toObjId = (id: string) => { try { return new ObjectId(id); } catch { return null; } };
 
-        const [users, residentes] = await Promise.all([
+        const [users, residentes]: [any[], any[]] = await Promise.all([
           userIds.length
             ? db.collection('usuario').find(
                 { _id: { $in: userIds.map(toObjId).filter(Boolean) } },
@@ -38,17 +42,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ]);
 
         const userMap: Record<string, string> = Object.fromEntries(
-          users.map(u => [String(u._id), `${u.nome} ${u.sobrenome || ''}`.trim()])
+          users.map((u: any) => [String(u._id), `${u.nome} ${u.sobrenome || ''}`.trim()])
         );
         const resMap: Record<string, string> = Object.fromEntries(
-          residentes.map(r => [String(r._id), r.display_name])
+          residentes.map((r: any) => [String(r._id), String(r.display_name || '')])
         );
 
-        return res.status(200).json(docs.map(d => ({
+        return res.status(200).json(docs.map((d: any) => ({
           ...d,
           _id:           String(d._id),
-          nomeUsuario:   userMap[d.usuario_id]   || d.usuario_id,
-          nomeResidente: resMap[d.residente_id]  || d.residente_id,
+          nomeUsuario:   userMap[String(d.usuario_id)]  || d.usuario_id,
+          nomeResidente: resMap[String(d.residente_id)] || d.residente_id,
         })));
       } catch (err) {
         console.error('[C_mensagensFamilia]', err);
