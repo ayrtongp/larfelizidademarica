@@ -46,6 +46,28 @@ const S_financeiroCategorias = {
     });
     return res.json();
   },
+
+  excluir: async (id: string): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?id=${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao excluir categoria.');
+    }
+    return res.json();
+  },
+
+  mesclar: async (origemId: string, destinoId: string): Promise<{ movimentacoesAtualizadas: number; rateiosAtualizados: number }> => {
+    const res = await fetch(`${baseUrl}?type=mesclar`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ origemId, destinoId }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao mesclar categorias.');
+    }
+    return res.json();
+  },
 };
 
 export default S_financeiroCategorias;

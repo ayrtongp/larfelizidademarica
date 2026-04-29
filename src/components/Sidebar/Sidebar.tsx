@@ -6,13 +6,14 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
 import LogoLar from '../../../public/images/lar felizidade logo transparente.png'
-import { FaArrowLeft, FaChevronDown, FaChevronUp, FaHospital, FaPuzzlePiece, FaChartLine, FaUserTie, FaUserFriends, FaHeartbeat } from 'react-icons/fa';
-import { AiOutlineDashboard } from 'react-icons/ai';
+import { FaArrowLeft, FaChevronDown, FaChevronUp, FaHospital, FaPuzzlePiece, FaChartLine, FaUserTie, FaUserFriends, FaHeartbeat, FaCompass } from 'react-icons/fa';
 import Authorization from '../Auth/Authorization';
 import ItemSubitem from './ItemSubitem';
 import Item from './Item';
 import { BsMegaphone, BsMegaphoneFill } from 'react-icons/bs';
 import { useHasGroup } from '@/hooks/useHasGroup';
+import { useHasAnyGroup } from '@/hooks/useHasAnyGroup';
+import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const router = useRouter();
@@ -25,6 +26,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const { hasGroup: hasCoordenacao } = useHasGroup('coordenacao');
   const { hasGroup: hasMedicina } = useHasGroup('medicina');
   const { hasGroup: hasEnfermagem } = useHasGroup('equipe_enfermagem');
+  const { hasGroup: hasAdministrativo } = useHasAnyGroup([ADMINISTRATIVO_GROUP_ID]);
   const [tarefasBadge, setTarefasBadge] = useState(0);
 
   useEffect(() => {
@@ -40,7 +42,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   }, [pathname]);
 
   const dashboardMenu = [
-    { title: 'Início', path: '/portal/dashboard' },
+    { title: 'Visão Geral', path: '/portal' },
     { title: 'Evoluções', path: '/portal/dashboard/evolucoes' },
   ]
 
@@ -79,8 +81,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   ]
 
   const rhMenu = [
+    { title: 'Agenda Geral', path: '/portal/administrativo/agenda' },
     { title: 'Funcionários CLT', path: '/portal/administrativo/funcionarios' },
     { title: 'Prestadores', path: '/portal/administrativo/prestadores' },
+    { title: 'Escala', path: '/portal/administrativo/escala' },
+    { title: 'Folha de Pagamento', path: '/portal/administrativo/folha-pagamento' },
   ]
 
   const coordenacaoMenu = [
@@ -94,7 +99,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   ]
 
   const financeiroMenu = [
-    { title: 'Dashboard', path: '/portal/financeiro' },
+    { title: 'Visão Geral', path: '/portal/financeiro' },
     { title: 'Contas a Receber', path: '/portal/financeiro/contas-receber' },
     { title: 'Contas a Pagar', path: '/portal/financeiro/contas-pagar' },
     { title: 'Movimentações', path: '/portal/financeiro/movimentacoes' },
@@ -162,7 +167,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
             {/* Logo */}
             <Link href="/" className="block">
-              <Image width={96} height={96} src={LogoLar} alt='Logo Lar Felizidade Maricá' />
+              <Image src={LogoLar} alt='Logo Lar Felizidade Maricá' style={{ width: 96, height: 'auto' }} />
             </Link>
             {/* End Logo */}
           </div>
@@ -179,18 +184,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
               <ul className="mt-3">
 
-                {/* Dashboard */}
-                <SidebarLinkGroup activecondition={pathname === '/' || pathname.includes('dashboard')}>
+                {/* Central */}
+                <SidebarLinkGroup activecondition={pathname === '/portal' || pathname.includes('/portal/dashboard')}>
                   {(handleClick: any, open: any) => {
                     return (
                       <React.Fragment>
-                        <a href="#0" className={`block text-slate-200 truncate transition duration-150 ${pathname === '/' || pathname.includes('dashboard') ? 'hover:text-slate-200' : 'hover:text-white'}`}
+                        <a href="#0" className={`block text-slate-200 truncate transition duration-150 ${pathname === '/portal' || pathname.includes('/portal/dashboard') ? 'hover:text-slate-200' : 'hover:text-white'}`}
                           onClick={(e) => { e.preventDefault(); sidebarExpanded ? handleClick() : setSidebarExpanded(true); }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <AiOutlineDashboard color='blue' stroke='3' size={25} />
+                              <FaCompass size={22} className={`${pathname === '/portal' || pathname.includes('/portal/dashboard') ? 'text-indigo-400' : 'text-slate-500'}`} />
                               <span className={`text-sm font-medium ml-3 ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>
-                                Dashboard
+                                Central
                               </span>
                             </div>
                             {/* Icon */}
@@ -217,15 +222,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                   }}
                 </SidebarLinkGroup>
 
-                <ItemSubitem
-                  title='Administrativo'
-                  icon={<FaHospital size={25} className={`fill-current ${pathname.includes('/portal/administrativo') ? 'text-indigo-500' : 'text-slate-500'}`} />}
-                  suprimentosMenu={administrativoMenu}
-                  pathname={pathname}
-                  router={router}
-                  setSidebarExpanded={setSidebarExpanded}
-                  sidebarExpanded={sidebarExpanded}
-                />
+                {hasAdministrativo && (
+                  <ItemSubitem
+                    title='Administrativo'
+                    icon={<FaHospital size={25} className={`fill-current ${pathname.includes('/portal/administrativo') ? 'text-indigo-500' : 'text-slate-500'}`} />}
+                    suprimentosMenu={administrativoMenu}
+                    pathname={pathname}
+                    router={router}
+                    setSidebarExpanded={setSidebarExpanded}
+                    sidebarExpanded={sidebarExpanded}
+                  />
+                )}
 
                 <div className=''>
                   {/* Serviços */}

@@ -160,12 +160,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
+      // -------------------------
+      // MESCLAR — migra movimentações e rateios da origemId para destinoId e desativa a origem
+      // -------------------------
+      else if (req.query.type === 'mesclar') {
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const { origemId, destinoId } = body;
+          if (!origemId || !destinoId) return res.status(400).json({ message: 'origemId e destinoId são obrigatórios.' });
+          if (origemId === destinoId) return res.status(400).json({ message: 'Origem e destino não podem ser iguais.' });
+
+          const movCol    = db.collection('financeiro_movimentacoes');
+          const rateioCol = db.collection('financeiro_rateios');
+
+          const [movResult, rateioResult] = await Promise.all([
+            movCol.updateMany({ categoriaId: origemId }, { $set: { categoriaId: destinoId, updatedAt: new Date().toISOString() } }),
+            rateioCol.updateMany({ categoriaId: origemId }, { $set: { categoriaId: destinoId, updatedAt: new Date().toISOString() } }),
+          ]);
+
+          await collection.updateOne(
+            { _id: new ObjectId(origemId) },
+            { $set: { ativo: false, updatedAt: new Date().toISOString() } }
+          );
+
+          return res.status(200).json({
+            movimentacoesAtualizadas: movResult.modifiedCount,
+            rateiosAtualizados: rateioResult.modifiedCount,
+          });
+        } catch (err) {
+          console.error('[C_financeiroCategorias]', err);
+          return res.status(500).json({ message: 'mesclar: Erro não identificado.' });
+        }
+      }
+
       else {
         return res.status(400).json({ message: 'PUT: Nenhum query.type identificado.' });
       }
 
+    case 'DELETE':
+
+      // -------------------------
+      // DELETE Categoria (só se sem vínculos)
+      // -------------------------
+      if (req.query.id) {
+        const reqId = req.query.id as string;
+        try {
+          const movCol    = db.collection('financeiro_movimentacoes');
+          const rateioCol = db.collection('financeiro_rateios');
+
+          const [movCount, rateioCount] = await Promise.all([
+            movCol.countDocuments({ categoriaId: reqId }),
+            rateioCol.countDocuments({ categoriaId: reqId }),
+          ]);
+
+          if (movCount > 0 || rateioCount > 0) {
+            return res.status(400).json({
+              message: `Não é possível excluir: a categoria possui ${movCount} movimentação(ões) e ${rateioCount} rateio(s) vinculados. Use Mesclar para migrar os dados antes.`,
+            });
+          }
+
+          const result = await collection.deleteOne({ _id: new ObjectId(reqId) });
+          if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'Categoria não encontrada.' });
+          }
+
+          return res.status(200).json({ message: 'Categoria excluída com sucesso.' });
+        } catch (err) {
+          console.error('[C_financeiroCategorias]', err);
+          return res.status(500).json({ message: 'delete: Erro não identificado. Procure um administrador.' });
+        }
+      }
+
+      return res.status(400).json({ message: 'DELETE: id não informado.' });
+
     default:
-      res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+      res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
       return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 }

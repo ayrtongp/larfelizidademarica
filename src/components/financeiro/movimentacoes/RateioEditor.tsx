@@ -14,6 +14,7 @@ export interface RateioRow {
 interface Categoria {
   _id: string;
   nome: string;
+  categoriaPaiId?: string | null;
 }
 
 interface Props {
@@ -32,6 +33,9 @@ export default function RateioEditor({ valor, rateios, onChange, pessoas }: Prop
       .then((data) => setCategorias(Array.isArray(data) ? data : []))
       .catch(() => setCategorias([]));
   }, []);
+
+  const paiIds = new Set(categorias.map((c) => c.categoriaPaiId).filter(Boolean) as string[]);
+  const categoriasFilhas = categorias.filter((c) => !paiIds.has(c._id));
 
   const total = rateios.reduce((acc, r) => acc + (Number(r.valor) || 0), 0);
   const diferenca = Math.abs(total - valor);
@@ -72,7 +76,7 @@ export default function RateioEditor({ valor, rateios, onChange, pessoas }: Prop
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               >
                 <option value="">Selecione...</option>
-                {categorias.map((c) => (
+                {categoriasFilhas.map((c) => (
                   <option key={c._id} value={c._id}>{c.nome}</option>
                 ))}
               </select>

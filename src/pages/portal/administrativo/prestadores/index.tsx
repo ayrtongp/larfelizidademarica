@@ -69,7 +69,7 @@ const PrestadoresPage = () => {
   };
 
   return (
-    <PermissionWrapper href="/portal">
+    <PermissionWrapper href="/portal" groups={['rh']}>
       <PortalBase>
         <div className="col-span-full">
 

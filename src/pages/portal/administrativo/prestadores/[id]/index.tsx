@@ -122,7 +122,7 @@ const PrestadorDetalhes = () => {
   const statusInfo = prestador ? (STATUS_CONFIG[prestador.status] ?? { label: prestador.status, className: 'bg-gray-100 text-gray-700' }) : null;
 
   return (
-    <PermissionWrapper href="/portal/administrativo/prestadores">
+    <PermissionWrapper href="/portal/administrativo/prestadores" groups={['rh']}>
       <PortalBase>
         <div className="col-span-full">
 

@@ -20,23 +20,57 @@ interface Props {
 const PermissionWrapper = ({ href, children, groups }: Props) => {
   const [loadingSign, logged] = CheckToken()
   const [data, loading] = usePermissoes();
-  const [hasGroups, setHasGroups] = useState<boolean>(true);
+  const shouldCheckGroups = Array.isArray(groups) && groups.length > 0;
+  const [hasGroups, setHasGroups] = useState<boolean>(!shouldCheckGroups);
+  const [loadingGroups, setLoadingGroups] = useState<boolean>(shouldCheckGroups);
 
   useEffect(() => {
+    let active = true;
+
     const init = async () => {
-      if (groups != undefined && groups?.length > 0) {
+      if (!shouldCheckGroups) {
+        if (active) {
+          setHasGroups(true);
+          setLoadingGroups(false);
+        }
+        return;
+      }
+
+      try {
+        if (active) setLoadingGroups(true);
+
         const userId = getUserID()
+        if (!userId) {
+          if (active) setHasGroups(false);
+          return;
+        }
+
+        const normalizedGroups = new Set((groups ?? []).map((group) => group.trim()).filter(Boolean));
         const userGroups = await GruposUsuario_getGruposUsuario(userId);
-        const groupPermissions = Array.isArray(userGroups) && userGroups.some((item) => item.id_grupo.includes(groups))
-        setHasGroups(groupPermissions)
+        const groupPermissions = Array.isArray(userGroups) && userGroups.some((item: any) =>
+          (item.id_grupo && normalizedGroups.has(item.id_grupo)) ||
+          (item.cod_grupo && normalizedGroups.has(item.cod_grupo))
+        );
+
+        if (active) setHasGroups(groupPermissions);
+      } catch (error) {
+        console.error('PermissionWrapper group check error:', error);
+        if (active) setHasGroups(false);
+      } finally {
+        if (active) setLoadingGroups(false);
       }
     };
+
     init();
-  }, []);
+
+    return () => {
+      active = false;
+    };
+  }, [groups, shouldCheckGroups]);
 
   if (logged) {
     const items: dataItem[] = data as dataItem[];
-    if (loading) {
+    if (loading || loadingGroups) {
       return <p>Loading...</p>;
     }
 

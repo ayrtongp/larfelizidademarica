@@ -19,6 +19,9 @@ export default function SaldoContasList({ contas }: Props) {
     return <p className="text-sm text-gray-400 py-4 text-center">Nenhuma conta ativa encontrada.</p>;
   }
 
+  const totalAtual   = contas.reduce((acc, c) => acc + c.saldoAtual,   0);
+  const totalInicial = contas.reduce((acc, c) => acc + c.saldoInicial, 0);
+
   return (
     <div className="divide-y divide-gray-100">
       {contas.map((conta) => (
@@ -38,6 +41,15 @@ export default function SaldoContasList({ contas }: Props) {
           </div>
         </div>
       ))}
+      <div className="flex items-center justify-between pt-3 px-1">
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Total</p>
+        <div className="text-right">
+          <p className={`text-sm font-bold ${totalAtual >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+            {fmt(totalAtual)}
+          </p>
+          <p className="text-xs text-gray-400">inicial: {fmt(totalInicial)}</p>
+        </div>
+      </div>
     </div>
   );
 }

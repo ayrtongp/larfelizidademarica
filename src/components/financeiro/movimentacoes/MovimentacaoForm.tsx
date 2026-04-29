@@ -5,7 +5,7 @@ import Button_M3 from '@/components/Formularios/Button_M3';
 import RateioEditor, { RateioRow } from './RateioEditor';
 import PessoaCombobox, { PessoaItem } from '@/components/financeiro/shared/PessoaCombobox';
 import ComboBox, { Opcao } from '@/components/UI/ComboBox';
-import S_financeiroMovimentacoes from '@/services/S_financeiroMovimentacoes';
+import S_financeiroMovimentacoes, { UpdateMovimentacaoPayload } from '@/services/S_financeiroMovimentacoes';
 import { T_Movimentacao, TipoMovimento, FormaPagamento } from '@/types/T_financeiroMovimentacoes';
 import { Contraparte_tipo, T_Emprestimo } from '@/types/T_financeiroEmprestimos';
 import { S_financeiroEmprestimos } from '@/services/S_financeiroEmprestimos';
@@ -51,7 +51,7 @@ export default function MovimentacaoForm({ tipoMovimentoFixo, initialData, onSuc
   const [numeroDocumento, setNumeroDocumento] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
-  const [categorias, setCategorias] = useState<{ _id: string; nome: string; tipo: string }[]>([]);
+  const [categorias, setCategorias] = useState<{ _id: string; nome: string; tipo: string; categoriaPaiId?: string | null }[]>([]);
   const [rateioCategId, setRateioCategId] = useState('');
   const [temRateio, setTemRateio] = useState(false);
   const [rateios, setRateios] = useState<RateioRow[]>([]);
@@ -196,7 +196,7 @@ export default function MovimentacaoForm({ tipoMovimentoFixo, initialData, onSuc
 
     setLoading(true);
     try {
-      const dados: Partial<T_Movimentacao> = {
+      const dadosCriacao: Partial<T_Movimentacao> = {
         tipoMovimento,
         contaFinanceiraId,
         contaDestinoId: contaDestinoId || undefined,
@@ -214,15 +214,32 @@ export default function MovimentacaoForm({ tipoMovimentoFixo, initialData, onSuc
       };
 
       if (isEditing) {
+        const dadosEdicao: UpdateMovimentacaoPayload = {
+          tipoMovimento,
+          contaFinanceiraId,
+          contaDestinoId: contaDestinoId || null,
+          dataMovimento,
+          competencia,
+          categoriaId: categoriaId || null,
+          valor,
+          historico,
+          formaPagamento: formaPagamento || null,
+          numeroDocumento: numeroDocumento || null,
+          observacoes: observacoes || null,
+          vinculadoId: vinculadoId || null,
+          vinculadoTipo: vinculadoTipo || null,
+          emprestimoId: emprestimoVinculadoId || null,
+        };
+
         await S_financeiroMovimentacoes.update(initialData!._id!, {
-          ...dados,
+          ...dadosEdicao,
           temRateio,
           ...(criarPar && contaParId ? { criarPar: true, contaParId } : {}),
           ...(temRateio ? { rateios: rateios as any } : {}),
-        } as any);
+        });
       } else {
         await S_financeiroMovimentacoes.create({
-          ...dados,
+          ...dadosCriacao,
           temRateio,
           rateios: temRateio ? rateios : undefined,
           ...(criarPar && contaParId ? { criarPar: true, contaParId } : {}),
@@ -366,12 +383,20 @@ export default function MovimentacaoForm({ tipoMovimentoFixo, initialData, onSuc
             <ComboBox
               label="Categoria"
               placeholder="Pesquisar categoria..."
-              options={categorias.filter((c) =>
-                c._id === categoriaId ||
-                c.tipo === 'transferencia' ||
-                tipoMovimento === 'ajuste' ||
-                c.tipo === (tipoMovimento === 'entrada' ? 'receita' : 'despesa')
-              ) as Opcao[]}
+              options={(() => {
+                const paiIds = new Set(categorias.map((c) => c.categoriaPaiId).filter(Boolean) as string[]);
+                return categorias.filter((c) =>
+                  c._id === categoriaId ||
+                  (
+                    !paiIds.has(c._id) &&
+                    (
+                      c.tipo === 'transferencia' ||
+                      tipoMovimento === 'ajuste' ||
+                      c.tipo === (tipoMovimento === 'entrada' ? 'receita' : 'despesa')
+                    )
+                  )
+                );
+              })() as Opcao[]}
               value={categoriaAtual as Opcao ?? null}
               onChange={(val) => {
                 setCategoriaId(val?._id ?? '');

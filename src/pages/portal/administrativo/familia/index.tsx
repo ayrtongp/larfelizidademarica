@@ -5,6 +5,8 @@ import { notifyError, notifySuccess } from '@/utils/Functions';
 import { FaUsers, FaPlus, FaTrash, FaTimes, FaLink, FaUnlink, FaEnvelope, FaCalendarAlt, FaNewspaper, FaCheck, FaReply } from 'react-icons/fa';
 import { PARENTESCO_OPTIONS } from '@/types/T_familiarResidente';
 import S_familiarResidente from '@/services/S_familiarResidente';
+import { useHasAnyGroup } from '@/hooks/useHasAnyGroup';
+import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -611,10 +613,13 @@ const TabBoletins: React.FC<{ pacientes: Paciente[] }> = ({ pacientes }) => {
 type Tab = 'familiares' | 'mensagens' | 'visitas' | 'boletins';
 
 const FamiliaAdminPage = () => {
+  const { hasGroup: hasAdministrativo, loading: loadingAccess } = useHasAnyGroup([ADMINISTRATIVO_GROUP_ID]);
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [tab, setTab] = useState<Tab>('familiares');
 
   useEffect(() => {
+    if (!hasAdministrativo) return;
+
     fetch('/api/Controller/patient.controller?type=getActivePatients')
       .then(r => r.ok ? r.json() : { patients: [] })
       .then(data => {
@@ -625,7 +630,9 @@ const FamiliaAdminPage = () => {
         setPacientes(pts.sort((a, b) => a.display_name.localeCompare(b.display_name)));
       })
       .catch(() => {});
-  }, []);
+  }, [hasAdministrativo]);
+
+  if (loadingAccess) return null;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'familiares', label: 'Familiares',  icon: <FaUsers size={13} /> },
@@ -635,7 +642,7 @@ const FamiliaAdminPage = () => {
   ];
 
   return (
-    <PermissionWrapper href="/portal/administrativo">
+    <PermissionWrapper href="/portal/administrativo" groups={[ADMINISTRATIVO_GROUP_ID]}>
       <PortalBase>
         <div className="col-span-full max-w-3xl mx-auto w-full space-y-6 pb-10">
 

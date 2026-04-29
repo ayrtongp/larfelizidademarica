@@ -342,7 +342,7 @@ const InsumoCombobox: React.FC<InsumoComboboxProps> = ({ value, insumos, onChang
 // ── Componente principal ───────────────────────────────────────────────────
 
 const AIStudioPage = () => {
-  const { loading: loadingPermission } = useHasGroup('coordenacao');
+  const { hasGroup, loading: loadingPermission } = useHasGroup('coordenacao');
 
   const [idosos,  setIdosos]  = useState<IdosoOption[]>([]);
   const [insumos, setInsumos] = useState<InsumoOption[]>([]);
@@ -365,6 +365,8 @@ const AIStudioPage = () => {
   // ── Carregamento inicial ──────────────────────────────────────────────
 
   useEffect(() => {
+    if (!hasGroup) return;
+
     fetch('/api/Controller/C_idosoDetalhes?type=getAtivos')
       .then(r => r.ok ? r.json() : [])
       .then((data: any[]) => setIdosos(data.map(d => ({
@@ -377,7 +379,7 @@ const AIStudioPage = () => {
       .then(r => r.ok ? r.json() : [])
       .then((data: InsumoOption[]) => setInsumos(Array.isArray(data) ? data : []))
       .catch(() => {});
-  }, []);
+  }, [hasGroup]);
 
   // ── Foto ─────────────────────────────────────────────────────────────
 
@@ -547,11 +549,25 @@ Responda APENAS com um array JSON válido, sem texto adicional, sem markdown.`,
   const readyCount   = rows.filter(r =>  r.insumo_id).length;
 
   if (loadingPermission) return null;
+  if (!hasGroup) {
+    return (
+      <PermissionWrapper href="/portal">
+        <PortalBase>
+          <div className="col-span-full flex justify-center py-20 text-center">
+            <div>
+              <p className="text-xl font-semibold text-gray-700">Sem permissão</p>
+              <p className="text-sm text-gray-500 mt-2">Você não tem acesso ao módulo de Coordenação.</p>
+            </div>
+          </div>
+        </PortalBase>
+      </PermissionWrapper>
+    );
+  }
 
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
-    <PermissionWrapper href="/portal/administrativo">
+    <PermissionWrapper href="/portal/administrativo" groups={['coordenacao']}>
       <PortalBase>
         <div className="col-span-full max-w-5xl mx-auto w-full space-y-5 pb-10">
 

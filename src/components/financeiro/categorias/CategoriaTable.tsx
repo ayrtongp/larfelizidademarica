@@ -7,9 +7,11 @@ interface Props {
   categorias: T_Categoria[];
   onEdit: (cat: T_Categoria) => void;
   onToggleAtivo: (id: string) => void;
+  onMesclar: (cat: T_Categoria) => void;
+  onExcluir: (cat: T_Categoria) => void;
 }
 
-const CategoriaTable: React.FC<Props> = ({ categorias, onEdit, onToggleAtivo }) => {
+const CategoriaTable: React.FC<Props> = ({ categorias, onEdit, onToggleAtivo, onMesclar, onExcluir }) => {
   if (categorias.length === 0) {
     return (
       <div className="text-center py-10 text-gray-500">
@@ -108,12 +110,28 @@ const CategoriaTable: React.FC<Props> = ({ categorias, onEdit, onToggleAtivo }) 
                       onClick={() => onEdit(cat)}
                       type="button"
                     />
+                    {cat.ativo && cat.tipo !== 'sistema' && (
+                      <Button_M3
+                        label="Mesclar"
+                        onClick={() => onMesclar(cat)}
+                        bgColor="yellow"
+                        type="button"
+                      />
+                    )}
                     <Button_M3
                       label={cat.ativo ? 'Desativar' : 'Ativar'}
                       onClick={() => cat._id && onToggleAtivo(cat._id)}
                       bgColor={cat.ativo ? 'red' : 'green'}
                       type="button"
                     />
+                    {!cat.ativo && (
+                      <Button_M3
+                        label="Excluir"
+                        onClick={() => onExcluir(cat)}
+                        bgColor="red"
+                        type="button"
+                      />
+                    )}
                   </div>
                 </td>
               </tr>

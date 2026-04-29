@@ -76,7 +76,7 @@ const IdososPage = () => {
   };
 
   return (
-    <PermissionWrapper href="/portal">
+    <PermissionWrapper href="/portal" groups={['coordenacao']}>
       <PortalBase>
         <div className="col-span-full">
 

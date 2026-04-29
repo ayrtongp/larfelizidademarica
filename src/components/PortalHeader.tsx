@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import logoLar from '../../public/images/lar felizidade logo transparente.png'
 import { HiSearch, HiMail, HiBell } from 'react-icons/hi'
 import MenuDropDown from './MenuDropDown'
 import { FaBell } from 'react-icons/fa'

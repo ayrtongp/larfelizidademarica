@@ -1,5 +1,6 @@
 import ListaUsuarios from '@/components/Admin/ListaUsuarios'
 import ListaResidentesAtivos from '@/components/Admin/ListaResidentesAtivos'
+import ListaGrupos from '@/components/Admin/ListaGrupos'
 import RelZipAnotEnf from '@/components/Admin/RelZipAnotEnf'
 import AuditoriaFuncionarios from '@/components/Admin/AuditoriaFuncionarios'
 import FormNovoUsuario from '@/components/FormNovoUsuario'
@@ -21,6 +22,7 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 'fun-novoUsuario',      label: 'Novo Usuário',       icon: <FaUserPlus />,   color: 'text-indigo-500', description: 'Cadastrar novo usuário no sistema' },
   { id: 'fun-listaUsuarios',    label: 'Lista de Usuários',  icon: <FaUsers />,      color: 'text-blue-500',   description: 'Ver e gerenciar usuários e grupos' },
   { id: 'fun-criarGrupo',       label: 'Criar Grupo',        icon: <FaLayerGroup />, color: 'text-green-500',  description: 'Cadastrar novo grupo de permissão' },
+  { id: 'fun-listaGrupos',      label: 'Grupos e Membros',   icon: <FaLayerGroup />, color: 'text-teal-500',   description: 'Visualizar grupos existentes e seus participantes' },
   { id: 'fun-ResidentesAtivos', label: 'Residentes Ativos',  icon: <FaBed />,        color: 'text-orange-500', description: 'Gerenciar residentes e limites' },
   { id: 'fun-AnotEnfV2',        label: 'Relatório Geral',    icon: <FaFileAlt />,    color: 'text-red-500',    description: 'Gerar relatório de anotações' },
   { id: 'fun-auditoriaFunc',    label: 'Auditoria RH',       icon: <FaHistory />,    color: 'text-slate-500',  description: 'Histórico de alterações em funcionários' },
@@ -37,7 +39,6 @@ const Index = () => {
         <div className='col-span-full'>
           <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
 
-            {/* SIDEBAR ESQUERDA */}
             <div className='col-span-3 sm:col-span-1'>
               <div className='p-3 border shadow-md rounded-md bg-white'>
 
@@ -46,7 +47,6 @@ const Index = () => {
                   <h2 className='text-lg font-bold text-slate-700 mt-0.5'>Administração</h2>
                 </div>
 
-                {/* Mobile: grid horizontal de botões compactos */}
                 <div className='grid grid-cols-2 gap-1.5 sm:hidden'>
                   {MENU_ITEMS.map((item) => (
                     <button
@@ -61,7 +61,6 @@ const Index = () => {
                   ))}
                 </div>
 
-                {/* Desktop: lista vertical com descrição */}
                 <ul className='hidden sm:flex flex-col gap-0.5'>
                   {MENU_ITEMS.map((item) => (
                     <li
@@ -81,7 +80,6 @@ const Index = () => {
               </div>
             </div>
 
-            {/* PAINEL DIREITO */}
             <div className='col-span-3 sm:col-span-2 bg-white border shadow-md rounded-md'>
 
               {!funcaoAdmin ? (
@@ -107,6 +105,7 @@ const Index = () => {
                   <div className='p-5'>
                     {funcaoAdmin === 'fun-novoUsuario'      && <FormNovoUsuario />}
                     {funcaoAdmin === 'fun-listaUsuarios'    && <ListaUsuarios />}
+                    {funcaoAdmin === 'fun-listaGrupos'      && <ListaGrupos />}
                     {funcaoAdmin === 'fun-AnotEnfV2'        && <RelZipAnotEnf />}
                     {funcaoAdmin === 'fun-ResidentesAtivos' && <ListaResidentesAtivos />}
                     {funcaoAdmin === 'fun-criarGrupo'       && <NovoGrupo />}

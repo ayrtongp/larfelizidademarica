@@ -3,6 +3,8 @@ import PermissionWrapper from '@/components/PermissionWrapper';
 import PortalBase from '@/components/Portal/PortalBase';
 import SelectSearchInputM2 from '@/components/Formularios/SelectSeachInputM2';
 import GestaoArquivos from '@/components/Arquivos/GestaoArquivos';
+import { useHasAnyGroup } from '@/hooks/useHasAnyGroup';
+import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups';
 
 interface Entidade {
     _id: string;
@@ -10,10 +12,13 @@ interface Entidade {
 }
 
 const ArquivosAdminPage = () => {
+    const { hasGroup: hasAdministrativo, loading: loadingAccess } = useHasAnyGroup([ADMINISTRATIVO_GROUP_ID]);
     const [opcoes, setOpcoes] = useState<{ value: string; label: string }[]>([]);
     const [selectedEntity, setSelectedEntity] = useState<Entidade | null>(null);
 
     useEffect(() => {
+        if (!hasAdministrativo) return;
+
         Promise.all([
             fetch('/api/Controller/ResidentesController?type=getAllActive').then(r => r.json()).catch(() => []),
             fetch('/api/Controller/Usuario').then(r => r.json()).catch(() => ({})),
@@ -30,10 +35,12 @@ const ArquivosAdminPage = () => {
 
             setOpcoes([...resOpcoes, ...usuOpcoes]);
         });
-    }, []);
+    }, [hasAdministrativo]);
+
+    if (loadingAccess) return null;
 
     return (
-        <PermissionWrapper href='/portal' groups={['66955f79820cc8004aab9596']}>
+        <PermissionWrapper href='/portal' groups={[ADMINISTRATIVO_GROUP_ID]}>
             <PortalBase>
                 <div className='col-span-full flex flex-col gap-6 p-2'>
 

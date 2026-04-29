@@ -31,6 +31,23 @@ export interface DadosTransferencia {
   observacoes?: string;
 }
 
+export type UpdateMovimentacaoPayload = Omit<
+  Partial<T_Movimentacao>,
+  'categoriaId' | 'contaDestinoId' | 'emprestimoId' | 'formaPagamento' | 'numeroDocumento' | 'observacoes' | 'vinculadoId' | 'vinculadoTipo'
+> & {
+  categoriaId?: string | null;
+  contaDestinoId?: string | null;
+  emprestimoId?: string | null;
+  formaPagamento?: T_Movimentacao['formaPagamento'] | null;
+  numeroDocumento?: string | null;
+  observacoes?: string | null;
+  vinculadoId?: string | null;
+  vinculadoTipo?: 'usuario' | 'residente' | null;
+  rateios?: any[];
+  criarPar?: boolean;
+  contaParId?: string;
+}
+
 const S_financeiroMovimentacoes = {
   getAll: async (p?: GetAllParams): Promise<GetAllResult> => {
     const params = new URLSearchParams({ type: 'getAll' });
@@ -98,7 +115,7 @@ const S_financeiroMovimentacoes = {
     return res.json();
   },
 
-  update: async (id: string, data: Partial<T_Movimentacao>): Promise<void> => {
+  update: async (id: string, data: UpdateMovimentacaoPayload): Promise<void> => {
     const params = new URLSearchParams({ type: 'update', id });
     const res = await fetch(`${baseUrl}?${params.toString()}`, {
       method: 'PUT',

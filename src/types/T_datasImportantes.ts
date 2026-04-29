@@ -49,7 +49,7 @@ export interface T_DataImportante {
 export function datasImportantesToEventos(
   items: T_DataImportante[],
   anoRef: number = new Date().getFullYear(),
-): { data: string; titulo: string; horario?: string; observacao?: string }[] {
+): { data: string; titulo: string; horario?: string; observacao?: string; categoria?: 'data_importante' }[] {
   return items
     .filter(item => item.data && item.data.includes('-'))
     .map(item => {
@@ -63,9 +63,10 @@ export function datasImportantesToEventos(
         titulo: item.titulo,
         horario: item.horario,
         observacao: item.observacao,
+        categoria: 'data_importante' as const,
       };
     })
-    .filter(Boolean) as { data: string; titulo: string; horario?: string; observacao?: string }[];
+    .filter(Boolean) as { data: string; titulo: string; horario?: string; observacao?: string; categoria?: 'data_importante' }[];
 }
 
 /** Ordena por mês/dia (ignora ano) para exibição no admin */

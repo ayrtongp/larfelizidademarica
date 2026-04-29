@@ -2,6 +2,9 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import PermissionWrapper from '@/components/PermissionWrapper';
 import PortalBase from '@/components/Portal/PortalBase';
 import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
+import MovimentacaoForm from '@/components/financeiro/movimentacoes/MovimentacaoForm';
+import S_financeiroMovimentacoes from '@/services/S_financeiroMovimentacoes';
+import { T_Movimentacao } from '@/types/T_financeiroMovimentacoes';
 
 const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
@@ -85,6 +88,8 @@ const MatrizCategorias = () => {
   const [agrupar, setAgrupar] = useState(true);
   const [busca, setBusca]  = useState('');
   const [modal, setModal]  = useState<ModalState>(null);
+  const [editMov, setEditMov] = useState<T_Movimentacao | null>(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   const carregar = async (a: number) => {
     try {
@@ -132,6 +137,28 @@ const MatrizCategorias = () => {
     [linhas, modo]
   );
 
+  const recarregarDetalhe = useCallback(async () => {
+    setModal((prev) => {
+      if (!prev) return prev;
+      const { categoriaId, mes } = prev;
+      fetch(`/api/Controller/C_financeiroRelatorios?type=matrizCategoriasDetalhe&categoriaId=${encodeURIComponent(categoriaId)}&ano=${ano}&mes=${mes}`)
+        .then((r) => r.json())
+        .then((data) => setModal((p) => p ? { ...p, items: data.items ?? [], loading: false } : null))
+        .catch(() => {});
+      return { ...prev, loading: true };
+    });
+  }, [ano]);
+
+  const abrirEdicao = useCallback(async (item: DetalheItem) => {
+    const movId = item.fonte === 'rateio' ? item.movimentacaoId! : item._id;
+    setLoadingEdit(true);
+    try {
+      const mov = await S_financeiroMovimentacoes.getById(movId);
+      setEditMov(mov);
+    } catch { /* silencioso */ }
+    finally { setLoadingEdit(false); }
+  }, []);
+
   const abrirModal = useCallback(async (l: LinhaCat, mesIdx: number) => {
     const mes = String(mesIdx + 1).padStart(2, '0');
     const mesLabel = MESES[mesIdx];
@@ -152,11 +179,11 @@ const MatrizCategorias = () => {
     return a + (modo === 'todos' && l.tipo === 'despesa' ? -v : v);
   }, 0);
 
-  const renderLinhas = (rows: LinhaCat[]) =>
+  const renderLinhas = (rows: LinhaCat[], indent = false) =>
     rows.map((l, idx) => (
       <tr key={l.categoriaId} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
         <td className={`sticky left-0 z-10 px-3 py-2 border-r border-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-          <div className="truncate max-w-[180px] font-medium text-gray-800 text-xs">{l.nome}</div>
+          <div className={`truncate max-w-[180px] font-medium text-gray-800 text-xs ${indent ? 'pl-3' : ''}`}>{l.nome}</div>
           <span className={`text-[9px] uppercase tracking-wide font-medium ${l.tipo === 'receita' ? 'text-green-600' : 'text-red-500'}`}>
             {l.tipo}
           </span>
@@ -278,21 +305,47 @@ const MatrizCategorias = () => {
                 </thead>
                 <tbody>
                   {agrupar && grupos
-                    ? grupos.map((g) => (
-                        <React.Fragment key={g.pai ?? '__raiz__'}>
-                          {g.pai !== null && (
-                            <tr className="bg-indigo-50">
-                              <td
-                                colSpan={14}
-                                className="sticky left-0 z-10 bg-indigo-50 px-3 py-1.5 text-[10px] font-bold text-indigo-700 uppercase tracking-wide border-t border-indigo-100"
-                              >
-                                {g.nomePai}
-                              </td>
-                            </tr>
-                          )}
-                          {renderLinhas(g.linhas)}
-                        </React.Fragment>
-                      ))
+                    ? grupos.map((g) => {
+                        const subtotaisMes = MESES.map((_, i) => {
+                          const mes = String(i + 1).padStart(2, '0');
+                          return g.linhas.reduce((acc, l) => {
+                            const v = rowVal(l, mes, modo);
+                            return acc + (modo === 'todos' && l.tipo === 'despesa' ? -v : v);
+                          }, 0);
+                        });
+                        const subtotalGeral = g.linhas.reduce((a, l) => {
+                          const v = rowTotal(l, modo);
+                          return a + (modo === 'todos' && l.tipo === 'despesa' ? -v : v);
+                        }, 0);
+                        const tipo = g.linhas[0]?.tipo ?? 'despesa';
+                        return (
+                          <React.Fragment key={g.pai ?? '__raiz__'}>
+                            {g.pai !== null && (
+                              <tr className="bg-indigo-50 border-t border-indigo-100">
+                                <td className="sticky left-0 z-10 bg-indigo-50 px-3 py-1.5 border-r border-indigo-100">
+                                  <div className="truncate max-w-[180px] font-bold text-indigo-800 text-xs">{g.nomePai}</div>
+                                  <span className={`text-[9px] uppercase tracking-wide font-medium ${tipo === 'receita' ? 'text-green-600' : 'text-red-500'}`}>
+                                    {tipo}
+                                  </span>
+                                </td>
+                                {subtotaisMes.map((v, i) => (
+                                  <td key={i} className="px-2 py-1.5 text-right tabular-nums text-xs font-bold">
+                                    <span className={v === 0 ? 'text-indigo-200' : 'text-indigo-700'}>
+                                      {v === 0 ? '—' : v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })}
+                                    </span>
+                                  </td>
+                                ))}
+                                <td className="px-3 py-1.5 text-right tabular-nums border-l border-indigo-100 text-xs font-bold">
+                                  <span className={subtotalGeral === 0 ? 'text-indigo-200' : 'text-indigo-700'}>
+                                    {subtotalGeral === 0 ? '—' : subtotalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })}
+                                  </span>
+                                </td>
+                              </tr>
+                            )}
+                            {renderLinhas(g.linhas, g.pai !== null)}
+                          </React.Fragment>
+                        );
+                      })
                     : renderLinhas(linhas)
                   }
                 </tbody>
@@ -340,6 +393,7 @@ const MatrizCategorias = () => {
                         <th className="pb-2 text-left font-semibold">Histórico</th>
                         <th className="pb-2 text-center font-semibold">Fonte</th>
                         <th className="pb-2 text-right font-semibold">Valor</th>
+                        <th className="pb-2" />
                       </tr>
                     </thead>
                     <tbody>
@@ -358,6 +412,15 @@ const MatrizCategorias = () => {
                             item.tipoMovimento === 'entrada' ? 'text-green-700' : 'text-red-600'
                           }`}>
                             {item.tipoMovimento === 'saida' ? '-' : ''}{fmtFull(item.valor)}
+                          </td>
+                          <td className="py-2 pl-2">
+                            <button
+                              onClick={() => abrirEdicao(item)}
+                              disabled={loadingEdit}
+                              className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium whitespace-nowrap disabled:opacity-50"
+                            >
+                              Editar
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -393,6 +456,25 @@ const MatrizCategorias = () => {
                     </tfoot>
                   </table>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {editMov && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                <h2 className="text-base font-bold text-gray-800">Editar Movimentação</h2>
+                <button onClick={() => setEditMov(null)} className="text-gray-400 hover:text-gray-700 p-1">
+                  <FaTimes size={16} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 py-4">
+                <MovimentacaoForm
+                  initialData={editMov}
+                  onSuccess={() => { setEditMov(null); carregar(ano); recarregarDetalhe(); }}
+                />
               </div>
             </div>
           </div>

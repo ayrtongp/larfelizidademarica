@@ -7,14 +7,19 @@ import { useLoadingOverlay } from '@/context/LoadingOverlayContext';
 import PortalBase from '@/components/Portal/PortalBase'
 import PermissionWrapper from '@/components/PermissionWrapper';
 import { formatDateBR } from '@/utils/Functions';
+import { useHasAnyGroup } from '@/hooks/useHasAnyGroup';
+import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups';
 
 
 export default function ContratosPage() {
+    const { hasGroup: hasAdministrativo, loading: loadingAccess } = useHasAnyGroup([ADMINISTRATIVO_GROUP_ID]);
     const [contratos, setContratos] = useState<Contrato[]>([]);
     const [error, setError] = useState<string | null>(null);
     const { showLoading, hideLoading } = useLoadingOverlay();
 
     useEffect(() => {
+        if (!hasAdministrativo) return;
+
         async function fetchData() {
             showLoading();
             try {
@@ -28,12 +33,13 @@ export default function ContratosPage() {
             }
         }
         fetchData();
-    }, []);
+    }, [hasAdministrativo, hideLoading, showLoading]);
 
     if (error) return <p className="text-red-500">{error}</p>;
+    if (loadingAccess) return null;
 
     return (
-        <PermissionWrapper href='/portal'>
+        <PermissionWrapper href='/portal' groups={[ADMINISTRATIVO_GROUP_ID]}>
             <PortalBase>
                 <div className="p-4 col-span-full">
                     <div className="flex justify-between items-center mb-4">

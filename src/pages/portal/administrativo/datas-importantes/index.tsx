@@ -252,17 +252,22 @@ const FormModal: React.FC<ModalProps> = ({ initial, onClose, onSaved }) => {
 // ── Página principal ───────────────────────────────────────────────────────
 
 const DatasImportantesPage = () => {
-  const { loading: loadingPerm } = useHasGroup('coordenacao');
+  const { hasGroup, loading: loadingPerm } = useHasGroup('coordenacao');
   const [items,   setItems]   = useState<T_DataImportante[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal,   setModal]   = useState<(typeof EMPTY_FORM & { _id?: string }) | null>(null);
 
   useEffect(() => {
+    if (!hasGroup) {
+      setLoading(false);
+      return;
+    }
+
     DatasImportantes_GET_getAll()
       .then(data => setItems(sortDatasImportantes(data)))
       .catch(() => notifyError('Erro ao carregar datas.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [hasGroup]);
 
   async function handleDelete(item: T_DataImportante) {
     if (!confirm(`Excluir "${item.titulo}"?`)) return;
@@ -303,6 +308,20 @@ const DatasImportantesPage = () => {
   }
 
   if (loadingPerm) return null;
+  if (!hasGroup) {
+    return (
+      <PermissionWrapper href="/portal">
+        <PortalBase>
+          <div className="col-span-full flex justify-center py-20 text-center">
+            <div>
+              <p className="text-xl font-semibold text-gray-700">Sem permissão</p>
+              <p className="text-sm text-gray-500 mt-2">Você não tem acesso ao módulo de Coordenação.</p>
+            </div>
+          </div>
+        </PortalBase>
+      </PermissionWrapper>
+    );
+  }
 
   // Agrupa por mês para exibição
   const grouped: Record<string, T_DataImportante[]> = {};
@@ -313,7 +332,7 @@ const DatasImportantesPage = () => {
   });
 
   return (
-    <PermissionWrapper href="/portal/administrativo">
+    <PermissionWrapper href="/portal/administrativo" groups={['coordenacao']}>
       <PortalBase>
         <div className="col-span-full max-w-3xl mx-auto w-full space-y-5 pb-10">
 

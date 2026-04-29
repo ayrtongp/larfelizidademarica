@@ -34,6 +34,7 @@
     "eslint-config-next": "13.3.0",
     "file-saver": "^2.0.5",
     "fs": "^0.0.1-security",
+    "html-to-image": "^1.11.13",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.0",
     "jszip": "^3.10.1",

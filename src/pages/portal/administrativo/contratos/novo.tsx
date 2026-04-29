@@ -20,6 +20,8 @@ import PermissionWrapper from '@/components/PermissionWrapper';
 import PortalBase from '@/components/Portal/PortalBase'
 import { Residentes_GET_getAllActive } from '@/actions/Residentes';
 import Number_M3 from '@/components/Formularios/Number_M3';
+import { useHasAnyGroup } from '@/hooks/useHasAnyGroup';
+import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups';
 
 interface ResidentOption {
     label: string;
@@ -29,6 +31,7 @@ interface ResidentOption {
 export default function NewContratoPage() {
     const router = useRouter();
     const { showLoading, hideLoading } = useLoadingOverlay();
+    const { hasGroup: hasAdministrativo, loading: loadingAccess } = useHasAnyGroup([ADMINISTRATIVO_GROUP_ID]);
     const [residentOptions, setResidentOptions] = useState<ResidentOption[]>([]);
     const [formData, setFormData] = useState({
         usuario_id: '',
@@ -47,6 +50,8 @@ export default function NewContratoPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!hasAdministrativo) return;
+
         async function loadResidentes() {
             try {
                 const res = await Residentes_GET_getAllActive();
@@ -59,7 +64,9 @@ export default function NewContratoPage() {
             }
         }
         loadResidentes();
-    }, []);
+    }, [hasAdministrativo]);
+
+    if (loadingAccess) return null;
 
     const handleChange = (
         e: React.ChangeEvent<
@@ -103,7 +110,7 @@ export default function NewContratoPage() {
     };
 
     return (
-        <PermissionWrapper href='/portal'>
+        <PermissionWrapper href='/portal' groups={[ADMINISTRATIVO_GROUP_ID]}>
             <PortalBase>
                 <div className="p-4 w-full mx-auto col-span-full">
                     <h1 className="text-2xl font-semibold mb-6">Novo Contrato</h1>

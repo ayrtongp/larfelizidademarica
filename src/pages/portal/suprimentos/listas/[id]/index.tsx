@@ -5,9 +5,87 @@ import PermissionWrapper from '@/components/PermissionWrapper';
 import StatusBadgeLista from '@/components/suprimentos/listas/StatusBadgeLista';
 import TabelaItensLista from '@/components/suprimentos/listas/TabelaItensLista';
 import S_listaCompras from '@/services/S_listaCompras';
-import { StatusLista, T_ItemLista, T_ListaCompras, TIPO_LISTA_CONFIG } from '@/types/T_listaCompras';
+import { StatusLista, T_ItemLista, T_ListaCompras, TIPO_LISTA_CONFIG, UNIDADES_ITEM } from '@/types/T_listaCompras';
 import { getUserID, updateProfile } from '@/utils/Login';
 import { formatDateBR, notifyError, notifySuccess } from '@/utils/Functions';
+
+const unidadeLabel = (value: string) =>
+  UNIDADES_ITEM.find((item) => item.value === value)?.label ?? value;
+
+function sanitizeFilename(value: string) {
+  const normalized = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
+
+  return normalized || 'lista-compras';
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function fillRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number, color: string) {
+  roundRect(ctx, x, y, width, height, radius);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const source = (text || '').trim();
+  if (!source) return ['-'];
+
+  const words = source.split(/\s+/);
+  const lines: string[] = [];
+  let current = '';
+
+  const splitLongWord = (word: string) => {
+    let chunk = '';
+    for (const char of word) {
+      const candidate = `${chunk}${char}`;
+      if (ctx.measureText(candidate).width <= maxWidth || chunk.length === 0) {
+        chunk = candidate;
+      } else {
+        lines.push(chunk);
+        chunk = char;
+      }
+    }
+    return chunk;
+  };
+
+  for (const word of words) {
+    const baseWord = ctx.measureText(word).width > maxWidth ? splitLongWord(word) : word;
+    const candidate = current ? `${current} ${baseWord}` : baseWord;
+
+    if (ctx.measureText(candidate).width <= maxWidth) {
+      current = candidate;
+    } else {
+      if (current) lines.push(current);
+      current = baseWord;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines.length ? lines : ['-'];
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('Nao foi possivel gerar a imagem da lista.'));
+    }, type, quality);
+  });
+}
 
 const Detalhe = () => {
   const router = useRouter();
@@ -20,6 +98,7 @@ const Detalhe = () => {
   const [itensAlterados, setItensAlterados] = useState(false);
   const [editandoInfo, setEditandoInfo] = useState(false);
   const [formInfo, setFormInfo] = useState({ titulo: '', data: '', observacoes: '' });
+  const [exportando, setExportando] = useState(false);
 
   const carregarLista = useCallback(async (listId: string) => {
     try {
@@ -149,6 +228,116 @@ const Detalhe = () => {
     }
   };
 
+  const exportarJPG = async () => {
+    if (!lista) return;
+    setExportando(true);
+
+    try {
+      const SCALE = 2;
+      const LW = 760;
+      const PAD = 20;
+      const TL = PAD;
+      const TW = LW - PAD * 2;
+
+      const COL_ITEM = TL + 16;
+      const COL_QTD = TL + 520;
+      const COL_UN = TL + 610;
+      const ITEM_COL_W = 480;
+
+      const mc = document.createElement('canvas');
+      const mctx = mc.getContext('2d');
+      if (!mctx) throw new Error('Nao foi possivel preparar exportacao.');
+      mctx.font = '600 14px Arial, sans-serif';
+
+      const rowMetrics = itensLocais.map((item) => {
+        const nomeLines = wrapText(mctx, item.nome, ITEM_COL_W - 20);
+        const rowH = Math.max(36, nomeLines.length * 20 + 16);
+        return { item, nomeLines, rowH };
+      });
+
+      const TH_H = 38;
+      const BODY_H = rowMetrics.length ? rowMetrics.reduce((s, r) => s + r.rowH, 0) : 52;
+      const LH = PAD + TH_H + BODY_H + PAD;
+      const scale = LH * SCALE > 12000 ? 1.5 : SCALE;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(LW * scale);
+      canvas.height = Math.round(LH * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Nao foi possivel gerar imagem.');
+
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, LW, LH);
+
+      let tY = PAD;
+      fillRoundRect(ctx, TL, tY, TW, TH_H, 6, '#f3f4f6');
+      ctx.font = '700 11px Arial, sans-serif';
+      ctx.fillStyle = '#6b7280';
+      ctx.textBaseline = 'middle';
+      const thY = tY + TH_H / 2;
+      ctx.fillText('ITEM', COL_ITEM, thY);
+      ctx.fillText('QTD', COL_QTD, thY);
+      ctx.fillText('UND', COL_UN, thY);
+      tY += TH_H;
+
+      if (rowMetrics.length === 0) {
+        ctx.fillStyle = '#f9fafb';
+        ctx.fillRect(TL, tY, TW, 52);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '400 14px Arial, sans-serif';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Nenhum item na lista.', COL_ITEM, tY + 26);
+      } else {
+        for (let i = 0; i < rowMetrics.length; i++) {
+          const { item, nomeLines, rowH } = rowMetrics[i];
+
+          ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#f9fafb';
+          ctx.fillRect(TL, tY, TW, rowH);
+
+          ctx.strokeStyle = '#f3f4f6';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(TL, tY);
+          ctx.lineTo(TL + TW, tY);
+          ctx.stroke();
+
+          const rCY = tY + rowH / 2;
+          ctx.font = '600 14px Arial, sans-serif';
+          ctx.fillStyle = '#111827';
+          ctx.textBaseline = 'top';
+          let lineY = tY + Math.max(8, (rowH - nomeLines.length * 20) / 2);
+          for (const line of nomeLines) {
+            ctx.fillText(line, COL_ITEM, lineY);
+            lineY += 20;
+          }
+
+          ctx.font = '400 13px Arial, sans-serif';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#374151';
+          ctx.fillText(String(item.quantidade), COL_QTD, rCY);
+          ctx.fillStyle = '#6b7280';
+          ctx.fillText(unidadeLabel(item.unidade), COL_UN, rCY);
+
+          tY += rowH;
+        }
+      }
+
+      const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `lista-${sanitizeFilename(lista.titulo)}.jpg`;
+      link.href = url;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error(err);
+      notifyError('Erro ao exportar imagem.');
+    } finally {
+      setExportando(false);
+    }
+  };
+
   if (loading) {
     return (
       <PermissionWrapper href="/portal" groups={['65cd5232828b75d5308e3315']}>
@@ -256,9 +445,9 @@ const Detalhe = () => {
                     </div>
                     <h1 className="text-lg font-bold text-gray-800 break-words">{lista.titulo}</h1>
                     <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-                      <span>📅 {formatDateBR(lista.data)}</span>
-                      <span>👤 {lista.criadoPorNome || 'Nutricionista'}</span>
-                      <span>📋 {lista.itens.length} {lista.itens.length === 1 ? 'item' : 'itens'}</span>
+                      <span>Data: {formatDateBR(lista.data)}</span>
+                      <span>Criado por: {lista.criadoPorNome || 'Nutricionista'}</span>
+                      <span>Itens: {lista.itens.length} {lista.itens.length === 1 ? 'item' : 'itens'}</span>
                     </div>
                     {lista.observacoes && (
                       <p className="text-xs text-gray-500 bg-gray-50 rounded p-2 border-l-2 border-gray-300">
@@ -315,6 +504,13 @@ const Detalhe = () => {
                       Duplicar como modelo
                     </button>
                     <button
+                      onClick={exportarJPG}
+                      disabled={exportando || saving}
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {exportando ? 'Exportando...' : 'Baixar JPG'}
+                    </button>
+                    <button
                       onClick={handleExcluir}
                       disabled={saving}
                       className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs rounded-lg transition-colors disabled:opacity-50"
@@ -330,7 +526,7 @@ const Detalhe = () => {
             <div className="space-y-3">
               {itensAlterados && (
                 <div className="flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-                  <span>⚠️ Há alterações não salvas nos itens.</span>
+                  <span>Atencao: ha alteracoes nao salvas nos itens.</span>
                   <button
                     onClick={handleSalvarItens}
                     disabled={saving}

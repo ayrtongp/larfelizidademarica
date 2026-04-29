@@ -53,6 +53,8 @@ interface Vital {
 interface Evento {
   titulo: string;
   data: string;
+  horario?: string;
+  observacao?: string;
 }
 
 interface Foto {
@@ -387,7 +389,7 @@ export default function FamiliaPage({
 
         {/* ── Datas Importantes ───────────────────────────────────────────── */}
         <section>
-          <SectionTitle>Próximas datas</SectionTitle>
+          <SectionTitle>Próximas datas e agendamentos</SectionTitle>
           {!eventos ? <CardSkeleton /> : eventos.length === 0 ? (
             <div className="bg-white rounded-3xl shadow p-6 text-center text-gray-400 text-lg">
               Nenhuma data próxima cadastrada.
@@ -401,7 +403,11 @@ export default function FamiliaPage({
                   </div>
                   <div>
                     <p className="text-lg font-semibold text-gray-800">{ev.titulo}</p>
-                    <p className="text-base text-gray-400">{ev.data}</p>
+                    <p className="text-base text-gray-400">
+                      {ev.data}
+                      {ev.horario ? ` às ${ev.horario}` : ''}
+                    </p>
+                    {ev.observacao && <p className="text-sm text-gray-400">{ev.observacao}</p>}
                   </div>
                 </div>
               ))}

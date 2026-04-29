@@ -146,17 +146,19 @@ export default function MovimentacoesPage() {
 
   // Carregar mais (append)
   async function loadMore(limit: number) {
+    const seq = ++loadSeqRef.current;
     setLoadingMore(true);
     try {
       const result = await S_financeiroMovimentacoes.getAll({
         conditions, logic, skip: movimentacoes.length, limit,
       });
+      if (seq !== loadSeqRef.current) return;
       setMovimentacoes(prev => [...prev, ...result.items]);
       setTotal(result.total);
     } catch (err: any) {
-      setErro(err.message || 'Erro ao carregar mais registros.');
+      if (seq === loadSeqRef.current) setErro(err.message || 'Erro ao carregar mais registros.');
     } finally {
-      setLoadingMore(false);
+      if (seq === loadSeqRef.current) setLoadingMore(false);
     }
   }
 
@@ -174,18 +176,17 @@ export default function MovimentacoesPage() {
   function handleVerRateios(mov: T_Movimentacao) { setMovimentacaoRateios(mov); }
   function handleEditar(mov: T_Movimentacao)      { setEditandoMovimentacao(mov); setModalAberto('movimentacao'); }
 
-  // Recarrega preservando quantos registros estavam carregados (não reseta paginação)
+  // Recarrega silenciosamente — sem spinner, sem perder posição de scroll
   const recarregarPreservando = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     const limit = Math.max(movimentacoes.length, PAGE_SIZE);
-    setLoadingMovs(true);
     try {
       const result = await S_financeiroMovimentacoes.getAll({ conditions, logic, skip: 0, limit });
+      if (seq !== loadSeqRef.current) return;
       setMovimentacoes(result.items);
       setTotal(result.total);
     } catch (err: any) {
-      setErro(err.message || 'Erro ao recarregar.');
-    } finally {
-      setLoadingMovs(false);
+      if (seq === loadSeqRef.current) setErro(err.message || 'Erro ao recarregar.');
     }
   }, [conditions, logic, movimentacoes.length]);
 

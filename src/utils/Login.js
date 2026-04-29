@@ -24,14 +24,17 @@ export function Logout(router) {
 export function getUserID() {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
-    const { userId } = jwt.decode(token)
-    return userId
+    if (!token) return null;
+    const decoded = jwt.decode(token);
+    return decoded?.userId ?? null;
   }
+  return null;
 }
 
 export function getUserFuncao() {
-  const funcao = JSON.parse(localStorage.getItem('userInfo')).funcao
-  return funcao
+  const raw = localStorage.getItem('userInfo');
+  if (!raw) return null;
+  return JSON.parse(raw)?.funcao ?? null;
 }
 
 export function getUserFuncoes() {

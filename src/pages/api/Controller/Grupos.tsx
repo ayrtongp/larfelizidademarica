@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'GET':
 
       // -------------------------
-      // GET All 
+      // GET All
       // -------------------------
 
       if (req.query.type === 'getAll') {
@@ -24,6 +24,107 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(500).json({ message: 'getAll: Erro não identificado. Procure um administrador.' });
         }
       }
+
+      else if (req.query.type === 'getAllWithMembers') {
+        try {
+          type GrupoDoc = {
+            _id: ObjectId;
+            cod_grupo?: string;
+            nome_grupo: string;
+            descricao?: string;
+          };
+
+          type RelacaoGrupoUsuario = {
+            id_grupo?: string;
+            id_usuario?: string;
+          };
+
+          type UsuarioResumo = {
+            _id: ObjectId;
+            nome?: string;
+            sobrenome?: string;
+            usuario?: string;
+            ativo?: string;
+            funcao?: string;
+            registro?: string;
+          };
+
+          const grupos = await mainCollection
+            .find({}, { projection: { cod_grupo: 1, nome_grupo: 1, descricao: 1 } })
+            .sort({ nome_grupo: 1 })
+            .toArray() as GrupoDoc[];
+
+          const relacoes = await db
+            .collection('grupos_usuario')
+            .find({}, { projection: { id_grupo: 1, id_usuario: 1 } })
+            .toArray() as RelacaoGrupoUsuario[];
+
+          const usuarioIds = Array.from(
+            new Set(
+              relacoes
+                .map((relacao) => relacao.id_usuario)
+                .filter((id): id is string => typeof id === 'string' && ObjectId.isValid(id))
+            )
+          );
+
+          const usuarios = usuarioIds.length > 0
+            ? await db
+              .collection('usuario')
+              .find(
+                { _id: { $in: usuarioIds.map((id) => new ObjectId(id)) } },
+                { projection: { nome: 1, sobrenome: 1, usuario: 1, ativo: 1, funcao: 1, registro: 1 } }
+              )
+              .toArray() as UsuarioResumo[]
+            : [];
+
+          const usuariosPorId = new Map(
+            usuarios.map((usuario: UsuarioResumo) => [
+              String(usuario._id),
+              {
+                _id: String(usuario._id),
+                nome: usuario.nome || '',
+                sobrenome: usuario.sobrenome || '',
+                usuario: usuario.usuario || '',
+                ativo: usuario.ativo || '',
+                funcao: usuario.funcao || '',
+                registro: usuario.registro || '',
+              },
+            ])
+          );
+
+          const relacoesPorGrupo = relacoes.reduce((acc: Map<string, string[]>, relacao: RelacaoGrupoUsuario) => {
+            if (!relacao.id_grupo || !relacao.id_usuario) return acc;
+
+            const ids = acc.get(relacao.id_grupo) || [];
+            ids.push(relacao.id_usuario);
+            acc.set(relacao.id_grupo, ids);
+            return acc;
+          }, new Map<string, string[]>());
+
+          const data = grupos.map((grupo: GrupoDoc) => {
+            const grupoId = String(grupo._id);
+            const membros = (relacoesPorGrupo.get(grupoId) || [])
+              .map((usuarioId: string) => usuariosPorId.get(usuarioId))
+              .filter((usuario): usuario is { _id: string; nome: string; sobrenome: string; usuario: string; ativo: string; funcao: string; registro: string } => Boolean(usuario))
+              .sort((a, b) => `${a.nome} ${a.sobrenome}`.localeCompare(`${b.nome} ${b.sobrenome}`));
+
+            return {
+              _id: grupoId,
+              cod_grupo: grupo.cod_grupo || '',
+              nome_grupo: grupo.nome_grupo,
+              descricao: grupo.descricao || '',
+              membros,
+              totalMembros: membros.length,
+            };
+          });
+
+          return res.status(200).json(data);
+        } catch (err) {
+          console.error('[Grupos]', err)
+          return res.status(500).json({ message: 'getAllWithMembers: Erro não identificado. Procure um administrador.' });
+        }
+      }
+
       // -------------------------
       // GET KEY
       // -------------------------
@@ -94,7 +195,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
       }
 
       // -------------------------
-      // SE NENHUMA CONDIÇÃR BATER DEVE RETORNAR ERRO
+      // SE NENHUMA CONDIÇÃO BATER DEVE RETORNAR ERRO
       // -------------------------
 
       else {
@@ -106,7 +207,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
     case 'POST':
 
       // -------------------------
-      // CRIAR NOVO 
+      // CRIAR NOVO
       // -------------------------
 
       if (req.query.type == 'new') {

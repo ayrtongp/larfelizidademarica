@@ -3,6 +3,7 @@ import { Card_M1 } from '@/components/Formularios/Card'
 import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups'
 import { sendMessage } from '@/pages/api/WhatsApp'
 import Link from 'next/link'
 import React from 'react'
@@ -14,7 +15,7 @@ const Index = () => {
     const isAdmin = useIsAdmin()
 
     return (
-        <PermissionWrapper href='/portal' groups={['66955f79820cc8004aab9596']}>
+        <PermissionWrapper href='/portal' groups={[ADMINISTRATIVO_GROUP_ID]}>
             <PortalBase>
                 <div className='col-span-full w-full'>
 
@@ -55,6 +56,12 @@ const Index = () => {
                         <div className='col-span-6 sm:col-span-2'>
                             <Link href={'/portal/administrativo/arquivos'}>
                                 <Card_M1 title={'Arquivos'} cursorPointer bgColor='bg-white' icon={<FaFolderOpen size={24} className="text-indigo-500 mb-3 inline-block" />} />
+                            </Link>
+                        </div>
+
+                        <div className='col-span-6 sm:col-span-2'>
+                            <Link href={'/portal/administrativo/agenda'}>
+                                <Card_M1 title={'Agenda Geral'} cursorPointer bgColor='bg-white' icon={<FaCalendarAlt size={24} className="text-sky-500 mb-3 inline-block" />} />
                             </Link>
                         </div>
 

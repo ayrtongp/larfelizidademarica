@@ -49,8 +49,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
 
       else if (req.query.type === 'getProfissionais') {
         try {
+          const query: Record<string, any> = {};
+          if (req.query.ativo === 'S' || req.query.ativo === 'N') {
+            query.ativo = req.query.ativo;
+          }
+
           const documents = await mainCollection.find(
-            {},
+            query,
             { projection: { _id: 1, nome: 1, sobrenome: 1, funcao: 1, registro: 1 } })
             .sort({ nome: 1 }).toArray();
           return res.status(200).json(documents);

@@ -1,85 +1,89 @@
-import React, { useEffect, useState } from 'react';
-import { saudacao } from '../../utils/Functions'
-import { Versiculos } from '../../utils/versiculos'
+import React, { useEffect, useMemo, useState } from 'react';
+import { getUserDetails, saudacao } from '../../utils/Functions';
+import { Versiculos } from '../../utils/versiculos';
+import { FaCalendarAlt, FaQuoteLeft } from 'react-icons/fa';
+
+interface MensagemInspiradora {
+  verse: string;
+  text: string;
+}
+
+function randomVersiculo(): MensagemInspiradora {
+  const randomNumber = Math.floor(Math.random() * Versiculos.length);
+  return Versiculos[randomNumber] as MensagemInspiradora;
+}
 
 const WelcomeBanner = () => {
-  const [nomeSobrenome, setNomeSobrenome] = useState();
-  const [verso, setVerso] = useState('');
-  const [texto, setTexto] = useState('');
-
-  function randomVersiculo() {
-    const randomNumber = Math.floor(Math.random() * Versiculos.length);
-    const { verse, text } = Versiculos[randomNumber];
-    setVerso(verse)
-    setTexto(text)
-    return { verse, text };
-  }
+  const [nome, setNome] = useState('');
+  const [mensagem, setMensagem] = useState<MensagemInspiradora>(() => randomVersiculo());
 
   useEffect(() => {
-    randomVersiculo();
+    setMensagem(randomVersiculo());
+
+    const userInfo = getUserDetails();
+    if (userInfo && typeof userInfo === 'object' && 'nome' in userInfo) {
+      setNome(String(userInfo.nome || '').trim());
+    }
   }, []);
 
-  useEffect(() => {
-    const storage = localStorage.getItem('userInfo')
-    if (storage) {
-      setNomeSobrenome(JSON.parse(storage).nome)
-    }
-  })
+  const primeiroNome = nome.split(' ')[0] || 'equipe';
+  const dataHoje = useMemo(() => (
+    new Date().toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+    })
+  ), []);
 
   return (
-    <div className="relative bg-indigo-200 p-4 sm:p-6 rounded-sm overflow-hidden mb-8">
+    <section className="relative mb-6 overflow-hidden rounded-[32px] border border-sky-200/70 bg-gradient-to-br from-sky-100 via-white to-amber-50 p-6 shadow-sm sm:p-7">
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,_rgba(14,165,233,0.12),_transparent_58%)]" />
+      <div className="pointer-events-none absolute -left-12 top-10 h-32 w-32 rounded-full bg-white/50 blur-2xl" />
 
-      {/* Background illustration */}
-      <div className="absolute right-0 top-0 -mt-4 mr-16 pointer-events-none hidden xl:block" aria-hidden="true">
-        <svg width="319" height="198" xmlnsXlink="http://www.w3.org/1999/xlink">
-          <defs>
-            <path id="welcome-a" d="M64 0l64 128-64-20-64 20z" />
-            <path id="welcome-e" d="M40 0l40 80-40-12.5L0 80z" />
-            <path id="welcome-g" d="M40 0l40 80-40-12.5L0 80z" />
-            <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="welcome-b">
-              <stop stopColor="#A5B4FC" offset="0%" />
-              <stop stopColor="#818CF8" offset="100%" />
-            </linearGradient>
-            <linearGradient x1="50%" y1="24.537%" x2="50%" y2="100%" id="welcome-c">
-              <stop stopColor="#4338CA" offset="0%" />
-              <stop stopColor="#6366F1" stopOpacity="0" offset="100%" />
-            </linearGradient>
-          </defs>
-          <g fill="none" fillRule="evenodd">
-            <g transform="rotate(64 36.592 105.604)">
-              <mask id="welcome-d" fill="#fff">
-                <use xlinkHref="#welcome-a" />
-              </mask>
-              <use fill="url(#welcome-b)" xlinkHref="#welcome-a" />
-              <path fill="url(#welcome-c)" mask="url(#welcome-d)" d="M64-24h80v152H64z" />
-            </g>
-            <g transform="rotate(-51 91.324 -105.372)">
-              <mask id="welcome-f" fill="#fff">
-                <use xlinkHref="#welcome-e" />
-              </mask>
-              <use fill="url(#welcome-b)" xlinkHref="#welcome-e" />
-              <path fill="url(#welcome-c)" mask="url(#welcome-f)" d="M40.333-15.147h50v95h-50z" />
-            </g>
-            <g transform="rotate(44 61.546 392.623)">
-              <mask id="welcome-h" fill="#fff">
-                <use xlinkHref="#welcome-g" />
-              </mask>
-              <use fill="url(#welcome-b)" xlinkHref="#welcome-g" />
-              <path fill="url(#welcome-c)" mask="url(#welcome-h)" d="M40.333-15.147h50v95h-50z" />
-            </g>
-          </g>
-        </svg>
+      <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.2fr),360px] xl:items-end">
+        <div>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-700 shadow-sm">
+              Central do portal
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white shadow-sm">
+              <FaCalendarAlt size={10} />
+              {dataHoje}
+            </span>
+          </div>
+
+          <h1 className="max-w-3xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            {saudacao()}, {primeiroNome}.
+          </h1>
+
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+            Aqui fica a leitura principal do dia: agenda da casa, avisos recentes e os atalhos que realmente destravam a rotina.
+          </p>
+        </div>
+
+        <div className="rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-sm backdrop-blur">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+            Frase do dia
+          </p>
+
+          <div className="mt-4 flex gap-3">
+            <div className="mt-1 rounded-2xl bg-amber-100 p-2 text-amber-700">
+              <FaQuoteLeft size={14} />
+            </div>
+
+            <div>
+              <p className="text-sm leading-6 text-slate-700 sm:text-[15px]">
+                {mensagem.text}
+              </p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                {mensagem.verse}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Content */}
-      <div className="relative">
-        <h1 className="text-2xl md:text-3xl text-slate-800 font-bold mb-1">{saudacao() + ', ' + nomeSobrenome}. 👋</h1>
-        <p>- {texto}</p>
-        <p className='text-sm text-gray-500'>{verso}</p>
-      </div>
-
-    </div>
+    </section>
   );
-}
+};
 
 export default WelcomeBanner;

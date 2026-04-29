@@ -68,7 +68,7 @@ const FuncionarioLinkModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, usu
 
   const loadUsuarios = async () => {
     try {
-      const res = await fetch('/api/Controller/Usuario?type=getProfissionais');
+      const res = await fetch('/api/Controller/Usuario?type=getProfissionais&ativo=S');
       const data = await res.json();
       setUsuarios(Array.isArray(data) ? data : []);
     } catch {

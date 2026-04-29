@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { verifyFamiliaSession } from '@/utils/familiaSession';
 import { MEASUREMENT_TYPES } from '@/types/T_measurement';
 import { FOTOS_COLLECTION_NAME, FOTOS_COLLECTION_FILTER } from '@/types/Fotos';
+import { AGENDA_GERAL_TIPO_LABELS } from '@/types/T_agendaGeral';
 
 const PUBLIC_BASE = process.env.NEXT_PUBLIC_R2_PUBLIC_BASEURL || process.env.R2_PUBLIC_BASEURL || '';
 
@@ -142,9 +143,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const docs = await db.collection('datas_importantes').find().sort({ data: 1 }).toArray();
         const hoje = new Date();
         const anoAtual = hoje.getFullYear();
+        const hojeIso = hoje.toISOString().split('T')[0];
         const mmddHoje = hoje.getMonth() * 100 + hoje.getDate();
 
-        const proximas = docs
+        const proximasDatas = docs
           .map((d: any) => {
             const parts = String(d.data || '').split('-');
             const mes = parseInt(parts[1] || '0', 10);
@@ -155,13 +157,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
           .filter((e: any) => e.mes !== 0 && e.dia !== 0 && e.mmdd >= mmddHoje)
           .sort((a: any, b: any) => a.mmdd - b.mmdd)
-          .slice(0, 5)
           .map((e: any) => ({
             titulo: e.titulo,
             data:   `${String(e.dia).padStart(2,'0')}/${String(e.mes).padStart(2,'0')}/${e.ano}`,
+            sortKey: `${e.ano}-${String(e.mes).padStart(2,'0')}-${String(e.dia).padStart(2,'0')}`,
+            horario: '',
+            observacao: '',
           }));
 
-        return res.status(200).json({ eventos: proximas });
+        const agendaDocs = await db.collection('agenda_geral')
+          .find({
+            residente_id: id_residente,
+            status: 'agendado',
+            tipo: { $ne: 'visita' },
+            data: { $gte: hojeIso },
+          })
+          .sort({ data: 1, horario: 1 })
+          .limit(10)
+          .toArray();
+
+        const proximosAgendamentos = agendaDocs.map((d: any) => {
+          const tipoLabel = typeof d.tipo === 'string' && d.tipo in AGENDA_GERAL_TIPO_LABELS
+            ? AGENDA_GERAL_TIPO_LABELS[d.tipo as keyof typeof AGENDA_GERAL_TIPO_LABELS]
+            : 'Agendamento';
+
+          return {
+            titulo: `${tipoLabel} · ${d.titulo}`,
+            data: String(d.data || '').split('-').reverse().join('/'),
+            sortKey: d.data,
+            horario: d.horario || '',
+            observacao: [d.local ? `Local: ${d.local}` : '', d.descricao || ''].filter(Boolean).join(' · '),
+          };
+        });
+
+        const eventos = [...proximasDatas, ...proximosAgendamentos]
+          .sort((a: any, b: any) => {
+            const dateCmp = String(a.sortKey || '').localeCompare(String(b.sortKey || ''));
+            if (dateCmp !== 0) return dateCmp;
+            return String(a.horario || '').localeCompare(String(b.horario || ''));
+          })
+          .slice(0, 5)
+          .map(({ sortKey, ...item }: any) => item);
+
+        return res.status(200).json({ eventos });
       } catch {
         return res.status(500).json({ message: 'Erro ao buscar datas.' });
       }

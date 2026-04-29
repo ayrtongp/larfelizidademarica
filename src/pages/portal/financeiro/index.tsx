@@ -5,6 +5,7 @@ import ProximosVencimentosList from '@/components/financeiro/dashboard/ProximosV
 import VencidosList from '@/components/financeiro/dashboard/VencidosList';
 import SaldoContasList from '@/components/financeiro/dashboard/SaldoContasList';
 import GraficoEvolucaoMensal from '@/components/financeiro/dashboard/GraficoEvolucaoMensal';
+import GraficoSaldoContas from '@/components/financeiro/dashboard/GraficoSaldoContas';
 import { S_financeiroDashboard } from '@/services/S_financeiroDashboard';
 import { T_DashboardResumo, T_TituloVencimento, T_SaldoConta, T_EvolucaoMensal } from '@/types/T_financeiroDashboard';
 
@@ -89,11 +90,22 @@ export default function FinanceiroDashboard() {
             )}
 
             {evolucao.length > 0 && (
-              <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-                <h2 className="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wide">
-                  Evolução Mensal — Recebido vs Pago
-                </h2>
-                <GraficoEvolucaoMensal dados={evolucao} />
+              <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                  <h2 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">
+                    Recebido vs Pago
+                  </h2>
+                  <GraficoEvolucaoMensal dados={evolucao} />
+                </div>
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                  <h2 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">
+                    Saldo Total das Contas
+                  </h2>
+                  <GraficoSaldoContas
+                    evolucao={evolucao}
+                    totalAtual={saldoContas.reduce((acc, c) => acc + c.saldoAtual, 0)}
+                  />
+                </div>
               </div>
             )}
 

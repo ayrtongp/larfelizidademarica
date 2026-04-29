@@ -15,9 +15,10 @@ import Tab_SaudeOcupacional from '@/components/funcionarios/tabs/Tab_SaudeOcupac
 import Tab_ContatoEmergencia from '@/components/funcionarios/tabs/Tab_ContatoEmergencia';
 import Tab_Demissao from '@/components/funcionarios/tabs/Tab_Demissao';
 import GestaoArquivos from '@/components/Arquivos/GestaoArquivos';
+import DocPeriodoTab from '@/components/rh/DocPeriodoTab';
 import {
   FaUser, FaFileContract, FaIdCard, FaGift,
-  FaUniversity, FaHeartbeat, FaFolder, FaPhone, FaUserTimes,
+  FaUniversity, FaHeartbeat, FaFolder, FaPhone, FaUserTimes, FaCalendarCheck, FaMoneyCheckAlt,
 } from 'react-icons/fa';
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -54,6 +55,8 @@ const FuncionarioDetalhes = () => {
     { id: 'menuBancario', label: 'Dados Bancários', icon: <FaUniversity />, color: 'text-yellow-600' },
     { id: 'menuSaude', label: 'Saúde Ocupacional', icon: <FaHeartbeat />, color: 'text-red-600' },
     { id: 'menuDocumentos', label: 'Documentos', icon: <FaFolder />, color: 'text-fuchsia-600' },
+    { id: 'menuFolhaPonto', label: 'Folha de Ponto', icon: <FaCalendarCheck />, color: 'text-teal-600' },
+    { id: 'menuContracheque', label: 'Contracheque', icon: <FaMoneyCheckAlt />, color: 'text-emerald-600' },
     { id: 'menuEmergencia', label: 'Emergência', icon: <FaPhone />, color: 'text-orange-600' },
     ...(isAdmin ? [{ id: 'menuDemissao', label: 'Demissão / Status', icon: <FaUserTimes />, color: 'text-red-700' }] : []),
   ];
@@ -108,7 +111,7 @@ const FuncionarioDetalhes = () => {
   const statusInfo = funcionario ? (STATUS_CONFIG[funcionario.status] ?? { label: funcionario.status, className: 'bg-gray-100 text-gray-700' }) : null;
 
   return (
-    <PermissionWrapper href="/portal">
+    <PermissionWrapper href="/portal" groups={['rh']}>
       <PortalBase>
         <div className="col-span-full">
 
@@ -125,14 +128,22 @@ const FuncionarioDetalhes = () => {
 
                   {/* Avatar + nome */}
                   <div className="flex flex-row gap-3 items-center mb-4">
-                    <AvatarCropper
-                      defaultImage={foto}
-                      size={16}
-                      targetUserId={funcionario.usuarioId}
-                      onImageCropped={newFoto => setFuncionario(prev =>
-                        prev ? { ...prev, usuario: { ...prev.usuario!, foto_base64: newFoto, foto_cdn: undefined } } : prev
-                      )}
-                    />
+                    {hasGroup ? (
+                      <AvatarCropper
+                        defaultImage={foto}
+                        size={16}
+                        targetUserId={funcionario.usuarioId}
+                        onImageCropped={newFoto => setFuncionario(prev =>
+                          prev ? { ...prev, usuario: { ...prev.usuario!, foto_base64: newFoto, foto_cdn: undefined } } : prev
+                        )}
+                      />
+                    ) : foto ? (
+                      <img src={foto} className="w-16 h-16 rounded-full object-cover" alt={nomeCompleto} />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 text-xl font-bold">
+                        {nomeCompleto.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div>
                       <p className="font-bold text-slate-700 text-base leading-tight">{nomeCompleto}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{funcionario.contrato?.cargo}</p>
@@ -268,6 +279,24 @@ const FuncionarioDetalhes = () => {
                     <GestaoArquivos
                       entityId={funcionario._id}
                       entityName={nomeCompleto}
+                    />
+                  )}
+
+                  {/* FOLHA DE PONTO */}
+                  {classeAtiva === 'menuFolhaPonto' && funcionario._id && (
+                    <DocPeriodoTab
+                      funcionarioId={funcionario._id}
+                      funcionarioNome={nomeCompleto}
+                      tipo="folha_ponto"
+                    />
+                  )}
+
+                  {/* CONTRACHEQUE */}
+                  {classeAtiva === 'menuContracheque' && funcionario._id && (
+                    <DocPeriodoTab
+                      funcionarioId={funcionario._id}
+                      funcionarioNome={nomeCompleto}
+                      tipo="contracheque"
                     />
                   )}
 

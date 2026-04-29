@@ -174,7 +174,7 @@ const IdosoDetalhes = () => {
   const statusInfo = idoso ? (STATUS_CONFIG[idoso.status] ?? { label: idoso.status, className: 'bg-gray-100 text-gray-700' }) : null;
 
   return (
-    <PermissionWrapper href="/portal/administrativo/idosos">
+    <PermissionWrapper href="/portal/administrativo/idosos" groups={['coordenacao']}>
       <PortalBase>
         <div className="col-span-full">
 
