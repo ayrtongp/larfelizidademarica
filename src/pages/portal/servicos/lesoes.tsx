@@ -60,8 +60,8 @@ const buildInitialState = (): Lesao => ({
     descricao: '',
     userId: '',
     userName: '',
-    createdBy: getUserID(),
-    createdByName: getUserDetails().nome ?? '',
+    createdBy: typeof window !== 'undefined' ? getUserID() : '',
+    createdByName: typeof window !== 'undefined' ? (getUserDetails()?.nome ?? '') : '',
     tipoLesao: '',
     xPos: 0,
     yPos: 0,
@@ -390,7 +390,7 @@ const Index = () => {
                             {lesoesAtivas.length === 0 ? (
                                 <div className="py-16 text-center text-gray-400">
                                     <p className="font-medium">Nenhuma lesão ativa encontrada</p>
-                                    <p className="text-sm mt-1">Clique em "Nova Lesão" para registrar.</p>
+                                    <p className="text-sm mt-1">Clique em &quot;Nova Lesão&quot; para registrar.</p>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
