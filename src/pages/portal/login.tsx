@@ -1,6 +1,7 @@
 import { useState } from "react";
 import LogoLar from '../../../public/images/lar felizidade logo transparente.png'
 import Image from "next/image";
+import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { notifyError, notifySuccess } from "@/utils/Functions";
@@ -144,6 +145,13 @@ const LoginPage = () => {
                   )}
                 </button>
               </div>
+            </div>
+
+            {/* Esqueci meu acesso */}
+            <div className="text-right">
+              <Link href="/portal/recuperar-acesso" className="text-xs text-indigo-500 hover:underline">
+                Esqueci meu usuário / senha
+              </Link>
             </div>
 
             {/* Entrar */}

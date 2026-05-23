@@ -51,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                       nome: '$$u.nome',
                       sobrenome: '$$u.sobrenome',
                       email: '$$u.email',
+                      telefone: '$$u.telefone',
                       funcao: '$$u.funcao',
                       foto_cdn: '$$u.foto_cdn',
                       foto_base64: '$$u.foto_base64',
@@ -102,6 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                       nome: '$$u.nome',
                       sobrenome: '$$u.sobrenome',
                       email: '$$u.email',
+                      telefone: '$$u.telefone',
                       funcao: '$$u.funcao',
                       foto_cdn: '$$u.foto_cdn',
                       foto_base64: '$$u.foto_base64',
@@ -175,6 +177,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             dadosBancarios: body.dadosBancarios ?? {},
             saudeOcupacional: { asos: [] },
             contatoEmergencia: body.contatoEmergencia ?? {},
+            atestados: [],
+            ferias: [],
+            advertencias: [],
             observacoes: body.observacoes ?? '',
             createdBy: createdBy ?? '',
             createdAt: now,
@@ -606,6 +611,263 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } catch (err) {
           console.error('[C_funcionariosCLT]', err);
           return res.status(500).json({ message: 'updateStatus: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // UPDATE Telefone / Email do usuário vinculado
+      // -------------------------
+      else if (req.query.type === 'updateContatoUsuario' && req.query.id) {
+        const reqId = req.query.id as string;
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+          const funcionario = await collection.findOne(
+            { _id: new ObjectId(reqId) },
+            { projection: { usuarioId: 1 } }
+          );
+          if (!funcionario) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          const usuariosCollection = db.collection('usuario');
+          const antes = await usuariosCollection.findOne(
+            { _id: new ObjectId(funcionario.usuarioId) },
+            { projection: { telefone: 1, email: 1 } }
+          );
+
+          await usuariosCollection.updateOne(
+            { _id: new ObjectId(funcionario.usuarioId) },
+            { $set: { telefone: body.telefone ?? '', email: body.email ?? '', updatedAt: new Date().toISOString() } }
+          );
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'editar_contato_usuario',
+            antes: { telefone: antes?.telefone, email: antes?.email },
+            depois: { telefone: body.telefone, email: body.email },
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
+          return res.status(200).json({ message: 'Contato atualizado com sucesso.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'updateContatoUsuario: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // ADD Atestado Médico
+      // -------------------------
+      else if (req.query.type === 'addAtestado' && req.query.id) {
+        const reqId = req.query.id as string;
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const result = await collection.updateOne(
+            { _id: new ObjectId(reqId) },
+            {
+              $push: { atestados: body.atestado } as any,
+              $set: { updatedAt: new Date().toISOString() },
+            }
+          );
+          if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'adicionar_atestado',
+            depois: body.atestado,
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
+          return res.status(200).json({ message: 'Atestado adicionado com sucesso.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'addAtestado: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // UPDATE Atestado by index
+      // -------------------------
+      else if (req.query.type === 'updateAtestado' && req.query.id && req.query.atestadoIndex !== undefined) {
+        const reqId = req.query.id as string;
+        const atestadoIndex = parseInt(req.query.atestadoIndex as string, 10);
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const setFields: any = { updatedAt: new Date().toISOString() };
+          setFields[`atestados.${atestadoIndex}`] = body.atestado;
+          const result = await collection.updateOne({ _id: new ObjectId(reqId) }, { $set: setFields });
+          if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'editar_atestado',
+            depois: body.atestado,
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
+          return res.status(200).json({ message: 'Atestado atualizado com sucesso.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'updateAtestado: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // DELETE Atestado by index
+      // -------------------------
+      else if (req.query.type === 'deleteAtestado' && req.query.id && req.query.atestadoIndex !== undefined) {
+        const reqId = req.query.id as string;
+        const atestadoIndex = parseInt(req.query.atestadoIndex as string, 10);
+        try {
+          const unsetFields: any = {};
+          unsetFields[`atestados.${atestadoIndex}`] = 1;
+          await collection.updateOne({ _id: new ObjectId(reqId) }, { $unset: unsetFields });
+          await collection.updateOne(
+            { _id: new ObjectId(reqId) },
+            { $pull: { atestados: null } as any, $set: { updatedAt: new Date().toISOString() } }
+          );
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'excluir_atestado',
+            realizadoPor: (req.query.realizadoPor as string) ?? '',
+          });
+
+          return res.status(200).json({ message: 'Atestado removido com sucesso.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'deleteAtestado: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // ADD Férias
+      // -------------------------
+      else if (req.query.type === 'addFerias' && req.query.id) {
+        const reqId = req.query.id as string;
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const result = await collection.updateOne(
+            { _id: new ObjectId(reqId) },
+            {
+              $push: { ferias: body.ferias } as any,
+              $set: { updatedAt: new Date().toISOString() },
+            }
+          );
+          if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'adicionar_ferias',
+            depois: body.ferias,
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
+          return res.status(200).json({ message: 'Férias registradas com sucesso.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'addFerias: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // DELETE Férias by index
+      // -------------------------
+      else if (req.query.type === 'deleteFerias' && req.query.id && req.query.feriasIndex !== undefined) {
+        const reqId = req.query.id as string;
+        const feriasIndex = parseInt(req.query.feriasIndex as string, 10);
+        try {
+          const unsetFields: any = {};
+          unsetFields[`ferias.${feriasIndex}`] = 1;
+          await collection.updateOne({ _id: new ObjectId(reqId) }, { $unset: unsetFields });
+          await collection.updateOne(
+            { _id: new ObjectId(reqId) },
+            { $pull: { ferias: null } as any, $set: { updatedAt: new Date().toISOString() } }
+          );
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'excluir_ferias',
+            realizadoPor: (req.query.realizadoPor as string) ?? '',
+          });
+
+          return res.status(200).json({ message: 'Férias removidas com sucesso.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'deleteFerias: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // ADD Advertência
+      // -------------------------
+      else if (req.query.type === 'addAdvertencia' && req.query.id) {
+        const reqId = req.query.id as string;
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const result = await collection.updateOne(
+            { _id: new ObjectId(reqId) },
+            {
+              $push: { advertencias: body.advertencia } as any,
+              $set: { updatedAt: new Date().toISOString() },
+            }
+          );
+          if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'adicionar_advertencia',
+            depois: { tipo: body.advertencia?.tipo, motivo: body.advertencia?.motivo },
+            realizadoPor: body.realizadoPor ?? '',
+          });
+
+          return res.status(200).json({ message: 'Advertência registrada com sucesso.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'addAdvertencia: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // DELETE Advertência by index
+      // -------------------------
+      else if (req.query.type === 'deleteAdvertencia' && req.query.id && req.query.advertenciaIndex !== undefined) {
+        const reqId = req.query.id as string;
+        const advertenciaIndex = parseInt(req.query.advertenciaIndex as string, 10);
+        try {
+          const unsetFields: any = {};
+          unsetFields[`advertencias.${advertenciaIndex}`] = 1;
+          await collection.updateOne({ _id: new ObjectId(reqId) }, { $unset: unsetFields });
+          await collection.updateOne(
+            { _id: new ObjectId(reqId) },
+            { $pull: { advertencias: null } as any, $set: { updatedAt: new Date().toISOString() } }
+          );
+
+          await registrarAuditoria(db, {
+            entidade: 'funcionario',
+            entidadeId: reqId,
+            nomeEntidade: await getFuncionarioNome(db, reqId),
+            acao: 'excluir_advertencia',
+            realizadoPor: (req.query.realizadoPor as string) ?? '',
+          });
+
+          return res.status(200).json({ message: 'Advertência removida com sucesso.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'deleteAdvertencia: Erro não identificado.' });
         }
       }
 

@@ -167,7 +167,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
             {/* Logo */}
             <Link href="/" className="block">
-              <Image src={LogoLar} alt='Logo Lar Felizidade Maricá' style={{ width: 96, height: 'auto' }} />
+              <Image src={LogoLar} alt='Logo Lar Felizidade Maricá' style={{ width: 96, height: 'auto' }} priority />
             </Link>
             {/* End Logo */}
           </div>

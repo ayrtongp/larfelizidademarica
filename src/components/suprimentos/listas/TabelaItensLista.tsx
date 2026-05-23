@@ -5,9 +5,9 @@ import { formatToBRL } from '@/utils/Functions';
 
 interface Props {
   itens: T_ItemLista[];
-  somenteLeitura: boolean;      // true quando comprada: bloqueia add/editar/remover
-  podeMarcarComprado: boolean;  // true apenas quando finalizada: habilita checkbox
-  onItensChange: (itens: T_ItemLista[]) => void;
+  somenteLeitura: boolean;
+  podeMarcarComprado: boolean;
+  onSave: (itens: T_ItemLista[]) => Promise<void>;
 }
 
 const categoriaLabel = (val?: string) =>
@@ -16,25 +16,38 @@ const categoriaLabel = (val?: string) =>
 const unidadeLabel = (val: string) =>
   UNIDADES_ITEM.find((u) => u.value === val)?.label ?? val;
 
-const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarComprado, onItensChange }) => {
+const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarComprado, onSave }) => {
   const [showForm, setShowForm] = useState(false);
   const [editando, setEditando] = useState<T_ItemLista | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [savingForm, setSavingForm] = useState(false);
 
   const totalEstimado = itens.reduce((acc, i) => acc + (i.precoEstimado ?? 0) * i.quantidade, 0);
   const comprados = itens.filter((i) => i.comprado).length;
 
-  const toggleComprado = (id: string) => {
-    onItensChange(itens.map((i) => i._id === id ? { ...i, comprado: !i.comprado } : i));
+  const toggleComprado = async (id: string) => {
+    if (savingId) return;
+    const novosItens = itens.map((i) => i._id === id ? { ...i, comprado: !i.comprado } : i);
+    setSavingId(id);
+    try {
+      await onSave(novosItens);
+    } finally {
+      setSavingId(null);
+    }
   };
 
-  const handleSaveItem = (item: T_ItemLista) => {
-    if (editando) {
-      onItensChange(itens.map((i) => i._id === item._id ? item : i));
-    } else {
-      onItensChange([...itens, item]);
+  const handleSaveItem = async (item: T_ItemLista) => {
+    const novosItens = editando
+      ? itens.map((i) => i._id === item._id ? item : i)
+      : [...itens, item];
+    setSavingForm(true);
+    try {
+      await onSave(novosItens);
+      setEditando(null);
+      setShowForm(false);
+    } finally {
+      setSavingForm(false);
     }
-    setEditando(null);
-    setShowForm(false);
   };
 
   const handleEditar = (item: T_ItemLista) => {
@@ -42,9 +55,16 @@ const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarCo
     setShowForm(true);
   };
 
-  const handleRemover = (id: string) => {
+  const handleRemover = async (id: string) => {
     if (!window.confirm('Remover este item da lista?')) return;
-    onItensChange(itens.filter((i) => i._id !== id));
+    if (savingId) return;
+    const novosItens = itens.filter((i) => i._id !== id);
+    setSavingId(id);
+    try {
+      await onSave(novosItens);
+    } finally {
+      setSavingId(null);
+    }
   };
 
   const handleCancelarForm = () => {
@@ -72,7 +92,7 @@ const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarCo
           <p className="text-sm font-semibold text-gray-700 mb-3">
             {editando ? 'Editar item' : 'Novo item'}
           </p>
-          <FormItem item={editando ?? undefined} onSave={handleSaveItem} onCancel={handleCancelarForm} />
+          <FormItem item={editando ?? undefined} onSave={handleSaveItem} onCancel={handleCancelarForm} saving={savingForm} />
         </div>
       )}
 
@@ -102,14 +122,21 @@ const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarCo
                   className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-indigo-50 ${item.comprado ? 'opacity-60' : ''}`}
                 >
                   <td className="px-3 py-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={item.comprado}
-                      onChange={() => toggleComprado(item._id)}
-                      disabled={!podeMarcarComprado}
-                      title={!podeMarcarComprado ? 'Disponível apenas na fase de compra (lista finalizada)' : undefined}
-                      className={`w-4 h-4 rounded accent-green-500 ${podeMarcarComprado ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'}`}
-                    />
+                    {savingId === item._id && podeMarcarComprado ? (
+                      <svg className="w-4 h-4 animate-spin text-gray-400 mx-auto" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                      </svg>
+                    ) : (
+                      <input
+                        type="checkbox"
+                        checked={item.comprado}
+                        onChange={() => toggleComprado(item._id)}
+                        disabled={!podeMarcarComprado || savingId !== null}
+                        title={!podeMarcarComprado ? 'Disponível apenas na fase de compra (lista finalizada)' : undefined}
+                        className={`w-4 h-4 rounded accent-green-500 ${podeMarcarComprado && !savingId ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'}`}
+                      />
+                    )}
                   </td>
                   <td className="px-3 py-3">
                     <span className={`font-medium text-gray-800 ${item.comprado ? 'line-through' : ''}`}>
@@ -139,15 +166,17 @@ const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarCo
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEditar(item)}
-                          className="text-xs px-2 py-1 rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+                          disabled={savingId !== null}
+                          className="text-xs px-2 py-1 rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors disabled:opacity-40"
                         >
                           Editar
                         </button>
                         <button
                           onClick={() => handleRemover(item._id)}
-                          className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                          disabled={savingId !== null}
+                          className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors disabled:opacity-40"
                         >
-                          Remover
+                          {savingId === item._id ? '...' : 'Remover'}
                         </button>
                       </div>
                     </td>

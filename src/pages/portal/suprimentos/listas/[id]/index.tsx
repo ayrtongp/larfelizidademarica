@@ -95,7 +95,6 @@ const Detalhe = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [itensLocais, setItensLocais] = useState<T_ItemLista[]>([]);
-  const [itensAlterados, setItensAlterados] = useState(false);
   const [editandoInfo, setEditandoInfo] = useState(false);
   const [formInfo, setFormInfo] = useState({ titulo: '', data: '', observacoes: '' });
   const [exportando, setExportando] = useState(false);
@@ -106,7 +105,6 @@ const Detalhe = () => {
       const data = await S_listaCompras.getById(listId);
       setLista(data);
       setItensLocais(data.itens ?? []);
-      setItensAlterados(false);
       setFormInfo({ titulo: data.titulo, data: data.data, observacoes: data.observacoes ?? '' });
     } catch (err) {
       console.error(err);
@@ -149,25 +147,17 @@ const Detalhe = () => {
     }
   };
 
-  const handleItensChange = (novosItens: T_ItemLista[]) => {
-    setItensLocais(novosItens);
-    const alterado = JSON.stringify(novosItens) !== JSON.stringify(lista?.itens ?? []);
-    setItensAlterados(alterado);
-  };
-
-  const handleSalvarItens = async () => {
+  const handleSalvarItens = async (novosItens: T_ItemLista[]) => {
     if (!id) return;
+    setItensLocais(novosItens);
+    setLista((prev) => prev ? { ...prev, itens: novosItens } : prev);
     try {
-      setSaving(true);
       const { criadoPor } = getUserInfo();
-      await S_listaCompras.updateItens(id as string, itensLocais, criadoPor);
-      await carregarLista(id as string);
-      notifySuccess('Itens salvos!');
+      await S_listaCompras.updateItens(id as string, novosItens, criadoPor);
     } catch (err) {
       console.error(err);
-      notifyError('Erro ao salvar itens.');
-    } finally {
-      setSaving(false);
+      notifyError('Erro ao salvar item.');
+      await carregarLista(id as string);
     }
   };
 
@@ -524,23 +514,11 @@ const Detalhe = () => {
 
             {/* Itens */}
             <div className="space-y-3">
-              {itensAlterados && (
-                <div className="flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-                  <span>Atencao: ha alteracoes nao salvas nos itens.</span>
-                  <button
-                    onClick={handleSalvarItens}
-                    disabled={saving}
-                    className="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {saving ? 'Salvando...' : 'Salvar Itens'}
-                  </button>
-                </div>
-              )}
               <TabelaItensLista
                 itens={itensLocais}
                 somenteLeitura={isComprada}
                 podeMarcarComprado={lista.status === 'finalizada'}
-                onItensChange={handleItensChange}
+                onSave={handleSalvarItens}
               />
             </div>
 

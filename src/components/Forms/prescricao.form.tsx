@@ -4,7 +4,7 @@ import Text_M3 from '@/components/Formularios/Text_M3';
 import Select_M3 from '@/components/Formularios/Select_M3';
 import Button_M3 from '@/components/Formularios/Button_M3';
 import RichText_M3 from '@/components/Formularios/RichTextArea_M3';
-import { VIA_ADMINISTRACAO_OPTIONS, STATUS_PRESCRICAO_OPTIONS, Prescricao } from '@/models/prescricao.model';
+import { VIA_ADMINISTRACAO_OPTIONS, STATUS_PRESCRICAO_OPTIONS, DIAS_SEMANA_LABELS, Prescricao } from '@/models/prescricao.model';
 import CheckboxM2 from '../Formularios/CheckboxM2';
 import Date_M3 from '../Formularios/Date_M3';
 
@@ -56,35 +56,101 @@ export default function PrescricaoForm({
 
 
 
-            {/* Horários (se não SOS) */}
+            {/* Horários + Frequência (se não SOS) */}
             {!formValues.usoSOS && (
-                <div className="col-span-full">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Horários</label>
-                    <div className="flex flex-wrap gap-3">
-                        {(formValues.horarios || []).map((h, i) => (
-                            <div key={i} className="flex items-center gap-1">
-                                <input
-                                    type="time"
-                                    value={h}
-                                    onChange={e => {
-                                        const arr = [...(formValues.horarios || [])];
-                                        arr[i] = e.target.value;
-                                        handleChange('horarios', arr);
-                                    }}
-                                    className="w-36 border border-gray-300 rounded p-2 text-sm"
-                                />
-                                <button type="button"
-                                    onClick={() => handleChange('horarios', (formValues.horarios || []).filter((_, j) => j !== i))}
-                                    className="text-red-400 hover:text-red-600 text-lg leading-none px-1">
-                                    ×
-                                </button>
-                            </div>
-                        ))}
-                        <button type="button" onClick={() => handleChange('horarios', [...(formValues.horarios || []), ''])} className="mt-1 text-blue-600 text-sm hover:underline">
-                            + Adicionar horário
-                        </button>
+                <>
+                    {/* Horários */}
+                    <div className="col-span-full">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Horários</label>
+                        <div className="flex flex-wrap gap-3">
+                            {(formValues.horarios || []).map((h, i) => (
+                                <div key={i} className="flex items-center gap-1">
+                                    <input
+                                        type="time"
+                                        value={h}
+                                        onChange={e => {
+                                            const arr = [...(formValues.horarios || [])];
+                                            arr[i] = e.target.value;
+                                            handleChange('horarios', arr);
+                                        }}
+                                        className="w-36 border border-gray-300 rounded p-2 text-sm"
+                                    />
+                                    <button type="button"
+                                        onClick={() => handleChange('horarios', (formValues.horarios || []).filter((_, j) => j !== i))}
+                                        className="text-red-400 hover:text-red-600 text-lg leading-none px-1">
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                            <button type="button"
+                                onClick={() => handleChange('horarios', [...(formValues.horarios || []), ''])}
+                                className="mt-1 text-blue-600 text-sm hover:underline">
+                                + Adicionar horário
+                            </button>
+                        </div>
                     </div>
-                </div>
+
+                    {/* Frequência */}
+                    <div className="col-span-full">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Frequência</label>
+                        <div className="flex gap-2 mb-3">
+                            {[
+                                { value: 'diaria', label: 'Todo dia' },
+                                { value: 'dias_especificos', label: 'Dias específicos' },
+                            ].map(opt => (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => {
+                                        handleChange('frequencia', opt.value);
+                                        if (opt.value === 'diaria') handleChange('diasSemana', []);
+                                    }}
+                                    className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${
+                                        (formValues.frequencia ?? 'diaria') === opt.value
+                                            ? 'bg-indigo-600 text-white border-indigo-600'
+                                            : 'bg-white text-gray-500 border-gray-300 hover:border-indigo-400 hover:text-indigo-600'
+                                    }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {(formValues.frequencia ?? 'diaria') === 'dias_especificos' && (
+                            <div>
+                                <p className="text-xs text-gray-400 mb-2">Selecione os dias em que o medicamento deve ser administrado:</p>
+                                <div className="flex gap-2 flex-wrap">
+                                    {DIAS_SEMANA_LABELS.map((dia, i) => {
+                                        const selecionado = (formValues.diasSemana || []).includes(i);
+                                        return (
+                                            <button
+                                                key={dia}
+                                                type="button"
+                                                onClick={() => {
+                                                    const atual = formValues.diasSemana || [];
+                                                    const novo = selecionado
+                                                        ? atual.filter(d => d !== i)
+                                                        : [...atual, i].sort();
+                                                    handleChange('diasSemana', novo);
+                                                }}
+                                                className={`w-11 h-11 rounded-full text-sm font-bold border-2 transition-all ${
+                                                    selecionado
+                                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                        : 'bg-white text-gray-400 border-gray-200 hover:border-indigo-300 hover:text-indigo-500'
+                                                }`}
+                                            >
+                                                {dia}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {errors.diasSemana && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.diasSemana}</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </>
             )}
 
             {/* Datas */}

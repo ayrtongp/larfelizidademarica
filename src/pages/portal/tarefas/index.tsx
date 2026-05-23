@@ -331,56 +331,54 @@ export default function TarefasPage() {
                       atrasada ? 'border-red-400' : t.status === 'concluida' ? 'border-green-400' : 'border-gray-200'
                     }`}
                   >
-                    <div className='flex items-start justify-between gap-3 flex-wrap'>
-                      <div className='flex-1 min-w-0'>
-                        <div className='flex flex-wrap items-center gap-2 mb-1'>
-                          {/* Prioridade */}
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PRIORIDADE_CONFIG[t.prioridade].cls}`}>
-                            {PRIORIDADE_CONFIG[t.prioridade].label}
+                    <div className='flex flex-col gap-2'>
+                      {/* Badges */}
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PRIORIDADE_CONFIG[t.prioridade].cls}`}>
+                          {PRIORIDADE_CONFIG[t.prioridade].label}
+                        </span>
+                        {cat && (
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CAT_COLORS[cat.cor] || CAT_COLORS.gray}`}>
+                            {cat.nome}
                           </span>
-                          {/* Categoria */}
-                          {cat && (
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CAT_COLORS[cat.cor] || CAT_COLORS.gray}`}>
-                              {cat.nome}
-                            </span>
-                          )}
-                          {/* Status */}
-                          {!atrasada && (
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CONFIG[t.status].cls}`}>
-                              {STATUS_CONFIG[t.status].label}
-                            </span>
-                          )}
-                          {atrasada && (
-                            <span className='text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-semibold'>
-                              Atrasada
-                            </span>
-                          )}
-                        </div>
-                        <p className={`text-base font-semibold ${t.status === 'concluida' ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-                          {t.titulo}
-                        </p>
-                        {t.descricao && (
-                          <p className='text-sm text-gray-500 mt-0.5 line-clamp-2'>{t.descricao}</p>
                         )}
-                        <div className='flex flex-wrap gap-3 mt-2 text-xs text-gray-400'>
-                          <span className={atrasada ? 'text-red-500 font-semibold' : ''}>
-                            Prazo: {formatPrazo(t.prazo)}{t.horario ? ` às ${t.horario}` : ''}
+                        {!atrasada && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CONFIG[t.status].cls}`}>
+                            {STATUS_CONFIG[t.status].label}
                           </span>
-                          <span>
-                            {t.atribuido_nome ? `→ ${t.atribuido_nome}` : 'Geral (equipe)'}
+                        )}
+                        {atrasada && (
+                          <span className='text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-semibold'>
+                            Atrasada
                           </span>
-                          {t.concluido_por_nome && (
-                            <span>Concluída por {t.concluido_por_nome}</span>
-                          )}
-                        </div>
+                        )}
+                      </div>
+
+                      {/* Título + descrição */}
+                      <p className={`text-base font-semibold leading-snug ${t.status === 'concluida' ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                        {t.titulo}
+                      </p>
+                      {t.descricao && (
+                        <p className='text-sm text-gray-500 line-clamp-2'>{t.descricao}</p>
+                      )}
+
+                      {/* Prazo + responsável */}
+                      <div className='flex flex-wrap gap-3 text-xs text-gray-400'>
+                        <span className={atrasada ? 'text-red-500 font-semibold' : ''}>
+                          Prazo: {formatPrazo(t.prazo)}{t.horario ? ` às ${t.horario}` : ''}
+                        </span>
+                        <span>{t.atribuido_nome ? `→ ${t.atribuido_nome}` : 'Geral (equipe)'}</span>
+                        {t.concluido_por_nome && (
+                          <span>Concluída por {t.concluido_por_nome}</span>
+                        )}
                       </div>
 
                       {/* Ações */}
-                      <div className='flex items-center gap-2 shrink-0'>
+                      <div className='flex flex-wrap gap-2 pt-1'>
                         {t.status === 'pendente' && (
                           <button
                             onClick={() => handleStatus(t._id, 'em_andamento')}
-                            className='text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded-lg transition-colors'
+                            className='text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg transition-colors'
                           >
                             Iniciar
                           </button>
@@ -388,21 +386,21 @@ export default function TarefasPage() {
                         {(t.status === 'pendente' || t.status === 'em_andamento') && (
                           <button
                             onClick={() => handleStatus(t._id, 'concluida')}
-                            className='text-xs bg-green-50 hover:bg-green-100 text-green-600 px-2 py-1 rounded-lg transition-colors'
+                            className='text-xs bg-green-50 hover:bg-green-100 text-green-600 px-3 py-1.5 rounded-lg transition-colors'
                           >
                             Concluir
                           </button>
                         )}
                         <button
                           onClick={() => abrirEditar(t)}
-                          className='text-xs bg-gray-50 hover:bg-gray-100 text-gray-600 px-2 py-1 rounded-lg transition-colors'
+                          className='text-xs bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg transition-colors'
                         >
                           Editar
                         </button>
                         {hasCoordenacao && (
                           <button
                             onClick={() => handleExcluir(t._id)}
-                            className='text-xs bg-red-50 hover:bg-red-100 text-red-500 px-2 py-1 rounded-lg transition-colors'
+                            className='text-xs bg-red-50 hover:bg-red-100 text-red-500 px-3 py-1.5 rounded-lg transition-colors'
                           >
                             Excluir
                           </button>

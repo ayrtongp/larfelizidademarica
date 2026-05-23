@@ -155,6 +155,19 @@ export function formatToBRL(number) {
   return number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+export function validarCPF(cpf) {
+  const digits = cpf.replace(/\D/g, '');
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+  const calc = (len) => {
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += parseInt(digits[i]) * (len + 1 - i);
+    const rest = (sum * 10) % 11;
+    return rest === 10 || rest === 11 ? 0 : rest;
+  };
+  return calc(9) === parseInt(digits[9]) && calc(10) === parseInt(digits[10]);
+}
+
 export function slice3Points(string, qntSlice, startSlice) {
   if (string.length > qntSlice) {
     return string.slice(startSlice, (qntSlice + startSlice)) + "..."

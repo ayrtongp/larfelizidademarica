@@ -11,7 +11,8 @@ import { FaClipboardList, FaStethoscope } from 'react-icons/fa';
 type Data = {
   _id: string;
   nome: string;
-  foto_base64: string;
+  foto_base64?: string;
+  foto_cdn?: string;
   lastEntrySinais?: { usuario_nome?: string, createdAt?: string };
   lastEntryAnotacoes?: { usuario_nome?: string, data?: string };
 }
@@ -51,7 +52,7 @@ const EvolucaoResidente = () => {
               key={index}
               item={item}
               nome={item.nome}
-              fotoUrl={item.foto_base64}
+              fotoUrl={item.foto_cdn || item.foto_base64}
               ultimaMedicao={`${formatDateBRHora(item.lastEntrySinais?.createdAt)} - ${item.lastEntrySinais?.usuario_nome}`}
               ultimaAnotacao={`${formatDateBR(item.lastEntryAnotacoes?.data)} - ${item.lastEntryAnotacoes?.usuario_nome}`}
             />

@@ -22,6 +22,7 @@ const ACOES: Record<string, { label: string; cls: string }> = {
   editar_beneficios:       { label: 'Benefícios',         cls: 'bg-blue-100 text-blue-700' },
   editar_dados_bancarios:  { label: 'Dados Bancários',    cls: 'bg-blue-100 text-blue-700' },
   editar_contato_emergencia:{ label: 'Emergência',        cls: 'bg-blue-100 text-blue-700' },
+  editar_contato_usuario:  { label: 'Telefone / E-mail', cls: 'bg-indigo-100 text-indigo-700' },
   adicionar_aso:           { label: 'ASO Adicionado',     cls: 'bg-teal-100 text-teal-700' },
   editar_aso:              { label: 'ASO Editado',        cls: 'bg-sky-100 text-sky-700' },
   excluir_aso:             { label: 'ASO Excluído',       cls: 'bg-orange-100 text-orange-700' },

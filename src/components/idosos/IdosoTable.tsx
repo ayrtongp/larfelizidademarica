@@ -1,7 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { T_IdosoDetalhesComUsuario } from '@/types/T_idosoDetalhes';
+
+function normalizePhotoSrc(src?: string): string | undefined {
+  if (!src) return undefined;
+  if (src.startsWith('http') || src.startsWith('data:')) return src;
+  return `data:image/jpeg;base64,${src}`;
+}
+
+function Avatar({ src, nome }: { src?: string; nome: string }) {
+  const [erro, setErro] = useState(false);
+  const imgSrc = normalizePhotoSrc(src);
+  if (!imgSrc || erro) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold">
+        {nome.charAt(0).toUpperCase()}
+      </div>
+    );
+  }
+  return <img src={imgSrc} alt="" className="w-full h-full object-cover" onError={() => setErro(true)} />;
+}
 
 interface Props {
   idosos: T_IdosoDetalhesComUsuario[];
@@ -57,13 +75,7 @@ const IdosoTable: React.FC<Props> = ({ idosos }) => {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                      {foto ? (
-                        <Image src={foto} width={32} height={32} alt={nome} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold">
-                          {nome.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <Avatar src={foto} nome={nome} />
                     </div>
                     <span className="font-medium text-gray-800">{nome}</span>
                   </div>

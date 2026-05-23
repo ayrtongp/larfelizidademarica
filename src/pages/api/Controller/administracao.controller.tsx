@@ -67,12 +67,21 @@ async function getByData(req: NextApiRequest, res: NextApiResponse, db: any, col
             nomeMap[u._id.toString()] = u.nome || 'Idoso';
         }
 
+        // Dia da semana da data solicitada (0=Dom...6=Sáb)
+        const [ano, mes, dia] = data.split('-').map(Number);
+        const diaSemana = new Date(ano, mes - 1, dia).getDay();
+
         // Monta slots
         const slots: any[] = [];
         for (const p of prescricoes) {
             // Só inclui prescrições dentro do período
             if (p.dataInicio && p.dataInicio > data) continue;
             if (p.dataFim && p.dataFim < data) continue;
+
+            // Filtra por dia da semana quando frequência for 'dias_especificos'
+            if (p.frequencia === 'dias_especificos') {
+                if (!Array.isArray(p.diasSemana) || !p.diasSemana.includes(diaSemana)) continue;
+            }
 
             for (const horario of (p.horarios || [])) {
                 const chave = `${p._id.toString()}__${horario}`;

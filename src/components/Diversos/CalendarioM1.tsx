@@ -271,51 +271,48 @@ const CalendarioM1 = ({ eventos }: Props) => {
 
   return (
     <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
+      <div className="border-b border-gray-200 px-5 py-4">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-bold capitalize text-gray-700">
             {formatMonthLabel(viewDate)}
           </h2>
-          <div className="flex items-center gap-3">
-            {summaryItems.map(({ categoria, total }) => {
-              const meta = CATEGORY_META[categoria];
-              return (
-                <span key={categoria} className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <span className={`h-2 w-2 rounded-full shrink-0 ${meta.dot}`} />
-                  <span>{meta.label}</span>
-                  <span className="font-semibold text-gray-700">{total}</span>
-                </span>
-              );
-            })}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => changeMonth(-1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50"
+              aria-label="Mes anterior"
+            >
+              <FaChevronLeft size={11} />
+            </button>
+            <button
+              type="button"
+              onClick={goToToday}
+              className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+            >
+              Hoje
+            </button>
+            <button
+              type="button"
+              onClick={() => changeMonth(1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50"
+              aria-label="Proximo mes"
+            >
+              <FaChevronRight size={11} />
+            </button>
           </div>
         </div>
-
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => changeMonth(-1)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50"
-            aria-label="Mes anterior"
-          >
-            <FaChevronLeft size={11} />
-          </button>
-
-          <button
-            type="button"
-            onClick={goToToday}
-            className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
-          >
-            Hoje
-          </button>
-
-          <button
-            type="button"
-            onClick={() => changeMonth(1)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50"
-            aria-label="Proximo mes"
-          >
-            <FaChevronRight size={11} />
-          </button>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          {summaryItems.map(({ categoria, total }) => {
+            const meta = CATEGORY_META[categoria];
+            return (
+              <span key={categoria} className="flex items-center gap-1.5 text-xs text-gray-500">
+                <span className={`h-2 w-2 rounded-full shrink-0 ${meta.dot}`} />
+                <span className="hidden sm:inline">{meta.label}</span>
+                <span className="font-semibold text-gray-700">{total}</span>
+              </span>
+            );
+          })}
         </div>
       </div>
 
@@ -332,18 +329,18 @@ const CalendarioM1 = ({ eventos }: Props) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {WEEK_DAYS.map((weekDay) => (
               <div
                 key={weekDay}
-                className="px-1 pb-1 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400"
+                className="px-1 pb-1 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-400 sm:text-[11px] sm:tracking-[0.18em]"
               >
                 {weekDay}
               </div>
             ))}
           </div>
 
-          <div className="mt-2 grid grid-cols-7 gap-2">
+          <div className="mt-1 grid grid-cols-7 gap-1 sm:mt-2 sm:gap-2">
             {calendarDays.map((day) => {
               const dayEvents = eventsByIso.get(day.iso) || [];
               const categories = Array.from(new Set(dayEvents.map((evento) => evento.categoria)));
@@ -356,17 +353,17 @@ const CalendarioM1 = ({ eventos }: Props) => {
                   type="button"
                   onClick={() => setSelectedIso(day.iso)}
                   className={[
-                    'group min-h-[72px] rounded-lg border p-2 text-left transition sm:min-h-[96px] sm:p-3',
+                    'group min-h-[44px] rounded-lg border p-1.5 text-left transition sm:min-h-[96px] sm:p-3',
                     day.inCurrentMonth ? 'bg-white' : 'bg-slate-50/70',
                     isSelected
                       ? 'border-sky-300 bg-sky-50 shadow-[0_0_0_3px_rgba(125,211,252,0.32)]'
                       : 'border-slate-200 hover:border-sky-200 hover:bg-slate-50',
                   ].join(' ')}
                 >
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start justify-between">
                     <span
                       className={[
-                        'inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold',
+                        'inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold sm:h-7 sm:w-7 sm:text-sm',
                         isToday
                           ? 'bg-slate-900 text-white'
                           : day.inCurrentMonth
@@ -378,22 +375,28 @@ const CalendarioM1 = ({ eventos }: Props) => {
                     </span>
 
                     {dayEvents.length > 0 && (
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 sm:text-[11px]">
+                      <span className="hidden rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 sm:inline sm:text-[11px]">
                         {dayEvents.length}
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-1">
+                  <div className="mt-1.5 flex flex-wrap gap-1 sm:mt-4">
                     {categories.slice(0, 3).map((categoria) => (
                       <span
                         key={`${day.iso}-${categoria}`}
-                        className={`h-2 w-2 rounded-full ${CATEGORY_META[categoria].dot}`}
+                        className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 ${CATEGORY_META[categoria].dot}`}
                       />
                     ))}
                   </div>
 
-                  {dayEvents[0] && (
+                  {isSelected && dayEvents.length > 0 && (
+                    <p className="mt-1.5 line-clamp-3 text-[9px] leading-[1.3] text-slate-600 sm:hidden">
+                      {dayEvents.map(ev => ev.titulo).join(' · ')}
+                    </p>
+                  )}
+
+                  {!isSelected && dayEvents[0] && (
                     <p className="mt-2 hidden line-clamp-2 text-[11px] leading-4 text-slate-500 sm:block">
                       {dayEvents[0].titulo}
                     </p>

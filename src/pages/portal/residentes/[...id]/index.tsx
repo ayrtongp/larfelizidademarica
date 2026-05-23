@@ -4,7 +4,7 @@ import PortalBase from '@/components/Portal/PortalBase'
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import Image from 'next/image'
-import { FaFilePrescription, FaHeart, FaInfo } from 'react-icons/fa'
+import { FaFilePrescription, FaHeart, FaInfo, FaStethoscope } from 'react-icons/fa'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 import ResidenteAccordion from '@/components/Residentes/ResidenteAccordion'
 import Semiologia from '@/components/Residentes/Semiologia'
@@ -17,6 +17,7 @@ import Suprimentos from '@/components/Residentes/Suprimentos'
 import { Residente } from '@/types/Residente'
 import Accordion_Modelo1 from '@/components/Accordion_Modelo1'
 import FormDadosIdoso from '@/components/Forms/FormDadosIdoso'
+import FormPAISI from '@/components/Forms/FormPAISI'
 import { getUserID } from '@/utils/Login'
 import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario'
 import Prescricao from '@/components/Residentes/Prescricao'
@@ -39,11 +40,12 @@ const ResidenteDetalhes = () => {
   const [gruposUsuario, setGruposUsuario] = useState<any>([]);
 
   const [classeAtiva, setClasseAtiva] = useState('menuInfo');
-  const [nomeClasse, setNomeClasse] = useState("Informações do Residente");
+  const [nomeClasse, setNomeClasse] = useState("PIA - Plano Individual de Atendimento");
   const efeitoClasseAtiva = `bg-slate-100 border-l-2 border-purple-500`;
 
   const object: objProps[] = [
-    { className: "menuInfo", label: "Informações do Residente", icon: <FaInfo />, component: <ResidenteAccordion />, color: 'text-blue-600' },
+    { className: "menuInfo", label: "PIA - Plano Individual de Atendimento", icon: <FaInfo />, component: <ResidenteAccordion />, color: 'text-blue-600' },
+    { className: "menuPAISI", label: "PAISI", icon: <FaStethoscope />, component: <ResidenteAccordion />, color: 'text-teal-600' },
     { className: "menuSemio", label: "Sinais Vitais", icon: <FaHeart />, component: <ResidenteAccordion />, color: 'text-red-600' },
     { className: "menuPrescricoes", label: "Prescrições", icon: <FaFilePrescription />, component: <ResidenteAccordion />, color: 'text-gray-600' },
     { className: "menuAnotacoes", label: "Anotações Enfermagem", icon: <HiAnnotation />, component: <ResidenteAccordion />, color: 'text-green-600' },
@@ -238,6 +240,13 @@ const ResidenteDetalhes = () => {
                   <div className='p-3'>
                     <FormDadosIdoso residenteData={residenteData} isEGPP={gruposUsuario.some((grupo: any) => grupo?.cod_grupo === "pia")} />
                   </div>)}
+
+                {/* PAISI */}
+                {classeAtiva == "menuPAISI" && (
+                  <div className='p-3'>
+                    <FormPAISI residenteData={residenteData} isEGPP={gruposUsuario.some((grupo: any) => grupo?.cod_grupo === "pia")} />
+                  </div>
+                )}
 
                 {/* SEMIOLOGIA */}
                 {classeAtiva == "menuSemio" && (<div className='p-3'><Semiologia residenteData={residenteData} /></div>)}

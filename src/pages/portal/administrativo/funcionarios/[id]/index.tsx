@@ -14,11 +14,15 @@ import Tab_DadosBancarios from '@/components/funcionarios/tabs/Tab_DadosBancario
 import Tab_SaudeOcupacional from '@/components/funcionarios/tabs/Tab_SaudeOcupacional';
 import Tab_ContatoEmergencia from '@/components/funcionarios/tabs/Tab_ContatoEmergencia';
 import Tab_Demissao from '@/components/funcionarios/tabs/Tab_Demissao';
+import Tab_AtestadosMedicos from '@/components/funcionarios/tabs/Tab_AtestadosMedicos';
+import Tab_Ferias from '@/components/funcionarios/tabs/Tab_Ferias';
+import Tab_Advertencias from '@/components/funcionarios/tabs/Tab_Advertencias';
 import GestaoArquivos from '@/components/Arquivos/GestaoArquivos';
 import DocPeriodoTab from '@/components/rh/DocPeriodoTab';
 import {
   FaUser, FaFileContract, FaIdCard, FaGift,
   FaUniversity, FaHeartbeat, FaFolder, FaPhone, FaUserTimes, FaCalendarCheck, FaMoneyCheckAlt,
+  FaFileMedical, FaUmbrellaBeach, FaExclamationTriangle,
 } from 'react-icons/fa';
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -57,8 +61,13 @@ const FuncionarioDetalhes = () => {
     { id: 'menuDocumentos', label: 'Documentos', icon: <FaFolder />, color: 'text-fuchsia-600' },
     { id: 'menuFolhaPonto', label: 'Folha de Ponto', icon: <FaCalendarCheck />, color: 'text-teal-600' },
     { id: 'menuContracheque', label: 'Contracheque', icon: <FaMoneyCheckAlt />, color: 'text-emerald-600' },
+    { id: 'menuAtestados', label: 'Atestados Médicos', icon: <FaFileMedical />, color: 'text-orange-500' },
+    { id: 'menuFerias', label: 'Férias', icon: <FaUmbrellaBeach />, color: 'text-sky-600' },
     { id: 'menuEmergencia', label: 'Emergência', icon: <FaPhone />, color: 'text-orange-600' },
-    ...(isAdmin ? [{ id: 'menuDemissao', label: 'Demissão / Status', icon: <FaUserTimes />, color: 'text-red-700' }] : []),
+    ...(isAdmin ? [
+      { id: 'menuAdvertencias', label: 'Advertências', icon: <FaExclamationTriangle />, color: 'text-red-500' },
+      { id: 'menuDemissao', label: 'Demissão / Status', icon: <FaUserTimes />, color: 'text-red-700' },
+    ] : []),
   ];
 
   const loadFuncionario = async (funcionarioId: string) => {
@@ -203,6 +212,20 @@ const FuncionarioDetalhes = () => {
                         </div>
                       )}
 
+                      {/* Alerta de atestado vigente */}
+                      {funcionario.atestados?.some(a => isAtestadoAtivo(a)) && (
+                        <div className="bg-orange-50 border border-orange-300 rounded-lg p-3 text-sm text-orange-800">
+                          <strong>🏥 Afastamento ativo:</strong> Há atestado médico vigente para este funcionário. Acesse a aba <strong>Atestados Médicos</strong>.
+                        </div>
+                      )}
+
+                      {/* Alerta de férias agendadas ou em andamento */}
+                      {funcionario.ferias?.some(f => isFeriasAtivaOuAgendada(f)) && (
+                        <div className="bg-sky-50 border border-sky-300 rounded-lg p-3 text-sm text-sky-800">
+                          <strong>🏖 Férias:</strong> Há período de férias {funcionario.ferias!.some(f => isFeriasAndamento(f)) ? 'em andamento' : 'agendado'}. Acesse a aba <strong>Férias</strong>.
+                        </div>
+                      )}
+
                       {/* Benefícios resumo */}
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase mb-2">Benefícios ativos</p>
@@ -237,12 +260,18 @@ const FuncionarioDetalhes = () => {
                       endereco={funcionario.endereco ?? {}}
                       ctps={funcionario.ctps ?? {}}
                       pisPasep={funcionario.pisPasep}
+                      telefone={funcionario.usuario?.telefone}
+                      email={funcionario.usuario?.email}
                       onUpdate={(data) => setFuncionario((prev) => prev ? {
                         ...prev,
                         dadosPessoais: data.dadosPessoais,
                         endereco: data.endereco,
                         ctps: data.ctps,
                         pisPasep: data.pisPasep,
+                      } : prev)}
+                      onUpdateContato={(data) => setFuncionario((prev) => prev ? {
+                        ...prev,
+                        usuario: prev.usuario ? { ...prev.usuario, telefone: data.telefone, email: data.email } : prev.usuario,
                       } : prev)}
                     />
                   )}
@@ -300,12 +329,40 @@ const FuncionarioDetalhes = () => {
                     />
                   )}
 
+                  {/* ATESTADOS MÉDICOS */}
+                  {classeAtiva === 'menuAtestados' && (
+                    <Tab_AtestadosMedicos
+                      funcionarioId={funcionario._id!}
+                      atestados={funcionario.atestados ?? []}
+                      onUpdate={(atestados) => setFuncionario((prev) => prev ? { ...prev, atestados } : prev)}
+                    />
+                  )}
+
+                  {/* FÉRIAS */}
+                  {classeAtiva === 'menuFerias' && (
+                    <Tab_Ferias
+                      funcionarioId={funcionario._id!}
+                      ferias={funcionario.ferias ?? []}
+                      dataAdmissao={funcionario.contrato?.dataAdmissao}
+                      onUpdate={(ferias) => setFuncionario((prev) => prev ? { ...prev, ferias } : prev)}
+                    />
+                  )}
+
                   {/* EMERGÊNCIA */}
                   {classeAtiva === 'menuEmergencia' && (
                     <Tab_ContatoEmergencia
                       funcionarioId={funcionario._id!}
                       contatoEmergencia={funcionario.contatoEmergencia ?? {}}
                       onUpdate={(contatoEmergencia) => setFuncionario((prev) => prev ? { ...prev, contatoEmergencia } : prev)}
+                    />
+                  )}
+
+                  {/* ADVERTÊNCIAS (apenas admin) */}
+                  {classeAtiva === 'menuAdvertencias' && isAdmin && (
+                    <Tab_Advertencias
+                      funcionarioId={funcionario._id!}
+                      advertencias={funcionario.advertencias ?? []}
+                      onUpdate={(advertencias) => setFuncionario((prev) => prev ? { ...prev, advertencias } : prev)}
                     />
                   )}
 
@@ -347,6 +404,23 @@ function formatDateBR(dateStr?: string) {
 function formatCurrency(value?: number) {
   if (value === undefined || value === null) return '—';
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function isAtestadoAtivo(a: { dataInicio?: string; dataFim?: string }): boolean {
+  if (!a.dataInicio || !a.dataFim) return false;
+  const hoje = new Date();
+  return new Date(a.dataInicio) <= hoje && hoje <= new Date(a.dataFim);
+}
+
+function isFeriasAndamento(f: { dataInicio?: string; dataFim?: string }): boolean {
+  if (!f.dataInicio || !f.dataFim) return false;
+  const hoje = new Date();
+  return new Date(f.dataInicio) <= hoje && hoje <= new Date(f.dataFim);
+}
+
+function isFeriasAtivaOuAgendada(f: { dataInicio?: string; dataFim?: string }): boolean {
+  if (!f.dataInicio) return false;
+  return new Date(f.dataInicio) >= new Date() || isFeriasAndamento(f);
 }
 
 function isVencimentoProximo(dateStr?: string): boolean {

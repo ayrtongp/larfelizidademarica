@@ -12,100 +12,105 @@ import Modalpadrao from '@/components/ModalPadrao'
 import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
 import { useLoadingOverlay } from '@/context/LoadingOverlayContext'
-import { Lesao, FERIDA_TYPE_OPTIONS, validarLesao, VISTA_TYPE_OPTIONS, LESAO_STATUS_OPTIONS, validarUpdateStatus, Comentario } from '@/models/lesoes.model'
+import {
+    Lesao, FERIDA_TYPE_OPTIONS, validarLesao, VISTA_TYPE_OPTIONS,
+    LESAO_STATUS_OPTIONS, validarUpdateStatus, Comentario
+} from '@/models/lesoes.model'
 import { sendMessage } from '@/pages/api/WhatsApp'
 import { createLesao, getLesoes, updateLesao } from '@/services/lesoes.svc'
-import { formatDateBR, formatDateBRHora, getCurrentDateTime, getUserDetails, isComentarioVazio, notifyError, notifySuccess, stripHtml } from '@/utils/Functions'
+import {
+    formatDateBR, formatDateBRHora, getCurrentDateTime, getUserDetails,
+    isComentarioVazio, notifyError, notifySuccess
+} from '@/utils/Functions'
 import { getUserID } from '@/utils/Login'
 import React, { ChangeEvent, useEffect, useState } from 'react'
-import { FaPlusCircle, FaTable } from 'react-icons/fa'
+import { FaPlus, FaList, FaMapMarkerAlt, FaExclamationCircle, FaCommentAlt } from 'react-icons/fa'
+
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+const STATUS_BADGE: Record<string, string> = {
+    iniciada: 'bg-slate-100 text-slate-700 border-slate-200',
+    em_investigacao: 'bg-amber-50 text-amber-700 border-amber-200',
+    em_tratamento: 'bg-blue-50 text-blue-700 border-blue-200',
+    curada: 'bg-green-50 text-green-700 border-green-200',
+    infectada: 'bg-red-50 text-red-700 border-red-200',
+    encerrada: 'bg-gray-100 text-gray-500 border-gray-200',
+    cancelada: 'bg-rose-50 text-rose-600 border-rose-200',
+};
+
+const statusBadge = (status: string) =>
+    `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${STATUS_BADGE[status] ?? STATUS_BADGE.encerrada}`;
+
+const getTipoLabel = (value: string) =>
+    FERIDA_TYPE_OPTIONS.find(o => o.value === value)?.label ?? value;
+
+const getVistaLabel = (value: string) =>
+    VISTA_TYPE_OPTIONS.find(v => v.value === value)?.label ?? value;
+
+const getStatusLabel = (value: string) =>
+    LESAO_STATUS_OPTIONS.find(o => o.value === value)?.label ?? value;
+
+// ─── component ──────────────────────────────────────────────────────────────
+
+const buildInitialState = (): Lesao => ({
+    _id: '',
+    vista: 'frente',
+    regiaoCorpo: '',
+    dataLesao: '',
+    descricao: '',
+    userId: '',
+    userName: '',
+    createdBy: getUserID(),
+    createdByName: getUserDetails().nome ?? '',
+    tipoLesao: '',
+    xPos: 0,
+    yPos: 0,
+    riscoInfeccao: 0,
+    nivelDor: 0,
+    status: 'iniciada',
+    comentarios: [],
+    createdAt: getCurrentDateTime(),
+    updatedAt: getCurrentDateTime(),
+});
+
+type PageView = '' | 'nova-lesao' | 'tabela-lesoes';
 
 const Index = () => {
-
-    // *************************
-    // *************************
-    // PRIMAL
-    // *************************
-    // *************************
-
-
-
-    const initialState: Lesao = {
-        _id: '',
-        vista: 'frente',
-        regiaoCorpo: '',
-        dataLesao: '',
-        descricao: '',
-        userId: '',
-        userName: '',
-        tipoLesao: '',
-        xPos: 0,
-        yPos: 0,
-        riscoInfeccao: 0,
-        nivelDor: 0,
-        status: 'iniciada',
-        comentarios: [],
-        createdAt: getCurrentDateTime(),
-        updatedAt: getCurrentDateTime(),
-    };
-
-    // *************************
-    // *************************
-    // STATES
-    // *************************
-    // *************************
-
-    const [isModalOpen, setisModalOpen] = useState<boolean>(false);
-    const [modalType, setmodalType] = useState<string>(``);
-    const [type, setType] = useState<string>('')
-    const [formData, setFormData] = useState<Lesao>(initialState);
+    const [type, setType] = useState<PageView>('');
+    const [formData, setFormData] = useState<Lesao>(buildInitialState);
     const [formErrors, setFormErrors] = useState<string[]>([]);
     const [listaResidentes, setListaResidentes] = useState<any[]>([]);
     const [listaLesoes, setListaLesoes] = useState<Lesao[]>([]);
     const [selectedLesao, setSelectedLesao] = useState<Lesao | null>(null);
-    const [novoComentario, setNovoComentario] = useState<string>('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [novoComentario, setNovoComentario] = useState('');
     const [updateStatusLesao, setUpdateStatusLesao] = useState<any>({ status: '', lesaoId: '', updatedAt: '' });
     const { showLoading, hideLoading } = useLoadingOverlay();
 
-    // *************************
-    // *************************
-    // HANDLERS
-    // *************************
-    // *************************
+    // ── handlers ──────────────────────────────────────────────────────────
 
     const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = event.target;
-
-        setFormData((prevData: any) => ({
-            ...prevData,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
-
         if (name === 'userId') {
             const residente = listaResidentes.find(r => r._id === value);
-            setFormData((prevData: any) => ({
-                ...prevData,
-                userId: value,
-                userName: residente ? residente.nome : ''
-            }));
+            setFormData(prev => ({ ...prev, userId: value, userName: residente?.nome ?? '' }));
         } else {
-            setFormData((prevData: any) => ({
-                ...prevData,
-                [name]: value
-            }));
+            setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
     const handleBodyClick = (data: any) => {
-        setFormData((prevData: any) => ({
-            ...prevData,
+        setFormData(prev => ({
+            ...prev,
             regiaoCorpo: data.bodyPart,
             xPos: data.x,
             yPos: data.y,
+            vista: data.viewOption,
         }));
     };
 
@@ -114,77 +119,58 @@ const Index = () => {
         showLoading();
         const { valido, erros } = validarLesao(formData);
         if (!valido) {
-            setFormErrors([]);
             setFormErrors(erros);
-            notifyError('Erros de validação encontrados:');
+            notifyError('Erros de validação encontrados.');
             hideLoading();
             return;
         }
-        else {
-            setFormData(initialState); // Reseta o formulário após salvar
-            setFormErrors([]); // Limpa os erros
-            const response = await createLesao(formData);
-            if (!response.success) {
-                notifyError('Erro ao salvar lesão.');
-                hideLoading();
-                return;
-            }
-            else {
-                notifySuccess('Lesão salva com sucesso!');
-                const nomeIdoso = listaResidentes.find(residente => residente._id === formData.userId);
-                const mensagem = `*Nova Lesão Cadastrada* \n\nIdoso: ${nomeIdoso.apelido} \nTipo de Lesão: ${formData.tipoLesao} \nData da Lesão: ${formatDateBR(formData.dataLesao)} \n\nlarfelizidade.com.br/portal/servicos/lesoes`
-                // const wppMessage = await sendMessage('120363319721988791@g.us', mensagem)
-                const wppTo = process.env.NEXT_PUBLIC_WPP_GRUPO_PRINCIPAL as string;
-                const wppMessage = await sendMessage(wppTo, mensagem)
-                hideLoading();
-            }
+        const response = await createLesao(formData);
+        if (!response.success) {
+            notifyError('Erro ao salvar lesão.');
+            hideLoading();
+            return;
         }
+        notifySuccess('Lesão salva com sucesso!');
+        const nomeIdoso = listaResidentes.find(r => r._id === formData.userId);
+        const mensagem = `*Nova Lesão Cadastrada* \n\nIdoso: ${nomeIdoso?.apelido} \nTipo de Lesão: ${getTipoLabel(formData.tipoLesao)} \nData da Lesão: ${formatDateBR(formData.dataLesao)} \n\nlarfelizidade.com.br/portal/servicos/lesoes`;
+        const wppTo = process.env.NEXT_PUBLIC_WPP_GRUPO_PRINCIPAL as string;
+        await sendMessage(wppTo, mensagem);
+        setFormData(buildInitialState());
+        setFormErrors([]);
+        hideLoading();
     };
 
     const handleClear = () => {
-        setFormData(initialState);
+        setFormData(buildInitialState());
         setFormErrors([]);
     };
 
     const handleRowClick = (lesao: Lesao) => {
         setSelectedLesao(lesao);
-        setisModalOpen(true);
-        setUpdateStatusLesao((prev: any) => ({
-            ...prev,
-            status: lesao.status,
-        }));
+        setIsModalOpen(true);
+        setUpdateStatusLesao({ status: lesao.status, lesaoId: lesao._id, updatedAt: '' });
     };
 
     const handleChangeStatus = (e: any) => {
         if (!selectedLesao) return;
         setUpdateStatusLesao({ status: e.target.value, lesaoId: selectedLesao._id, updatedAt: getCurrentDateTime() });
-    }
+    };
 
     const handleUpdateStatus = async () => {
         if (!selectedLesao || !updateStatusLesao.status || !updateStatusLesao.lesaoId) return;
         showLoading();
         try {
-            const { valido, erros } = validarUpdateStatus(updateStatusLesao.status);
-            if (!valido) {
-                notifyError('Erros de validação encontrados:');
-                return;
-            }
-            // Chama updateLesao passando o id e o objeto de atualização parcial
+            const { valido } = validarUpdateStatus(updateStatusLesao.status);
+            if (!valido) { notifyError('Status inválido.'); return; }
             const response = await updateLesao(updateStatusLesao.lesaoId, { status: updateStatusLesao.status });
-            if (response && response.success) {
-                notifySuccess(`Status atualizado para "${updateStatusLesao.status}" com sucesso!`);
-                // Atualiza o status localmente para refletir na UI
-                setSelectedLesao((prev) => prev ? { ...prev, status: updateStatusLesao.status } : prev);
-                setListaLesoes((prev) =>
-                    prev.map((l) =>
-                        l._id === selectedLesao._id ? { ...l, status: updateStatusLesao.status } : l
-                    )
-                );
+            if (response?.success) {
+                notifySuccess(`Status atualizado para "${getStatusLabel(updateStatusLesao.status)}".`);
+                setSelectedLesao(prev => prev ? { ...prev, status: updateStatusLesao.status } : prev);
+                setListaLesoes(prev => prev.map(l => l._id === selectedLesao._id ? { ...l, status: updateStatusLesao.status } : l));
             } else {
-                notifyError(response?.message || 'Erro ao atualizar status da lesão.');
+                notifyError(response?.message ?? 'Erro ao atualizar status.');
             }
-        } catch (error) {
-            console.error('Erro ao atualizar status da lesão:', error);
+        } catch {
             notifyError('Erro ao atualizar status da lesão.');
         } finally {
             hideLoading();
@@ -192,251 +178,386 @@ const Index = () => {
     };
 
     const handleAddComentario = async () => {
-        if (!selectedLesao || !novoComentario.trim() || isComentarioVazio(novoComentario)) return;
+        if (!selectedLesao || isComentarioVazio(novoComentario) || !novoComentario.trim()) return;
         showLoading();
         try {
-            // Crie o novo comentário
             const comentario: Comentario = {
                 userName: getUserDetails().nome,
                 userId: getUserID(),
                 content: novoComentario,
                 createdAt: getCurrentDateTime(),
             };
-            
-            // Atualize a lesão com o novo comentário (push no array)
             const response = await updateLesao(selectedLesao._id!, {
                 comentarios: [...selectedLesao.comentarios, comentario],
             });
-
-            if (response && response.success) {
-                notifySuccess('Comentário adicionado com sucesso!');
-                // Atualiza o estado localmente
-                setSelectedLesao((prev) =>
-                    prev ? { ...prev, comentarios: [...prev.comentarios, comentario] } : prev
-                );
-                setListaLesoes((prev) =>
-                    prev.map((l) =>
-                        l._id === selectedLesao._id
-                            ? { ...l, comentarios: [...l.comentarios, comentario] }
-                            : l
-                    )
-                );
+            if (response?.success) {
+                notifySuccess('Comentário adicionado.');
+                setSelectedLesao(prev => prev ? { ...prev, comentarios: [...prev.comentarios, comentario] } : prev);
+                setListaLesoes(prev => prev.map(l => l._id === selectedLesao._id ? { ...l, comentarios: [...l.comentarios, comentario] } : l));
                 setNovoComentario('');
             } else {
-                notifyError(response?.message || 'Erro ao adicionar comentário.');
+                notifyError(response?.message ?? 'Erro ao adicionar comentário.');
             }
-        } catch (error) {
-            console.error('Erro ao adicionar comentário:', error);
+        } catch {
             notifyError('Erro ao adicionar comentário.');
         } finally {
             hideLoading();
         }
     };
 
-    // *************************
-    // *************************
-    // USEEFFECTS
-    // *************************
-    // *************************
+    // ── effects ───────────────────────────────────────────────────────────
 
     useEffect(() => {
         const fetchData = async () => {
             showLoading();
             try {
-
                 if (type === 'nova-lesao') {
-                    const listaResidentes = await Residentes_GET_getAllActive();
-                    setListaResidentes(listaResidentes);
-                    hideLoading();
+                    const res = await Residentes_GET_getAllActive();
+                    setListaResidentes(res);
+                } else if (type === 'tabela-lesoes') {
+                    const res: any = await getLesoes();
+                    setListaLesoes(res.data);
                 }
-                else if (type === 'tabela-lesoes') {
-                    const listaLesoes: any = await getLesoes();
-                    setListaLesoes(listaLesoes.data);
-                    hideLoading();
-                }
-
-            } catch (error) {
-                console.error('Erro ao carregar dados iniciais:', error);
+            } catch (err) {
+                console.error(err);
             } finally {
                 hideLoading();
             }
         };
-
-        fetchData();
-
+        if (type) fetchData();
     }, [type]);
 
+    // ── active lesoes ─────────────────────────────────────────────────────
 
-    // *************************
-    // *************************
-    // RETURN
-    // *************************
-    // *************************
+    const lesoesAtivas = listaLesoes.filter(
+        l => l.status !== 'cancelada' && l.status !== 'encerrada'
+    );
+
+    // ── render ────────────────────────────────────────────────────────────
 
     return (
         <PermissionWrapper href='/portal'>
             <PortalBase>
-                <div className='col-span-full w-full'>
+                <div className="col-span-full w-full max-w-6xl mx-auto px-1 pb-8">
 
-                    <div className="text-center grid grid-cols-12 gap-2 w-full text-gray-700">
+                    {/* Page header */}
+                    <div className="mb-5">
+                        <h1 className="text-xl font-bold text-gray-800">Gestão de Lesões</h1>
+                        <p className="text-gray-400 text-sm">Registro e acompanhamento de feridas e lesões dos residentes</p>
+                    </div>
 
-                        <div className="col-span-full flex flex-row gap-2 ">
-                            <FaPlusCircle size={30} className="text-indigo-500 cursor-pointer" onClick={() => setType('nova-lesao')} />
-                            <FaTable size={30} className="text-green-500 cursor-pointer" onClick={() => setType('tabela-lesoes')} />
-                        </div>
+                    {/* Navigation */}
+                    <div className="flex gap-2 mb-6">
+                        <button
+                            onClick={() => setType('nova-lesao')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${type === 'nova-lesao'
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                                }`}
+                        >
+                            <FaPlus className="text-xs" />
+                            Nova Lesão
+                        </button>
+                        <button
+                            onClick={() => setType('tabela-lesoes')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${type === 'tabela-lesoes'
+                                ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-teal-300 hover:text-teal-600'
+                                }`}
+                        >
+                            <FaList className="text-xs" />
+                            Ver Lesões
+                        </button>
+                    </div>
 
-                        {type === 'nova-lesao' && (
-                            <div className="col-span-full grid grid-cols-12 gap-2">
-                                <h2 className="col-span-full text-sm italic uppercase font-bold">Nova Lesão</h2>
+                    {/* ── Nova Lesão ───────────────────────────────────────────────── */}
+                    {type === 'nova-lesao' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
-                                <div className='col-span-full sm:col-span-6 bg-white shadow-md rounded-lg'>
-                                    <h2 className='text-xl font-semibold mb-2'>Selecione a Região do Corpo</h2>
-                                    <HumanBodyImage imageSide="frente" onClickData={handleBodyClick} />
+                            {/* Corpo humano */}
+                            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                                <div className="flex items-center gap-2 mb-5">
+                                    <span className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">1</span>
+                                    <h3 className="font-semibold text-gray-700">Localização da Ferida</h3>
                                 </div>
 
-                                <div className='col-span-full sm:col-span-6 w-full mx-auto p-4 bg-white shadow-md rounded-lg'>
-                                    <h2 className='text-xl font-semibold mb-2'>Dados Clínicos</h2>
-                                    <form action="" className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-                                        <TextInputM2 name='regiaoCorpo' label='Região do Corpo' value={formData.regiaoCorpo || ''} onChange={() => null} disabled />
-                                        <Select_M3 name='vista' label='Vista' value={formData.vista || ''} onChange={handleSelect} options={VISTA_TYPE_OPTIONS} />
-                                        <Select_M3 name='tipoLesao' label='Tipo de Lesão' value={formData?.tipoLesao || ''} onChange={handleSelect} options={FERIDA_TYPE_OPTIONS} />
-                                        <Date_M3 disabled={false} name='dataLesao' label='Data da Lesão' value={formData.dataLesao || ''} onChange={handleChange} />
-                                        <Select_M3 name='userId' label='Idoso' value={formData.userId || ''} onChange={handleSelect} options={listaResidentes.map(residente => ({ value: residente._id, label: residente.nome }))} />
-                                        <Number_M3 disabled={false} name='riscoInfeccao' label='Risco de Infecção (0 a 10)' value={formData.riscoInfeccao || 0} onChange={handleChange} maxValue={10} />
-                                        <Number_M3 disabled={false} name='nivelDor' label='Nível de Dor (0 a 10)' value={formData.nivelDor || 0} onChange={handleChange} maxValue={10} />
-                                        <Textarea_M3 name='descricao' label='Descrição' value={formData.descricao || ''} onChange={handleChange} className='col-span-full' />
+                                <HumanBodyImage
+                                    imageSide={formData.vista}
+                                    onClickData={handleBodyClick}
+                                />
 
-                                        {formErrors.length > 0 && (
-                                            <div className='col-span-full text-red-500 text-left'>
-                                                <h3 className='font-semibold'>Erros de Validação:</h3>
-                                                <ul className='list-disc pl-5'>
-                                                    {formErrors.map((error, index) => (
-                                                        <li key={index}>{error}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-
-                                        <div className='flex flex-row gap-2 mx-auto items-center col-span-full'>
-                                            <Button_M3 label='Limpar' bgColor='gray' onClick={handleClear} />
-                                            <Button_M3 label='Salvar' onClick={handleSave} />
-                                        </div>
-
-                                    </form>
-                                </div>
+                                {formData.regiaoCorpo && (
+                                    <div className="mt-4 flex justify-center">
+                                        <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm font-medium border border-indigo-100">
+                                            <FaMapMarkerAlt className="text-xs" />
+                                            {formData.regiaoCorpo}
+                                            <span className="text-indigo-300">·</span>
+                                            {getVistaLabel(formData.vista)}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-                        )}
 
-                        {type === 'tabela-lesoes' && (
-                            <div className="col-span-full w-full bg-white shadow-md rounded-lg p-4">
-                                <h2 className="text-xl font-semibold mb-2">Tabela de Lesões</h2>
-                                <table>
-                                    <thead>
-                                        <tr className='bg-black text-white font-bold'>
-                                            <th className='px-2'>Idoso</th>
-                                            <th className='px-2'>Status</th>
-                                            <th className='px-2'>Data da Lesão</th>
-                                            <th className='px-2'>Qtd. Comentários</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {listaLesoes.length > 0 && listaLesoes
-                                            .filter(lesao => lesao.status !== 'cancelada' && lesao.status !== 'encerrada')
-                                            .map((lesao: Lesao) => (
-                                                <tr key={lesao.userId} onClick={() => handleRowClick(lesao)} className='cursor-pointer hover:bg-cyan-200'>
-                                                    <td className='px-2'>{lesao.userName}</td>
-                                                    <td className='px-2'> {LESAO_STATUS_OPTIONS.find(opt => opt.value === lesao.status)?.label || lesao.status}</td>
-                                                    <td className='px-2'>{formatDateBR(lesao.dataLesao)}</td>
-                                                    <td className='px-2'>{lesao.comentarios.length}</td>
+                            {/* Dados clínicos */}
+                            <div className="lg:col-span-3 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                                <div className="flex items-center gap-2 mb-5">
+                                    <span className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">2</span>
+                                    <h3 className="font-semibold text-gray-700">Dados Clínicos</h3>
+                                </div>
+
+                                <form className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <TextInputM2
+                                        name='regiaoCorpo'
+                                        label='Região do Corpo'
+                                        value={formData.regiaoCorpo || ''}
+                                        onChange={() => null}
+                                        disabled
+                                    />
+                                    <Select_M3
+                                        name='tipoLesao'
+                                        label='Tipo de Lesão'
+                                        value={formData.tipoLesao || ''}
+                                        onChange={handleSelect}
+                                        options={FERIDA_TYPE_OPTIONS}
+                                    />
+                                    <Date_M3
+                                        disabled={false}
+                                        name='dataLesao'
+                                        label='Data da Lesão'
+                                        value={formData.dataLesao || ''}
+                                        onChange={handleChange}
+                                    />
+                                    <Select_M3
+                                        name='userId'
+                                        label='Residente'
+                                        value={formData.userId || ''}
+                                        onChange={handleSelect}
+                                        options={listaResidentes.map(r => ({ value: r._id, label: r.nome }))}
+                                    />
+                                    <Number_M3
+                                        disabled={false}
+                                        name='riscoInfeccao'
+                                        label='Risco de Infecção (1–10)'
+                                        value={formData.riscoInfeccao || 0}
+                                        onChange={handleChange}
+                                        maxValue={10}
+                                    />
+                                    <Number_M3
+                                        disabled={false}
+                                        name='nivelDor'
+                                        label='Nível de Dor (1–10)'
+                                        value={formData.nivelDor || 0}
+                                        onChange={handleChange}
+                                        maxValue={10}
+                                    />
+                                    <Textarea_M3
+                                        name='descricao'
+                                        label='Descrição'
+                                        value={formData.descricao || ''}
+                                        onChange={handleChange}
+                                        className='sm:col-span-2'
+                                    />
+
+                                    {formErrors.length > 0 && (
+                                        <div className="sm:col-span-2 bg-red-50 border border-red-100 rounded-lg p-3">
+                                            <div className="flex items-center gap-1.5 mb-1.5">
+                                                <FaExclamationCircle className="text-red-500 text-sm" />
+                                                <p className="text-red-700 font-semibold text-sm">Corrija os erros abaixo:</p>
+                                            </div>
+                                            <ul className="list-disc list-inside text-red-600 text-sm space-y-0.5 pl-1">
+                                                {formErrors.map((e, i) => <li key={i}>{e}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    <div className="sm:col-span-2 flex justify-end gap-3 pt-2 border-t border-gray-50">
+                                        <Button_M3 label='Limpar' bgColor='gray' onClick={handleClear} />
+                                        <Button_M3 label='Salvar Lesão' onClick={handleSave} />
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Tabela de Lesões ─────────────────────────────────────────── */}
+                    {type === 'tabela-lesoes' && (
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+                                <h3 className="font-semibold text-gray-700">Lesões Ativas</h3>
+                                <span className="text-sm text-gray-400 font-medium">{lesoesAtivas.length} registro{lesoesAtivas.length !== 1 ? 's' : ''}</span>
+                            </div>
+
+                            {lesoesAtivas.length === 0 ? (
+                                <div className="py-16 text-center text-gray-400">
+                                    <p className="font-medium">Nenhuma lesão ativa encontrada</p>
+                                    <p className="text-sm mt-1">Clique em "Nova Lesão" para registrar.</p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider">
+                                            <tr>
+                                                <th className="px-5 py-3 text-left font-semibold">Residente</th>
+                                                <th className="px-5 py-3 text-left font-semibold">Tipo de Lesão</th>
+                                                <th className="px-5 py-3 text-left font-semibold">Região</th>
+                                                <th className="px-5 py-3 text-left font-semibold">Status</th>
+                                                <th className="px-5 py-3 text-left font-semibold">Data</th>
+                                                <th className="px-5 py-3 text-center font-semibold">
+                                                    <FaCommentAlt className="inline" />
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-50">
+                                            {lesoesAtivas.map((lesao, i) => (
+                                                <tr
+                                                    key={lesao._id || i}
+                                                    onClick={() => handleRowClick(lesao)}
+                                                    className="hover:bg-indigo-50 cursor-pointer transition-colors duration-100"
+                                                >
+                                                    <td className="px-5 py-3.5 font-medium text-gray-800">{lesao.userName}</td>
+                                                    <td className="px-5 py-3.5 text-gray-600">{getTipoLabel(lesao.tipoLesao)}</td>
+                                                    <td className="px-5 py-3.5 text-gray-500 text-xs">{lesao.regiaoCorpo} · {getVistaLabel(lesao.vista)}</td>
+                                                    <td className="px-5 py-3.5">
+                                                        <span className={statusBadge(lesao.status)}>
+                                                            {getStatusLabel(lesao.status)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-3.5 text-gray-400 text-xs">{formatDateBR(lesao.dataLesao)}</td>
+                                                    <td className="px-5 py-3.5 text-center">
+                                                        <span className="inline-flex items-center justify-center w-6 h-6 bg-gray-100 text-gray-500 rounded-full text-xs font-bold">
+                                                            {lesao.comentarios.length}
+                                                        </span>
+                                                    </td>
                                                 </tr>
                                             ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-
-                    </div>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
-                <Modalpadrao isOpen={isModalOpen} onClose={() => setisModalOpen(false)}>
+                {/* ── Modal de Detalhes ─────────────────────────────────────────── */}
+                <Modalpadrao isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
                     {selectedLesao && (
-                        <div className="p-4 flex flex-col gap-2 justify-center mx-auto items-center">
-                            <h3 className="text-lg font-bold mb-2">Detalhes da Lesão</h3>
-                            <div className='max-w-[200px] bg-gray-50'>
-                                <HumanBodyImage
-                                    imageSide={'frente'}
-                                    xPos={selectedLesao.xPos}
-                                    yPos={selectedLesao.yPos}
-                                    viewOnly={true}
-                                    onClickData={() => null} // Desabilita o clique na imagem
-                                />
-                            </div>
-                            <div className='border p-2 shadow-sm rounded-sm w-full bg-gray-50'>
-                                <p className='hidden'><strong>ID:</strong> {selectedLesao._id}</p>
-                                <p><strong>Idoso:</strong> {selectedLesao.userId}</p>
-                                <p><strong>Data da Lesão:</strong> {formatDateBR(selectedLesao.dataLesao)}</p>
-                                <p><strong>Status:</strong> {selectedLesao.status}</p>
-                                <p><strong>Tipo de Lesão:</strong> {selectedLesao.tipoLesao}</p>
-                                <p><strong>Região do Corpo:</strong> {selectedLesao.regiaoCorpo}</p>
-                                <p><strong>Risco de Infecção:</strong> {selectedLesao.riscoInfeccao}</p>
-                                <p><strong>Nível de Dor:</strong> {selectedLesao.nivelDor}</p>
-                                <p><strong>Local da Ferida:</strong> {selectedLesao.vista}</p>
-                            </div>
+                        <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto">
 
-                            <div className='w-full mt-2 border shadow-sm rounded-sm p-2 bg-gray-50'>
-                                <Select_M3 name='status' label='Andamento da Lesão' value={updateStatusLesao.status} onChange={handleChangeStatus} options={LESAO_STATUS_OPTIONS} />
-                            </div>
-
-                            <div className='w-full mt-2 border shadow-sm rounded-sm p-2 bg-gray-50'>
-                                <p className='font-bold'>
-                                    Descrição:
-                                </p>
-                                {selectedLesao.descricao}
-                            </div>
-
-                            <div className='w-full mt-2 border shadow-sm rounded-sm p-2 bg-gray-50'>
-                                <p className='mb-2'><strong>Comentários</strong></p>
-                                {selectedLesao.comentarios.length > 0 && (
-                                    <ul className='list-disc pl-1'>
-                                        {selectedLesao.comentarios.map((comentario, index) => (
-                                            <li key={index} className="mb-2 flex items-start gap-2 border-b">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-blue-900">{comentario.userName}</span>
-                                                        <span className="text-xs text-gray-500">{formatDateBRHora(comentario.createdAt)}</span>
-                                                    </div>
-                                                    <RichReadOnly_M3 value={comentario.content} label='' name='comentario' />
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) || (
-                                        <p className='italic text-gray-500'>Nenhum comentário registrado.</p>
-                                    )}
-
+                            {/* Header */}
+                            <div className="flex items-start justify-between gap-4">
                                 <div>
-                                    <RichText_M3 name='comentarios' onChange={(e, a) => setNovoComentario(a)} value={novoComentario} label='Novo Comentário' />
+                                    <h3 className="text-lg font-bold text-gray-800">{selectedLesao.userName}</h3>
+                                    <p className="text-gray-400 text-sm mt-0.5">
+                                        {getTipoLabel(selectedLesao.tipoLesao)} · {formatDateBR(selectedLesao.dataLesao)}
+                                    </p>
                                 </div>
-
-
-                                <div className='flex flex-row gap-2 justify-end mt-2'>
-                                    {novoComentario.trim() != '' && novoComentario.trim() != undefined && novoComentario.trim() != null && !isComentarioVazio(novoComentario) && (
-                                        <Button_M3 label='Adicionar Comentário' bgColor='blue' onClick={handleAddComentario} />
-                                    )}
-
-                                    {updateStatusLesao.status !== selectedLesao.status && updateStatusLesao.status !== '' && (
-                                        <Button_M3 label='Atualizar Status' bgColor='green' onClick={handleUpdateStatus} />
-                                    )}
-                                </div>
-
+                                <span className={statusBadge(selectedLesao.status)}>
+                                    {getStatusLabel(selectedLesao.status)}
+                                </span>
                             </div>
+
+                            {/* Body image + info */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-center">
+                                    <HumanBodyImage
+                                        imageSide={selectedLesao.vista}
+                                        xPos={selectedLesao.xPos}
+                                        yPos={selectedLesao.yPos}
+                                        viewOnly={true}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2 justify-center">
+                                    {[
+                                        { label: 'Região', value: selectedLesao.regiaoCorpo },
+                                        { label: 'Vista', value: getVistaLabel(selectedLesao.vista) },
+                                        { label: 'Risco de Infecção', value: `${selectedLesao.riscoInfeccao} / 10` },
+                                        { label: 'Nível de Dor', value: `${selectedLesao.nivelDor} / 10` },
+                                        { label: 'Registrado por', value: selectedLesao.createdByName || '—' },
+                                    ].map(({ label, value }) => (
+                                        <div key={label} className="bg-gray-50 rounded-lg px-3 py-2">
+                                            <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">{label}</p>
+                                            <p className="text-sm font-medium text-gray-700 mt-0.5">{value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            {selectedLesao.descricao && (
+                                <div className="bg-gray-50 rounded-xl px-4 py-3">
+                                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1.5">Descrição</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{selectedLesao.descricao}</p>
+                                </div>
+                            )}
+
+                            {/* Status update */}
+                            <div className="border border-gray-100 rounded-xl px-4 py-3">
+                                <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-3">Atualizar Andamento</p>
+                                <div className="flex items-end gap-3">
+                                    <div className="flex-1">
+                                        <Select_M3
+                                            name='status'
+                                            label='Novo status'
+                                            value={updateStatusLesao.status}
+                                            onChange={handleChangeStatus}
+                                            options={LESAO_STATUS_OPTIONS}
+                                        />
+                                    </div>
+                                    {updateStatusLesao.status !== selectedLesao.status && updateStatusLesao.status !== '' && (
+                                        <Button_M3 label='Salvar' bgColor='green' onClick={handleUpdateStatus} />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Comments */}
+                            <div className="border border-gray-100 rounded-xl px-4 py-3">
+                                <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-3">
+                                    Comentários
+                                    {selectedLesao.comentarios.length > 0 && (
+                                        <span className="ml-2 bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full text-xs">
+                                            {selectedLesao.comentarios.length}
+                                        </span>
+                                    )}
+                                </p>
+
+                                {selectedLesao.comentarios.length > 0 ? (
+                                    <div className="space-y-3 mb-4">
+                                        {selectedLesao.comentarios.map((comentario, i) => (
+                                            <div key={i} className="bg-gray-50 rounded-lg px-3 py-2.5">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-semibold text-indigo-800 text-sm">{comentario.userName}</span>
+                                                    <span className="text-xs text-gray-400">{formatDateBRHora(comentario.createdAt)}</span>
+                                                </div>
+                                                <RichReadOnly_M3 value={comentario.content} label='' name='comentario' />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 text-sm italic mb-3">Nenhum comentário registrado.</p>
+                                )}
+
+                                <RichText_M3
+                                    name='comentarios'
+                                    onChange={(_e: any, a: any) => setNovoComentario(a)}
+                                    value={novoComentario}
+                                    label='Novo Comentário'
+                                />
+
+                                {!isComentarioVazio(novoComentario) && novoComentario.trim() && (
+                                    <div className="flex justify-end mt-2">
+                                        <Button_M3 label='Adicionar Comentário' bgColor='blue' onClick={handleAddComentario} />
+                                    </div>
+                                )}
+                            </div>
+
                         </div>
                     )}
                 </Modalpadrao>
 
-            </PortalBase >
-        </PermissionWrapper >
-    )
-}
+            </PortalBase>
+        </PermissionWrapper>
+    );
+};
 
-export default Index
+export default Index;

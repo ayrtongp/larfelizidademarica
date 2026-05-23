@@ -41,7 +41,7 @@ const Index = () => {
 
           if (isMobile) {
             const idadeAnos = calcularIdade(residente.data_nascimento)
-            return <UserListMobilePhoto key={index} id={residente._id} idade={idadeAnos} nome={residente.nome} avatarUrl={residente.foto_base64} apelido={residente.apelido} />
+            return <UserListMobilePhoto key={index} id={residente._id} idade={idadeAnos} nome={residente.nome} avatarUrl={residente.foto_cdn || residente.foto_base64} apelido={residente.apelido} />
           }
           else {
             return <ResidenteCard key={index} residenteData={residente} />

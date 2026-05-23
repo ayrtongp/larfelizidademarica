@@ -1,4 +1,4 @@
-import { notifyError, notifySuccess } from '@/utils/Functions'
+import { notifyError, notifySuccess, validarCPF } from '@/utils/Functions'
 import React, { useEffect, useState } from 'react'
 
 interface Grupo {
@@ -41,6 +41,23 @@ const FormNovoUsuario = () => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 11)
+    const masked = digits
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+    setFormData(prev => ({ ...prev, cpf: masked }))
+  }
+
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 11)
+    const masked = digits.length <= 10
+      ? digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').replace(/\($/, '').replace(/-$/, '')
+      : digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
+    setFormData(prev => ({ ...prev, telefone: masked }))
+  }
+
   const handleToggleAdmin = () => {
     const novo = !isAdmin
     setIsAdmin(novo)
@@ -72,6 +89,10 @@ const FormNovoUsuario = () => {
     }
     if (!formData.cpf.trim()) {
       notifyError('CPF é obrigatório.')
+      return
+    }
+    if (!validarCPF(formData.cpf)) {
+      notifyError('CPF inválido.')
       return
     }
     if (!formData.dataNascimento) {
@@ -167,7 +188,7 @@ const FormNovoUsuario = () => {
           </div>
           <div>
             <label className={labelClass}>CPF *</label>
-            <input name="cpf" type="text" value={formData.cpf} onChange={handleChange}
+            <input name="cpf" type="text" value={formData.cpf} onChange={handleCpfChange}
               className={inputClass} placeholder="000.000.000-00" />
           </div>
           <div>
@@ -177,7 +198,7 @@ const FormNovoUsuario = () => {
           </div>
           <div>
             <label className={labelClass}>Telefone *</label>
-            <input name="telefone" type="text" value={formData.telefone} onChange={handleChange}
+            <input name="telefone" type="text" value={formData.telefone} onChange={handleTelefoneChange}
               className={inputClass} placeholder="(00) 00000-0000" />
           </div>
           <div>

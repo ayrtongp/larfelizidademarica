@@ -1,16 +1,13 @@
-import { useState, useRef, MouseEvent, useEffect } from 'react';
+import { useState, useRef, MouseEvent } from 'react';
 
-type ClickPosition = {
-    x: number; // percentual em relação à largura da imagem
-    y: number; // percentual em relação à altura da imagem
-};
+type ClickPosition = { x: number; y: number };
 
 export type ViewOption = 'frente' | 'costas' | 'lado-esquerdo' | 'lado-direito';
 
 interface HumanBodyProps {
     imageSide: ViewOption;
     onClickData?: (data: { x: number; y: number; viewOption: ViewOption; bodyPart: string }) => void;
-    viewOnly?: boolean; // Se for true, não exibe os botões de controle
+    viewOnly?: boolean;
     xPos?: number;
     yPos?: number;
 }
@@ -22,167 +19,158 @@ const images: Record<ViewOption, string> = {
     'lado-direito': '/images/humanBody/Anatomia Lado Direito.jpg',
 };
 
+const viewLabels: Record<ViewOption, string> = {
+    frente: 'Frente',
+    costas: 'Costas',
+    'lado-direito': 'Lado Dir.',
+    'lado-esquerdo': 'Lado Esq.',
+};
 
-const HumanBodyImage: React.FC<HumanBodyProps> = ({ imageSide, onClickData, viewOnly = false, xPos, yPos }) => {
-    const [clickPos, setClickPos] = useState<ClickPosition | null>({ x: xPos || 0, y: yPos || 0 });
-    const [view, setView] = useState<ViewOption>('frente');
-    const [showGrid, setShowGrid] = useState<boolean>(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [isDev, setIsDev] = useState(false);
+const GRID = 20;
 
-    // Definição da grade 
-    const gridRows = 20;
-    const gridColumns = 20;
+const getBodyPart = (pos: ClickPosition, view: ViewOption): string => {
+    const col = Math.floor(pos.x / (100 / GRID)) + 1;
+    const row = Math.floor(pos.y / (100 / GRID)) + 1;
 
-
-    // Mapeamento de quadrante genérico
-    const getGridQuadrant = (pos: ClickPosition): string => {
-        const colWidth = 100 / gridColumns;
-        const rowHeight = 100 / gridRows;
-        const colIndex = Math.floor(pos.x / colWidth);
-        const rowIndex = Math.floor(pos.y / rowHeight);
-        return `Quadrante ${rowIndex + 1}-${colIndex + 1}`;
-    };
-
-    const getBodyPart = (pos: ClickPosition): string => {
-        // Converte as porcentagens para índices (0-based)
-        const colWidth = 100 / gridColumns;
-        const rowHeight = 100 / gridRows;
-        const col = Math.floor(pos.x / colWidth) + 1;
-        const row = Math.floor(pos.y / rowHeight) + 1;
-
-        // FRENTE
-        if (row >= 11 && row <= 12 && col >= 3 && col <= 5) return 'Mão Direita';
-        if (row >= 11 && row <= 12 && col >= 16 && col <= 18) return 'Mão Esquerda';
+    if (view === 'frente') {
+        if (row <= 3 && col >= 8 && col <= 13) return 'Cabeça';
+        if (row === 4 && col >= 7 && col <= 13) return 'Pescoço';
+        if (row === 5 && col >= 4 && col <= 6) return 'Ombro Direito';
+        if (row === 5 && col >= 15 && col <= 17) return 'Ombro Esquerdo';
+        if (row >= 5 && row <= 6 && col >= 6 && col <= 15) return 'Tórax';
+        if (row >= 6 && row <= 8 && col >= 3 && col <= 5) return 'Braço Direito';
+        if (row >= 6 && row <= 8 && col >= 16 && col <= 18) return 'Braço Esquerdo';
+        if (row >= 7 && row <= 9 && col >= 6 && col <= 14) return 'Abdômen';
         if (row >= 9 && row <= 10 && col >= 3 && col <= 5) return 'Antebraço Direito';
         if (row >= 9 && row <= 10 && col >= 16 && col <= 18) return 'Antebraço Esquerdo';
-        if (row >= 6 && row <= 8 && col >= 3 && col <= 5) return 'Braço Direito';
-        if (row >= 6 && row <= 8 && col >= 16 && col <= 17) return 'Braço Esquerdo';
-        if (row >= 5 && row <= 5 && col >= 4 && col <= 5) return 'Ombro Direito';
-        if (row >= 5 && row <= 5 && col >= 4 && col <= 5) return 'Ombro Esquerdo';
-        if (row >= 1 && row <= 3 && col >= 8 && col <= 13) return 'Cabeça';
-        if (row >= 5 && row <= 6 && col >= 6 && col <= 15) return 'Tórax';
-        if (row >= 4 && row <= 4 && col >= 7 && col <= 13) return 'Pescoço';
-        if (row >= 7 && row <= 9 && col >= 6 && col <= 14) return 'Abdômen';
         if (row >= 10 && row <= 11 && col >= 6 && col <= 14) return 'Pelve';
+        if (row >= 11 && row <= 12 && col >= 3 && col <= 5) return 'Mão Direita';
+        if (row >= 11 && row <= 12 && col >= 16 && col <= 18) return 'Mão Esquerda';
         if (row >= 12 && row <= 14 && col >= 6 && col <= 10) return 'Coxa Direita';
         if (row >= 12 && row <= 14 && col >= 11 && col <= 14) return 'Coxa Esquerda';
-        if (row >= 15 && row <= 15 && col >= 8 && col <= 9) return 'Joelho Direito';
-        if (row >= 15 && row <= 15 && col >= 11 && col <= 13) return 'Joelho Esquerdo';
+        if (row === 15 && col >= 8 && col <= 9) return 'Joelho Direito';
+        if (row === 15 && col >= 11 && col <= 13) return 'Joelho Esquerdo';
         if (row >= 16 && row <= 18 && col >= 7 && col <= 10) return 'Perna Direita';
         if (row >= 16 && row <= 18 && col >= 11 && col <= 13) return 'Perna Esquerda';
-        if (row >= 19 && row <= 20 && col >= 7 && col <= 10) return 'Pé Direito';
-        if (row >= 19 && row <= 20 && col >= 11 && col <= 13) return 'Pé Esquerdo';
+        if (row >= 19 && col >= 7 && col <= 10) return 'Pé Direito';
+        if (row >= 19 && col >= 11 && col <= 13) return 'Pé Esquerdo';
+    }
 
-        return 'Área não mapeada';
+    if (view === 'costas') {
+        // Na vista posterior, esquerdo da imagem = direito da pessoa (e vice-versa)
+        if (row <= 3 && col >= 8 && col <= 13) return 'Cabeça';
+        if (row === 4 && col >= 7 && col <= 13) return 'Pescoço';
+        if (row === 5 && col >= 4 && col <= 6) return 'Ombro Esquerdo';
+        if (row === 5 && col >= 15 && col <= 17) return 'Ombro Direito';
+        if (row >= 5 && row <= 7 && col >= 6 && col <= 15) return 'Dorso Superior';
+        if (row >= 6 && row <= 8 && col >= 3 && col <= 5) return 'Braço Esquerdo';
+        if (row >= 6 && row <= 8 && col >= 16 && col <= 18) return 'Braço Direito';
+        if (row >= 8 && row <= 10 && col >= 6 && col <= 14) return 'Região Lombar';
+        if (row >= 9 && row <= 10 && col >= 3 && col <= 5) return 'Antebraço Esquerdo';
+        if (row >= 9 && row <= 10 && col >= 16 && col <= 18) return 'Antebraço Direito';
+        if (row >= 10 && row <= 12 && col >= 6 && col <= 14) return 'Glúteo';
+        if (row >= 11 && row <= 12 && col >= 3 && col <= 5) return 'Mão Esquerda';
+        if (row >= 11 && row <= 12 && col >= 16 && col <= 18) return 'Mão Direita';
+        if (row >= 12 && row <= 14 && col >= 6 && col <= 10) return 'Coxa Posterior Esquerda';
+        if (row >= 12 && row <= 14 && col >= 11 && col <= 14) return 'Coxa Posterior Direita';
+        if (row === 15 && col >= 8 && col <= 9) return 'Fossa Poplítea Esquerda';
+        if (row === 15 && col >= 11 && col <= 13) return 'Fossa Poplítea Direita';
+        if (row >= 16 && row <= 18 && col >= 7 && col <= 10) return 'Panturrilha Esquerda';
+        if (row >= 16 && row <= 18 && col >= 11 && col <= 13) return 'Panturrilha Direita';
+        if (row >= 19 && col >= 7 && col <= 10) return 'Calcanhar Esquerdo';
+        if (row >= 19 && col >= 11 && col <= 13) return 'Calcanhar Direito';
+    }
+
+    if (view === 'lado-direito' || view === 'lado-esquerdo') {
+        const ladoM = view === 'lado-direito' ? 'Direito' : 'Esquerdo';
+        const ladoF = view === 'lado-direito' ? 'Direita' : 'Esquerda';
+        if (row <= 3) return 'Cabeça';
+        if (row === 4) return 'Pescoço';
+        if (row === 5) return `Ombro ${ladoM}`;
+        if (row >= 5 && row <= 7 && col >= 5 && col <= 15) return 'Tórax Lateral';
+        if (row >= 6 && row <= 8 && (col < 5 || col > 15)) return `Braço ${ladoM}`;
+        if (row >= 8 && row <= 10 && col >= 5 && col <= 15) return 'Abdômen Lateral';
+        if (row >= 9 && row <= 10 && (col < 5 || col > 15)) return `Antebraço ${ladoM}`;
+        if (row >= 10 && row <= 12 && col >= 5 && col <= 15) return `Quadril ${ladoM}`;
+        if (row >= 11 && row <= 12 && (col < 5 || col > 15)) return `Mão ${ladoF}`;
+        if (row >= 12 && row <= 15) return `Coxa Lateral ${ladoF}`;
+        if (row >= 16 && row <= 18) return `Perna Lateral ${ladoF}`;
+        if (row >= 19) return `Pé ${ladoM}`;
+    }
+
+    return 'Área não mapeada';
+};
+
+const HumanBodyImage: React.FC<HumanBodyProps> = ({ imageSide, onClickData, viewOnly = false, xPos, yPos }) => {
+    const [clickPos, setClickPos] = useState<ClickPosition | null>(
+        xPos && yPos ? { x: xPos, y: yPos } : null
+    );
+    const [view, setView] = useState<ViewOption>(imageSide);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const handleViewChange = (newView: ViewOption) => {
+        setView(newView);
+        setClickPos(null);
     };
 
-
-
-    // ****************************
-    // ****************************
-    // USE EFFECTS
-    // ****************************
-    // ****************************
-
-    useEffect(() => {
-        setIsDev(process.env.MODE === 'dev');
-    }, []);
-
-
-    // ****************************
-    // ****************************
-    // HANDLERS
-    // ****************************
-    // ****************************
-
     const handleClick = (event: MouseEvent<HTMLDivElement>) => {
-        if (viewOnly) return;
-        if (!containerRef.current) return;
+        if (viewOnly || !containerRef.current) return;
         const rect = containerRef.current.getBoundingClientRect();
         const x = ((event.clientX - rect.left) / rect.width) * 100;
         const y = ((event.clientY - rect.top) / rect.height) * 100;
-        const bodyPart = getBodyPart({ x, y });
+        const bodyPart = getBodyPart({ x, y }, view);
         setClickPos({ x, y });
-
-        // Dispara a função do pai, se fornecida
-        if (onClickData) {
-            onClickData({ x, y, viewOption: view, bodyPart });
-        }
-
+        if (onClickData) onClickData({ x, y, viewOption: view, bodyPart });
     };
 
-    // ****************************
-    // ****************************
-    // RETURN 
-    // ****************************
-    // ****************************
-
     return (
-        <div className="flex flex-col gap-4 p-4 bg-white rounded-lg shadow-md">
-
-            {/* Controles */}
-            {isDev && (
-                <div className="flex flex-wrap gap-2 justify-center">
-                    {/* {(['frente', 'costas', 'lado-esquerdo', 'lado-direito'] as ViewOption[]).map( */}
-                    {(['frente',] as ViewOption[]).map(
-                        (option) => (
-                            <button key={option} onClick={() => { setView(option); setClickPos(null); }}
-                                className={`px-4 py-2 rounded ${view === option ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}
-                            >
-                                {option.charAt(0).toUpperCase() + option.slice(1)}
-                            </button>
-                        )
-                    )}
-
-                    <button onClick={() => setShowGrid((prev) => !prev)} className="px-4 py-2 rounded bg-green-500 text-white">
-                        {showGrid ? 'Ocultar' : 'Mostrar'} Grid
-                    </button>
-
+        <div className="flex flex-col items-center gap-3">
+            {!viewOnly && (
+                <div className="flex flex-wrap gap-1.5 justify-center">
+                    {(['frente', 'costas', 'lado-direito', 'lado-esquerdo'] as ViewOption[]).map((option) => (
+                        <button
+                            key={option}
+                            type="button"
+                            onClick={() => handleViewChange(option)}
+                            className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all duration-150 ${view === option
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                                }`}
+                        >
+                            {viewLabels[option]}
+                        </button>
+                    ))}
                 </div>
             )}
 
-            {/* Container da imagem responsiva */}
-            <div className="relative w-full max-w-[200px] mx-auto cursor-pointer p-3" onClick={handleClick} ref={containerRef}>
-                <img src={images[imageSide]} alt={`Vista ${imageSide}`} className="w-full h-auto object-contain" />
+            {viewOnly && (
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+                    {viewLabels[imageSide]}
+                </span>
+            )}
 
-                {/* Ponto vermelho no clique */}
+            <div
+                ref={containerRef}
+                onClick={handleClick}
+                className={`relative w-full max-w-[180px] select-none ${!viewOnly ? 'cursor-crosshair' : ''}`}
+            >
+                <img
+                    src={viewOnly ? images[imageSide] : images[view]}
+                    alt={`Anatomia corporal - ${viewOnly ? viewLabels[imageSide] : viewLabels[view]}`}
+                    className="w-full h-auto object-contain rounded"
+                    draggable={false}
+                />
                 {clickPos && (
-                    <div style={{ top: `${clickPos.y}%`, left: `${clickPos.x}%`, transform: 'translate(-50%, -50%)', }}
-                        className="absolute w-2 h-2 bg-red-500 rounded-full pointer-events-none" />
-                )}
-
-                {/* Renderização do grid para debug */}
-                {showGrid && (
-                    <>
-                        {/* Linhas verticais com números */}
-                        {Array.from({ length: gridColumns }).map((_, idx) => {
-                            const leftPos = ((idx + 1) * 100) / gridColumns;
-                            return (
-                                <div key={`vline-${idx}`} className="absolute top-0 h-full" style={{ left: `${leftPos}%` }}>
-                                    <div className="w-px h-full bg-blue-400 opacity-70 pointer-events-none" />
-                                    <span className="absolute text-blue-600 px-1 opacity-90 text-xs top-1/12 right-1/12 -translate-y-full">
-                                        {idx + 1}
-                                    </span>
-                                </div>
-                            );
-                        })}
-                        {/* Linhas horizontais com números */}
-                        {Array.from({ length: gridRows }).map((_, idx) => {
-                            const topPos = ((idx + 1) * 100) / gridRows;
-                            return (
-                                <div key={`hline-${idx}`} className="absolute left-0 w-full" style={{ top: `${topPos}%` }}>
-                                    <div className="w-full h-px bg-blue-400 opacity-70 pointer-events-none" />
-                                    <span className="absolute text-blue-600 px-1 opacity-90 text-xs left-1/12 bottom-3/12 -translate-y-1/2">
-                                        {idx + 1}
-                                    </span>
-                                </div>
-                            );
-                        })}
-                    </>
+                    <div
+                        style={{ top: `${clickPos.y}%`, left: `${clickPos.x}%`, transform: 'translate(-50%, -50%)' }}
+                        className="absolute w-4 h-4 bg-red-500 rounded-full pointer-events-none border-2 border-white shadow-md"
+                    />
                 )}
             </div>
 
+            {!viewOnly && (
+                <p className="text-xs text-gray-400">Clique sobre o corpo para marcar a lesão</p>
+            )}
         </div>
     );
 };

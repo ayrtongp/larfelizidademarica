@@ -10,7 +10,10 @@ interface Props {
   endereco: T_Endereco;
   ctps: T_CTPS;
   pisPasep?: string;
+  telefone?: string;
+  email?: string;
   onUpdate: (data: { dadosPessoais: T_DadosPessoais; endereco: T_Endereco; ctps: T_CTPS; pisPasep: string }) => void;
+  onUpdateContato: (data: { telefone: string; email: string }) => void;
 }
 
 const ESTADO_CIVIL = [
@@ -34,20 +37,25 @@ const ESCOLARIDADE = [
 
 const UFs = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 
-const Tab_DadosPessoais: React.FC<Props> = ({ funcionarioId, dadosPessoais, endereco, ctps, pisPasep, onUpdate }) => {
+const Tab_DadosPessoais: React.FC<Props> = ({ funcionarioId, dadosPessoais, endereco, ctps, pisPasep, telefone, email, onUpdate, onUpdateContato }) => {
   const [dp, setDp] = useState<T_DadosPessoais>({ ...dadosPessoais });
   const [end, setEnd] = useState<T_Endereco>({ ...endereco });
   const [ctpsForm, setCtpsForm] = useState<T_CTPS>({ ...ctps });
   const [pis, setPis] = useState(pisPasep ?? '');
   const [saving, setSaving] = useState(false);
   const [loadingCep, setLoadingCep] = useState(false);
+  const [tel, setTel] = useState(telefone ?? '');
+  const [mail, setMail] = useState(email ?? '');
+  const [savingContato, setSavingContato] = useState(false);
 
   useEffect(() => {
     setDp({ ...dadosPessoais });
     setEnd({ ...endereco });
     setCtpsForm({ ...ctps });
     setPis(pisPasep ?? '');
-  }, [dadosPessoais, endereco, ctps, pisPasep]);
+    setTel(telefone ?? '');
+    setMail(email ?? '');
+  }, [dadosPessoais, endereco, ctps, pisPasep, telefone, email]);
 
   const handleDpChange = (field: keyof T_DadosPessoais, value: any) => {
     setDp((prev) => ({ ...prev, [field]: value }));
@@ -98,6 +106,19 @@ const Tab_DadosPessoais: React.FC<Props> = ({ funcionarioId, dadosPessoais, ende
       notifyError('Erro ao salvar dados pessoais.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSalvarContato = async () => {
+    try {
+      setSavingContato(true);
+      await S_funcionariosCLT.updateContatoUsuario(funcionarioId, { telefone: tel, email: mail });
+      onUpdateContato({ telefone: tel, email: mail });
+      notifySuccess('Contato atualizado!');
+    } catch {
+      notifyError('Erro ao salvar contato.');
+    } finally {
+      setSavingContato(false);
     }
   };
 
@@ -273,6 +294,28 @@ const Tab_DadosPessoais: React.FC<Props> = ({ funcionarioId, dadosPessoais, ende
 
       <div className="flex justify-end">
         <Button_M3 label={saving ? 'Salvando...' : 'Salvar Dados Pessoais'} onClick={handleSalvar} type="button" disabled={saving} />
+      </div>
+
+      {/* Contato */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-1">Contato</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Telefone</label>
+            <input type="text" value={tel} onChange={(e) => setTel(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              placeholder="(00) 00000-0000" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">E-mail</label>
+            <input type="email" value={mail} onChange={(e) => setMail(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              placeholder="exemplo@email.com" />
+          </div>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button_M3 label={savingContato ? 'Salvando...' : 'Salvar Contato'} onClick={handleSalvarContato} type="button" disabled={savingContato} />
+        </div>
       </div>
     </div>
   );

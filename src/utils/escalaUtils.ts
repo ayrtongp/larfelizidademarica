@@ -91,11 +91,15 @@ export interface EntradaCalendario {
 
 export function equipesEmDia(equipes: T_Equipe[], date: Date): EntradaCalendario[] {
   return equipes
-    .filter((eq) => eq.ativo && equipeEmDia(eq, date))
+    .filter((eq) => eq.ativo)
     .map((eq) => ({
       equipe: eq,
       membros: eq.membros.filter((m) => isWorkingDay(m, eq.regra, date)),
-    }));
+    }))
+    .filter(({ equipe, membros }) =>
+      // inclui se algum membro trabalha hoje (ref individual) ou a regra de equipe diz que trabalha
+      membros.length > 0 || equipeEmDia(equipe, date)
+    );
 }
 
 export function formatDateISO(date: Date): string {

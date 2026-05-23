@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
             { $addFields: { lastEntrySinais: { $arrayElemAt: ["$result", { $subtract: [{ $size: "$result" }, 1] }] } } },
             { $lookup: { from: "anotacoesenfermagem", localField: "residente_id", foreignField: "residente_id", as: "result2", }, },
             { $addFields: { lastEntryAnotacoes: { $arrayElemAt: ["$result2", { $subtract: [{ $size: "$result2" }, 1] }] } } },
-            { $project: { _id: 1, nome: 1, foto_base64: 1, "lastEntrySinais.createdAt": 1, "lastEntrySinais.usuario_nome": 1, "lastEntryAnotacoes.data": 1, "lastEntryAnotacoes.usuario_nome": 1, } }
+            { $project: { _id: 1, nome: 1, foto_base64: 1, foto_cdn: 1, "lastEntrySinais.createdAt": 1, "lastEntrySinais.usuario_nome": 1, "lastEntryAnotacoes.data": 1, "lastEntryAnotacoes.usuario_nome": 1, } }
           ]).sort({ nome: 1 }).toArray()
 
           return res.status(200).json(result);

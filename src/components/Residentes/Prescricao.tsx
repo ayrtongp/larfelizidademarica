@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModalPadrao from '@/components/ModalPadrao';
 import { usePrescricoesByResidente } from '@/hooks/usePrescricoesByResidente';
-import { Prescricao as PrescricaoType, STATUS_PRESCRICAO_OPTIONS } from '@/models/prescricao.model';
+import { Prescricao as PrescricaoType, STATUS_PRESCRICAO_OPTIONS, DIAS_SEMANA_LABELS } from '@/models/prescricao.model';
 import Button_M3 from '@/components/Formularios/Button_M3';
 import Select_M3 from '@/components/Formularios/Select_M3';
 import RichReadOnly_M3 from '@/components/Formularios/RichReadOnly_M3';
@@ -11,6 +11,14 @@ import PrescricaoForm from '../Forms/prescricao.form';
 import { formatDateBR, formatDateBRHora, notifyError, notifySuccess } from '@/utils/Functions';
 import Badge from '../UI/Badge';
 import { updateStatusPrescricao } from '@/services/prescricao.service';
+
+function formatFrequencia(p: PrescricaoType): string {
+    if (p.usoSOS) return 'SOS';
+    if (p.frequencia === 'dias_especificos' && p.diasSemana && p.diasSemana.length > 0) {
+        return p.diasSemana.map(d => DIAS_SEMANA_LABELS[d]).join(', ');
+    }
+    return 'Todo dia';
+}
 
 interface Props {
     idosoData: { _id: string; nome?: string };
@@ -101,7 +109,10 @@ export default function Prescricao({ idosoData }: Props) {
                                         {p.usoSOS ? (
                                             <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold">SOS</span>
                                         ) : (
-                                            <span className="text-xs text-gray-600">{(p.horarios || []).join(', ') || '—'}</span>
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-xs text-gray-600">{(p.horarios || []).join(', ') || '—'}</span>
+                                                <span className="text-xs text-indigo-500 font-medium">{formatFrequencia(p)}</span>
+                                            </div>
                                         )}
                                     </td>
                                     <td className="px-4 py-2">
@@ -141,6 +152,17 @@ export default function Prescricao({ idosoData }: Props) {
                             <div className="flex items-center flex-wrap gap-2 text-sm">
                                 <span className="text-gray-500">Horários:</span>
                                 {viewSelected.horarios.map(h => <Badge key={h} label={h} variant="info" />)}
+                            </div>
+                        )}
+
+                        {!viewSelected.usoSOS && (
+                            <div className="text-sm">
+                                <span className="text-gray-500">Frequência: </span>
+                                <span className="font-medium">
+                                    {viewSelected.frequencia === 'dias_especificos' && viewSelected.diasSemana && viewSelected.diasSemana.length > 0
+                                        ? viewSelected.diasSemana.map(d => DIAS_SEMANA_LABELS[d]).join(', ')
+                                        : 'Todo dia'}
+                                </span>
                             </div>
                         )}
 

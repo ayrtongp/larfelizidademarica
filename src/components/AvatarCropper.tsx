@@ -84,11 +84,17 @@ const AvatarCropper = ({ onImageCropped, defaultImage, size = 24, returnType = '
 
     return (
         <div className="relative">
-            <img
-                src={preview || '/avatar.jpg'}
-                alt="Avatar"
-                className={`w-${size} h-${size} rounded-full object-cover border-4 border-white shadow-md`}
-            />
+            {preview ? (
+                <img
+                    src={preview}
+                    alt="Avatar"
+                    className={`w-${size} h-${size} rounded-full object-cover border-4 border-white shadow-md`}
+                />
+            ) : (
+                <div className={`w-${size} h-${size} rounded-full bg-gray-200 border-4 border-white shadow-md flex items-center justify-center`}>
+                    <BsCamera size={20} className="text-gray-400" />
+                </div>
+            )}
             <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer">
                 <BsCamera size={20} />
             </label>

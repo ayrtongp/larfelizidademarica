@@ -53,6 +53,9 @@ export interface Lesao {
     userId: string;
     userName: string;
 
+    createdBy: string;
+    createdByName: string;
+
     descricao: string;
     regiaoCorpo: string;
     vista: Vista;
@@ -133,6 +136,11 @@ export function validarLesao(lesao: Lesao): { valido: boolean; erros: string[] }
 
     if (typeof lesao.userId !== 'string' || !lesao.userId.trim())
         erros.push('User ID inválido.');
+
+    if (typeof lesao.createdBy !== 'string' || !lesao.createdBy.trim())
+        erros.push('createdBy inválido.');
+    if (typeof lesao.createdByName !== 'string' || !lesao.createdByName.trim())
+        erros.push('createdByName inválido.');
 
     if (typeof lesao.descricao !== 'string' || !lesao.descricao.trim())
         erros.push('Descrição inválida.');

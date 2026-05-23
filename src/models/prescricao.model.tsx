@@ -2,6 +2,8 @@
 // TYPES
 // *********************************
 
+export type FrequenciaPrescricao = 'diaria' | 'dias_especificos';
+
 export type ViaAdministracao =
     | 'oral'
     | 'sublingual'
@@ -32,6 +34,8 @@ export interface Prescricao {
     via: ViaAdministracao;
     usoSOS: boolean;
     horarios?: string[]; // opcional se usoSOS === true
+    frequencia?: FrequenciaPrescricao; // undefined = 'diaria' (compatibilidade retroativa)
+    diasSemana?: number[]; // 0=Dom..6=Sáb, só quando frequencia='dias_especificos'
 
     observacoes?: string;
 
@@ -61,6 +65,13 @@ export const VIA_ADMINISTRACAO_OPTIONS = [
     { label: 'Nasal', value: 'nasal' },
     { label: 'Ocular', value: 'ocular' },
     { label: 'Ótica', value: 'otica' },
+];
+
+export const DIAS_SEMANA_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as const;
+
+export const FREQUENCIA_OPTIONS: { label: string; value: FrequenciaPrescricao }[] = [
+    { label: 'Todo dia', value: 'diaria' },
+    { label: 'Dias específicos', value: 'dias_especificos' },
 ];
 
 export const STATUS_PRESCRICAO_OPTIONS: { label: string; value: StatusPrescricao }[] = [
@@ -93,6 +104,17 @@ export function validarPrescricao(p: Prescricao): { valido: boolean; erros: stri
             p.horarios.forEach((h, i) => {
                 if (!/^\d{2}:\d{2}$/.test(h)) erros.push(`Horário inválido no índice ${i}: ${h}`);
             });
+        }
+
+        if (p.frequencia === 'dias_especificos') {
+            if (!Array.isArray(p.diasSemana) || p.diasSemana.length === 0) {
+                erros.push('Selecione pelo menos um dia da semana.');
+            } else {
+                p.diasSemana.forEach(d => {
+                    if (!Number.isInteger(d) || d < 0 || d > 6)
+                        erros.push(`Dia da semana inválido: ${d}`);
+                });
+            }
         }
     }
 

@@ -41,6 +41,8 @@ export interface Residente {
   foto_cdn?: string;
   composicaoFamiliar: ComposicaFamiliar[];
   composicaoFamiliarData?: ComposicaoFamiliarData;
+  planejamentoAtendimento?: PlanejamentoAtendimento;
+  paisi?: PAISI;
   questionario: Questionario;
 }
 
@@ -97,4 +99,43 @@ export interface ComposicaoFamiliarData {
   relacaoIdosoComFamilia: string;
   percepcaoEquipeTecnica: string;
   pessoasNaRotina: PessoaRotina[];
+}
+
+// ---- Planejamento do Atendimento ----
+
+export interface DemandaNecessidade {
+  demandaIdentificada: string;
+  encaminhamentos: string;
+  metaAtendimento: string;
+  profissionaisResponsaveis: string;
+  acompanhamento: string;
+}
+
+export interface AtividadeProposta {
+  atividade: string;
+  local: string;
+  frequencia: string;
+  objetivo: string;
+}
+
+export interface PlanejamentoAtendimento {
+  demandas: DemandaNecessidade[];
+  vinculosFamiliares: string;
+  atividades: AtividadeProposta[];
+  observacoesAtividades: string;
+  tematicasFamilia: string;
+  rotinaInstitucional: string;
+}
+
+// ---- PAISI ----
+
+export interface PAISI {
+  diagnosticosCID10: string;
+  grauDependencia: string;
+  planoDeSaude: string;
+  servicosSaudeILPI: string;
+  regularidadeAcompanhamento: string;
+  origemMedicamentos: string;
+  assistenciaSaudeFora: string;
+  servicoRemocao: string;
 }

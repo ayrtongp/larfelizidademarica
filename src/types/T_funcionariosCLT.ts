@@ -85,6 +85,45 @@ export interface T_ContatoEmergencia {
   telefone2?: string;
 }
 
+export interface T_AtestadoMedico {
+  data: string;
+  dataInicio: string;
+  dataFim: string;
+  diasAfastamento?: number;
+  tipo: 'doenca_comum' | 'acidente_trabalho' | 'acidente_trajeto' | 'licenca_maternidade' | 'licenca_paternidade' | 'cirurgia' | 'outro';
+  cid?: string;
+  medico?: string;
+  crm?: string;
+  observacoes?: string;
+  arquivoUrl?: string;
+  arquivoNome?: string;
+  arquivoCloudNome?: string;
+  createdAt?: string;
+}
+
+export interface T_Ferias {
+  dataInicio: string;
+  dataFim: string;
+  diasGozados?: number;
+  observacoes?: string;
+  arquivoUrl?: string;
+  arquivoNome?: string;
+  arquivoCloudNome?: string;
+  createdAt?: string;
+}
+
+export interface T_Advertencia {
+  data: string;
+  tipo: 'verbal' | 'escrita' | 'suspensao';
+  diasSuspensao?: number;
+  motivo: string;
+  observacoes?: string;
+  arquivoUrl?: string;
+  arquivoNome?: string;
+  arquivoCloudNome?: string;
+  createdAt?: string;
+}
+
 export interface T_FuncionarioCLT {
   _id?: string;
   usuarioId: string;
@@ -98,6 +137,9 @@ export interface T_FuncionarioCLT {
   dadosBancarios: T_DadosBancarios;
   saudeOcupacional: T_SaudeOcupacional;
   contatoEmergencia: T_ContatoEmergencia;
+  atestados?: T_AtestadoMedico[];
+  ferias?: T_Ferias[];
+  advertencias?: T_Advertencia[];
   dataDemissao?: string;
   tipoDemissao?: 'sem_justa_causa' | 'com_justa_causa' | 'pedido_demissao' | 'aposentadoria' | 'falecimento' | 'acordo' | 'outro';
   motivoDemissao?: string;
@@ -114,6 +156,7 @@ export interface T_FuncionarioCLTComUsuario extends T_FuncionarioCLT {
     nome: string;
     sobrenome: string;
     email?: string;
+    telefone?: string;
     funcao?: string;
     foto_cdn?: string;
     foto_base64?: string;

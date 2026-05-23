@@ -6,6 +6,7 @@ interface Props {
   item?: T_ItemLista;
   onSave: (item: T_ItemLista) => void;
   onCancel: () => void;
+  saving?: boolean;
 }
 
 const emptyForm = (): Omit<T_ItemLista, '_id'> => ({
@@ -18,7 +19,7 @@ const emptyForm = (): Omit<T_ItemLista, '_id'> => ({
   precoEstimado: undefined,
 });
 
-const FormItem: React.FC<Props> = ({ item, onSave, onCancel }) => {
+const FormItem: React.FC<Props> = ({ item, onSave, onCancel, saving = false }) => {
   const [form, setForm] = useState<Omit<T_ItemLista, '_id'>>(
     item ? { nome: item.nome, quantidade: item.quantidade, unidade: item.unidade, categoria: item.categoria, observacao: item.observacao, comprado: item.comprado, precoEstimado: item.precoEstimado }
          : emptyForm()
@@ -129,8 +130,8 @@ const FormItem: React.FC<Props> = ({ item, onSave, onCancel }) => {
       {erro && <p className="text-sm text-red-600">{erro}</p>}
 
       <div className="flex gap-3 pt-2">
-        <Button_M3 label="Cancelar" bgColor="gray" type="button" onClick={onCancel} />
-        <Button_M3 label={item ? 'Salvar alterações' : 'Adicionar item'} bgColor="green" type="submit" onClick={() => {}} />
+        <Button_M3 label="Cancelar" bgColor="gray" type="button" onClick={onCancel} disabled={saving} />
+        <Button_M3 label={saving ? 'Salvando...' : (item ? 'Salvar alterações' : 'Adicionar item')} bgColor="green" type="submit" onClick={() => {}} disabled={saving} />
       </div>
     </form>
   );

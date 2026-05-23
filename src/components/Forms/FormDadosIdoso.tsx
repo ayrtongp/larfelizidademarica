@@ -3,7 +3,7 @@ import Text_M3 from '../Formularios/Text_M3'
 import { notifyError, notifySuccess } from '@/utils/Functions'
 import { Residentes_PUT_alterarDados } from '@/actions/Residentes'
 import Button_M3 from '../Formularios/Button_M3'
-import { ComposicaoFamiliarData, Residente } from '@/types/Residente'
+import { ComposicaoFamiliarData, PlanejamentoAtendimento, Residente } from '@/types/Residente'
 import Textarea_M3 from '../Formularios/TextArea_M3'
 import Accordion_Modelo1 from '../Accordion_Modelo1'
 import Select_M3 from '../Formularios/Select_M3'
@@ -54,9 +54,24 @@ const colsVisitantesImpossibilitados = [
 ];
 
 const colsPessoasNaRotina = [
-  { key: 'nome', label: 'Nome / Grupo', placeholder: 'Nome ou grupo', fullWidth: true },
-  { key: 'frequencia', label: 'Frequência', placeholder: 'Ex: Semanal' },
-  { key: 'tipoInteracao', label: 'Tipo de Interação', placeholder: 'Ex: Visita, ligação' },
+  { key: 'nome', label: 'Pessoa de referência/tipo de relação com o idoso', placeholder: 'Nome ou grupo', fullWidth: true },
+  { key: 'frequencia', label: 'Com que frequência, em média, faz contato com o idoso', placeholder: 'Ex: Semanal' },
+  { key: 'tipoInteracao', label: 'Tipo de interação mais comum', placeholder: 'Ex: Visita, ligação' },
+];
+
+const colsDemandas = [
+  { key: 'demandaIdentificada', label: 'Demanda identificada', fullWidth: true },
+  { key: 'encaminhamentos', label: 'Encaminhamentos e intervenções técnicas necessárias', fullWidth: true },
+  { key: 'metaAtendimento', label: 'Meta de atendimento da demanda', fullWidth: true },
+  { key: 'profissionaisResponsaveis', label: 'Profissionais responsáveis' },
+  { key: 'acompanhamento', label: 'Acompanhamento' },
+];
+
+const colsAtividades = [
+  { key: 'atividade', label: 'Atividade', fullWidth: true },
+  { key: 'local', label: 'Local onde é realizada' },
+  { key: 'frequencia', label: 'Frequência' },
+  { key: 'objetivo', label: 'Objetivo', fullWidth: true },
 ];
 
 const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
@@ -66,6 +81,20 @@ const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
   const [composicaoData, setComposicaoData] = useState<ComposicaoFamiliarData>(() => ({
     ...defaultComposicaoFamiliarData,
     ...(residenteData.composicaoFamiliarData ?? {}),
+  }));
+
+  const defaultPlanejamento: PlanejamentoAtendimento = {
+    demandas: [],
+    vinculosFamiliares: '',
+    atividades: [],
+    observacoesAtividades: '',
+    tematicasFamilia: '',
+    rotinaInstitucional: '',
+  };
+
+  const [planejamentoData, setPlanejamentoData] = useState<PlanejamentoAtendimento>(() => ({
+    ...defaultPlanejamento,
+    ...(residenteData.planejamentoAtendimento ?? {}),
   }));
 
   // ---- Contadores de campos preenchidos ----
@@ -100,6 +129,18 @@ const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
   };
   const counterComposicao = getCounterComposicao();
 
+  const getCounterPlanejamento = () => {
+    const fields = [
+      planejamentoData.demandas.length > 0,
+      isFilled(planejamentoData.vinculosFamiliares),
+      planejamentoData.atividades.length > 0,
+      isFilled(planejamentoData.tematicasFamilia),
+      isFilled(planejamentoData.rotinaInstitucional),
+    ];
+    return { filled: fields.filter(Boolean).length, total: fields.length };
+  };
+  const counterPlanejamento = getCounterPlanejamento();
+
   // ---- Handlers ----
 
   const handleUpdateDados = async () => {
@@ -125,6 +166,12 @@ const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
     const updated = { ...composicaoData, [field]: value };
     setComposicaoData(updated);
     setBodyUpdate((prev: any) => ({ ...prev, composicaoFamiliarData: updated }));
+  };
+
+  const handleChangePlanejamento = (field: keyof PlanejamentoAtendimento, value: any) => {
+    const updated = { ...planejamentoData, [field]: value };
+    setPlanejamentoData(updated);
+    setBodyUpdate((prev: any) => ({ ...prev, planejamentoAtendimento: updated }));
   };
 
   // ---- Opções de select ----
@@ -359,6 +406,97 @@ const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
               rowLabel='Pessoa'
             />
           </div>
+
+        </div>
+      } />
+
+      {/* ---- PLANEJAMENTO DO ATENDIMENTO ---- */}
+      <Accordion_Modelo1 titulo='Planejamento do Atendimento' initialExpanded={false} counter={counterPlanejamento} child={
+        <div className='mt-2 space-y-6'>
+
+          {/* a — Demandas e necessidades */}
+          <div>
+            <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2'>
+              Demandas e Necessidades Particulares do Idoso
+            </p>
+            <DynamicGridM1
+              columns={colsDemandas}
+              rows={planejamentoData.demandas as any}
+              onChange={rows => handleChangePlanejamento('demandas', rows)}
+              disabled={!isEGPP}
+              addLabel='Adicionar demanda'
+              emptyMessage='Nenhuma demanda cadastrada.'
+              rowLabel='Demanda'
+            />
+          </div>
+
+          <hr className='border-gray-100' />
+
+          {/* b — Vínculos familiares */}
+          <Textarea_M3
+            highlightEmpty
+            name='vinculosFamiliares'
+            label='Providências e intervenções técnicas necessárias para estimular a manutenção, o fortalecimento e/ou o resgate dos vínculos familiares e sociais do idoso?'
+            value={planejamentoData.vinculosFamiliares}
+            disabled={!isEGPP}
+            rows={4}
+            onChange={isEGPP ? e => handleChangePlanejamento('vinculosFamiliares', e.target.value) : () => null}
+          />
+
+          <hr className='border-gray-100' />
+
+          {/* c — Atividades propostas */}
+          <div>
+            <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2'>
+              Atividades Propostas ao Idoso
+            </p>
+            <DynamicGridM1
+              columns={colsAtividades}
+              rows={planejamentoData.atividades as any}
+              onChange={rows => handleChangePlanejamento('atividades', rows)}
+              disabled={!isEGPP}
+              addLabel='Adicionar atividade'
+              emptyMessage='Nenhuma atividade cadastrada.'
+              rowLabel='Atividade'
+            />
+            <div className='mt-3'>
+              <Textarea_M3
+                highlightEmpty
+                name='observacoesAtividades'
+                label='Observações sobre as atividades:'
+                value={planejamentoData.observacoesAtividades}
+                disabled={!isEGPP}
+                rows={3}
+                onChange={isEGPP ? e => handleChangePlanejamento('observacoesAtividades', e.target.value) : () => null}
+              />
+            </div>
+          </div>
+
+          <hr className='border-gray-100' />
+
+          {/* d — Temáticas */}
+          <Textarea_M3
+            highlightEmpty
+            name='tematicasFamilia'
+            label='Temáticas que devem ser trabalhadas com o idoso ou com sua família e estratégia escolhida para abordar o tema?'
+            value={planejamentoData.tematicasFamilia}
+            disabled={!isEGPP}
+            rows={4}
+            onChange={isEGPP ? e => handleChangePlanejamento('tematicasFamilia', e.target.value) : () => null}
+          />
+
+          <hr className='border-gray-100' />
+
+          {/* e — Rotina institucional */}
+          <Textarea_M3
+            highlightEmpty
+            name='rotinaInstitucional'
+            label='Rotina institucional proposta para o idoso:'
+            value={planejamentoData.rotinaInstitucional}
+            disabled={!isEGPP}
+            rows={4}
+            onChange={isEGPP ? e => handleChangePlanejamento('rotinaInstitucional', e.target.value) : () => null}
+          />
 
         </div>
       } />

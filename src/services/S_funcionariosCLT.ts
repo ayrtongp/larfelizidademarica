@@ -1,4 +1,4 @@
-import { T_ASO, T_Beneficios, T_Contrato, T_ContatoEmergencia, T_DadosBancarios, T_DadosPessoais, T_Endereco, T_CTPS, T_FuncionarioCLT, T_FuncionarioCLTComUsuario } from '@/types/T_funcionariosCLT';
+import { T_ASO, T_Advertencia, T_AtestadoMedico, T_Beneficios, T_Contrato, T_ContatoEmergencia, T_DadosBancarios, T_DadosPessoais, T_Endereco, T_CTPS, T_Ferias, T_FuncionarioCLT, T_FuncionarioCLTComUsuario } from '@/types/T_funcionariosCLT';
 
 const baseUrl = '/api/Controller/C_funcionariosCLT';
 
@@ -144,6 +144,75 @@ const S_funcionariosCLT = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ observacoes }),
+    });
+    return res.json();
+  },
+
+  updateContatoUsuario: async (id: string, payload: { telefone: string; email: string }): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=updateContatoUsuario&id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return res.json();
+  },
+
+  addAtestado: async (id: string, atestado: T_AtestadoMedico): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=addAtestado&id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ atestado }),
+    });
+    return res.json();
+  },
+
+  updateAtestado: async (id: string, atestadoIndex: number, atestado: T_AtestadoMedico): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=updateAtestado&id=${id}&atestadoIndex=${atestadoIndex}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ atestado }),
+    });
+    return res.json();
+  },
+
+  deleteAtestado: async (id: string, atestadoIndex: number): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=deleteAtestado&id=${id}&atestadoIndex=${atestadoIndex}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return res.json();
+  },
+
+  addFerias: async (id: string, ferias: T_Ferias): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=addFerias&id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ferias }),
+    });
+    return res.json();
+  },
+
+  deleteFerias: async (id: string, feriasIndex: number): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=deleteFerias&id=${id}&feriasIndex=${feriasIndex}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return res.json();
+  },
+
+  addAdvertencia: async (id: string, advertencia: T_Advertencia): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=addAdvertencia&id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ advertencia }),
+    });
+    return res.json();
+  },
+
+  deleteAdvertencia: async (id: string, advertenciaIndex: number): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=deleteAdvertencia&id=${id}&advertenciaIndex=${advertenciaIndex}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
     });
     return res.json();
   },
