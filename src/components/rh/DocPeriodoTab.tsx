@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { T_RhDocumentoPeriodo, TipoDocumentoPeriodo } from '@/types/T_rhDocumentosPeriodo';
 import S_rhDocumentosPeriodo from '@/services/S_rhDocumentosPeriodo';
-import { uploadArquivoPasta, deleteArquivoPastaSubPasta } from '@/actions/DO_UploadFile';
+import { uploadArquivoPasta, deleteArquivoPastaSubPasta, abrirArquivoR2 } from '@/actions/DO_UploadFile';
 import { getUserID, updateProfile } from '@/utils/Login';
 import { notifyError, notifySuccess } from '@/utils/Functions';
 
@@ -85,6 +85,7 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: 
         cloudURL: resultado.cloudURL,
         filename: resultado.filename,
         cloudFilename: resultado.cloudFilename,
+        r2FileId: resultado.r2FileId ?? resultado.cloudFilename,
         size: resultado.size,
         format: resultado.format,
         descricao: uploadDescricao,
@@ -179,14 +180,12 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: 
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <a
-                        href={doc.cloudURL}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => abrirArquivoR2(doc.r2FileId ?? doc.cloudFilename)}
                         className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
                       >
                         Abrir
-                      </a>
+                      </button>
                       <button
                         onClick={() => handleRemover(doc)}
                         disabled={removendoId === doc._id}
@@ -251,13 +250,30 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: 
 
               {/* Arquivo */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Arquivo</label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
-                  className="w-full text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                />
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Arquivo <span className="text-red-400">*</span>
+                </label>
+                <label className={`flex items-center gap-3 px-3 py-2.5 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadFile ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 bg-gray-50 hover:border-indigo-300 hover:bg-indigo-50'}`}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
+                    className="sr-only"
+                  />
+                  <span className="text-lg">{uploadFile ? '📄' : '📁'}</span>
+                  <span className="text-sm text-gray-600 truncate">
+                    {uploadFile ? uploadFile.name : 'Clique para selecionar o arquivo'}
+                  </span>
+                  {uploadFile && (
+                    <button
+                      type="button"
+                      onClick={e => { e.preventDefault(); setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                      className="ml-auto text-gray-400 hover:text-gray-600 text-xs shrink-0"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </label>
               </div>
 
               {/* Descrição */}
@@ -275,9 +291,13 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: 
             <button
               onClick={handleConfirmar}
               disabled={!uploadFile || salvando}
-              className="mt-4 w-full py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 rounded-lg transition-colors"
+              className={`mt-4 w-full py-2 text-sm font-medium rounded-lg transition-colors ${
+                uploadFile && !salvando
+                  ? 'text-white bg-indigo-600 hover:bg-indigo-700'
+                  : 'text-gray-400 bg-gray-100 cursor-not-allowed'
+              }`}
             >
-              {salvando ? 'Enviando...' : confirmandoSubstituicao ? 'Confirmar substituição' : 'Confirmar'}
+              {salvando ? 'Enviando...' : !uploadFile ? 'Selecione um arquivo acima' : confirmandoSubstituicao ? 'Confirmar substituição' : 'Confirmar'}
             </button>
           </div>
         </div>

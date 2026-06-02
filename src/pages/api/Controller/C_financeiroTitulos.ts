@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const filtro: Record<string, any> = {};
         if (req.query.tipo) filtro.tipo = req.query.tipo;
         if (req.query.status) filtro.status = req.query.status;
+        if (req.query.parcelamentoId) filtro.parcelamentoId = req.query.parcelamentoId as string;
         const titulos = await collection.find(filtro).sort({ vencimento: 1 }).toArray();
         return res.status(200).json(titulos);
       }
@@ -65,6 +66,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           funcionarioId,
           contraparteId,
           recorrenciaId,
+          parcelamentoId,
+          numeroParcela,
+          totalParcelas,
           observacoes,
           descontos,
           juros,
@@ -102,6 +106,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ...(funcionarioId && { funcionarioId }),
           ...(contraparteId && { contraparteId }),
           ...(recorrenciaId && { recorrenciaId }),
+          ...(parcelamentoId && { parcelamentoId }),
+          ...(numeroParcela !== undefined && { numeroParcela: Number(numeroParcela) }),
+          ...(totalParcelas !== undefined && { totalParcelas: Number(totalParcelas) }),
           ...(observacoes && { observacoes }),
           createdAt: now,
           updatedAt: now,
@@ -192,8 +199,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         );
 
+        // Propaga status para o parcelamento pai, se existir
+        if (titulo.parcelamentoId) {
+          const todasParcelas = await collection
+            .find({ parcelamentoId: titulo.parcelamentoId })
+            .toArray();
+          const pagasNoSistema = todasParcelas.filter((p) => {
+            if (p._id.toString() === (req.query.id as string)) return novoStatus === 'liquidado';
+            return p.status === 'liquidado';
+          }).length;
+          const parcelamento = await db
+            .collection('financeiro_parcelamentos')
+            .findOne({ _id: new ObjectId(titulo.parcelamentoId) });
+          if (parcelamento) {
+            const totalPagas = pagasNoSistema + (parcelamento.parcelasJaPagas || 0);
+            const numTotal = parcelamento.numeroParcelas || 0;
+            const novoStatusParc = numTotal > 0 && totalPagas >= numTotal ? 'quitado' : 'ativo';
+            await db.collection('financeiro_parcelamentos').updateOne(
+              { _id: new ObjectId(titulo.parcelamentoId) },
+              { $set: { parcelasPagas: pagasNoSistema, status: novoStatusParc, updatedAt: now } }
+            );
+          }
+        }
+
         const tituloAtualizado = await collection.findOne({ _id: new ObjectId(req.query.id as string) });
         return res.status(200).json(tituloAtualizado);
+      }
+
+      if (req.query.type === 'editarParcela' && req.query.id) {
+        const { valorOriginal, vencimento, observacoes } = req.body;
+        const titulo = await collection.findOne({ _id: new ObjectId(req.query.id as string) });
+        if (!titulo) return res.status(404).json({ message: 'Parcela não encontrada.' });
+
+        const update: Record<string, any> = { updatedAt: new Date().toISOString() };
+        if (vencimento !== undefined) update.vencimento = vencimento;
+        if (observacoes !== undefined) update.observacoes = observacoes;
+
+        if (valorOriginal !== undefined && titulo.valorLiquidado === 0) {
+          const novoValor = Number(valorOriginal);
+          update.valorOriginal = novoValor;
+          update.saldo = novoValor;
+          update.status = calcularStatus(novoValor, vencimento ?? titulo.vencimento);
+        } else if (vencimento !== undefined) {
+          update.status = calcularStatus(titulo.saldo, vencimento);
+        }
+
+        await collection.updateOne({ _id: new ObjectId(req.query.id as string) }, { $set: update });
+        const atualizado = await collection.findOne({ _id: new ObjectId(req.query.id as string) });
+        return res.status(200).json(atualizado);
       }
 
       if (req.query.type === 'cancelar' && req.query.id) {

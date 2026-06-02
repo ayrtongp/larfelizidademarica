@@ -21,6 +21,9 @@ export interface T_TituloFinanceiro {
   saldo: number;
   status: TituloStatus;
   recorrenciaId?: string;
+  parcelamentoId?: string;
+  numeroParcela?: number;
+  totalParcelas?: number;
   observacoes?: string;
   createdAt?: string;
   updatedAt?: string;

@@ -1,5 +1,16 @@
 export type TipoDocumentoPeriodo = 'folha_ponto' | 'contracheque';
 
+export type StatusFolhaPonto = 'enviado' | 'reenviado' | 'aprovado' | 'reprovado';
+
+export type T_ResumoFolhaPonto = {
+  funcionarioId: string;
+  nome: string;
+  cargo: string;
+  setor: string;
+  enviado: boolean;
+  documento?: T_RhDocumentoPeriodo;
+};
+
 export interface T_RhDocumentoPeriodo {
   _id?: string;
   tipo: TipoDocumentoPeriodo;
@@ -15,4 +26,11 @@ export interface T_RhDocumentoPeriodo {
   uploadedBy: string;
   uploadedByNome: string;
   createdAt?: string;
+  r2FileId?: string;
+  // workflow de aprovação
+  status?: StatusFolhaPonto;
+  motivoReprovacao?: string;
+  statusAtualizadoEm?: string;
+  statusAtualizadoPor?: string;
+  statusAtualizadoPorNome?: string;
 }

@@ -59,6 +59,22 @@ const S_financeiroTitulos = {
     if (!res.ok) throw new Error('Erro ao buscar baixas');
     return res.json();
   },
+
+  editarParcela: async (id: string, data: { valorOriginal?: number; vencimento?: string; observacoes?: string }): Promise<T_TituloFinanceiro> => {
+    const res = await fetch(`${baseUrl}?type=editarParcela&id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Erro ao editar parcela');
+    return res.json();
+  },
+
+  getByParcelamentoId: async (parcelamentoId: string): Promise<T_TituloFinanceiro[]> => {
+    const res = await fetch(`${baseUrl}?type=getAll&parcelamentoId=${parcelamentoId}`);
+    if (!res.ok) throw new Error('Erro ao buscar parcelas do parcelamento');
+    return res.json();
+  },
 };
 
 export default S_financeiroTitulos;

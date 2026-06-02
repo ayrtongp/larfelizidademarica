@@ -85,6 +85,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
     { title: 'Funcionários CLT', path: '/portal/administrativo/funcionarios' },
     { title: 'Prestadores', path: '/portal/administrativo/prestadores' },
     { title: 'Escala', path: '/portal/administrativo/escala' },
+    { title: 'Folha de Ponto', path: '/portal/administrativo/folha-ponto' },
     { title: 'Folha de Pagamento', path: '/portal/administrativo/folha-pagamento' },
   ]
 
@@ -106,6 +107,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
     { title: 'Contas', path: '/portal/financeiro/contas' },
     { title: 'Categorias', path: '/portal/financeiro/categorias' },
     { title: 'Empréstimos', path: '/portal/financeiro/emprestimos' },
+    { title: 'Parcelamentos', path: '/portal/financeiro/parcelamentos' },
     { title: 'Recorrências', path: '/portal/financeiro/recorrencias' },
     { title: 'Relatórios', path: '/portal/financeiro/relatorios' },
     { title: 'Matriz Idosos', path: '/portal/financeiro/matriz-idosos' },

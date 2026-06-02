@@ -12,3 +12,17 @@ export async function sendMessage(to: string, text: string) {
     const result = await sendMessage.json()
     return result
 }
+
+export async function sendDocument(to: string, fileUrl: string, mimetype: string, fileName: string, caption?: string) {
+    const url = `${server}/${key}/message/document`
+    const body: Record<string, string> = { to, url: fileUrl, mimetype, fileName }
+    if (caption) body.caption = caption
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    })
+    const result = await res.json()
+    return result
+}
