@@ -204,7 +204,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const todasParcelas = await collection
             .find({ parcelamentoId: titulo.parcelamentoId })
             .toArray();
-          const pagasNoSistema = todasParcelas.filter((p) => {
+          const pagasNoSistema = todasParcelas.filter((p: any) => {
             if (p._id.toString() === (req.query.id as string)) return novoStatus === 'liquidado';
             return p.status === 'liquidado';
           }).length;

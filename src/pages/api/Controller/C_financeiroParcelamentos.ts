@@ -337,7 +337,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .find({ parcelamentoId: id as string })
           .toArray();
 
-        const pagasNoSistema = parcelas.filter((p) => p.status === 'liquidado').length;
+        const pagasNoSistema = parcelas.filter((p: any) => p.status === 'liquidado').length;
         const totalPagas = pagasNoSistema + (parcelamento.parcelasJaPagas || 0);
         const numTotal = parcelamento.numeroParcelas || 0;
         const novoStatus = numTotal > 0 && totalPagas >= numTotal ? 'quitado' : 'ativo';
