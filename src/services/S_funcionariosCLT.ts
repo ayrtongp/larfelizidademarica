@@ -1,4 +1,4 @@
-import { T_ASO, T_Advertencia, T_AtestadoMedico, T_Beneficios, T_Contrato, T_ContatoEmergencia, T_DadosBancarios, T_DadosPessoais, T_Endereco, T_CTPS, T_Ferias, T_FuncionarioCLT, T_FuncionarioCLTComUsuario } from '@/types/T_funcionariosCLT';
+import { T_ASO, T_Advertencia, T_AtestadoMedico, T_AvisoPrevio, T_Beneficios, T_Contrato, T_ContatoEmergencia, T_DadosBancarios, T_DadosPessoais, T_DocumentoDemissao, T_Endereco, T_CTPS, T_Ferias, T_FuncionarioCLT, T_FuncionarioCLTComUsuario } from '@/types/T_funcionariosCLT';
 
 const baseUrl = '/api/Controller/C_funcionariosCLT';
 
@@ -17,6 +17,12 @@ const S_funcionariosCLT = {
 
   getById: async (id: string): Promise<T_FuncionarioCLTComUsuario> => {
     const res = await fetch(`${baseUrl}?type=getById&id=${id}`);
+    return res.json();
+  },
+
+  getByUsuarioId: async (usuarioId: string): Promise<T_FuncionarioCLTComUsuario | null> => {
+    const res = await fetch(`${baseUrl}?type=getByUsuarioId&usuarioId=${usuarioId}`);
+    if (res.status === 404) return null;
     return res.json();
   },
 
@@ -113,11 +119,29 @@ const S_funcionariosCLT = {
     dataDemissao: string;
     tipoDemissao: T_FuncionarioCLT['tipoDemissao'];
     motivoDemissao?: string;
+    avisoPrevio?: T_AvisoPrevio;
   }): Promise<{ message: string }> => {
     const res = await fetch(`${baseUrl}?type=demitir&id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+    });
+    return res.json();
+  },
+
+  addDocumentoDemissao: async (id: string, doc: T_DocumentoDemissao): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=addDocumentoDemissao&id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(doc),
+    });
+    return res.json();
+  },
+
+  removeDocumentoDemissao: async (id: string, cloudFilename: string): Promise<{ message: string }> => {
+    const res = await fetch(`${baseUrl}?type=removeDocumentoDemissao&id=${id}&cloudFilename=${encodeURIComponent(cloudFilename)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
     });
     return res.json();
   },

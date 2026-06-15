@@ -126,6 +126,56 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
+      // -------------------------
+      // GET by UsuarioId (auto-serviço do funcionário)
+      // -------------------------
+      else if (req.query.type === 'getByUsuarioId' && req.query.usuarioId) {
+        const usuarioId = req.query.usuarioId as string;
+        try {
+          const pipeline = [
+            { $match: { usuarioId } },
+            { $addFields: { usuarioObjectId: { $toObjectId: '$usuarioId' } } },
+            {
+              $lookup: {
+                from: 'usuario',
+                localField: 'usuarioObjectId',
+                foreignField: '_id',
+                as: 'usuarioArr',
+              },
+            },
+            {
+              $addFields: {
+                usuario: {
+                  $let: {
+                    vars: { u: { $arrayElemAt: ['$usuarioArr', 0] } },
+                    in: {
+                      _id: { $toString: '$$u._id' },
+                      nome: '$$u.nome',
+                      sobrenome: '$$u.sobrenome',
+                      email: '$$u.email',
+                      telefone: '$$u.telefone',
+                      funcao: '$$u.funcao',
+                      foto_cdn: '$$u.foto_cdn',
+                      foto_base64: '$$u.foto_base64',
+                    },
+                  },
+                },
+              },
+            },
+            { $project: { usuarioObjectId: 0, usuarioArr: 0 } },
+          ];
+
+          const result = await collection.aggregate(pipeline).toArray();
+          if (!result.length) {
+            return res.status(404).json({ message: 'Registro CLT não encontrado.' });
+          }
+          return res.status(200).json(result[0]);
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'getByUsuarioId: Erro não identificado.' });
+        }
+      }
+
       else {
         return res.status(400).json({ message: 'GET: Nenhum query.type identificado.' });
       }
@@ -491,6 +541,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 dataDemissao: body.dataDemissao,
                 tipoDemissao: body.tipoDemissao,
                 motivoDemissao: body.motivoDemissao ?? '',
+                ...(body.avisoPrevio ? { avisoPrevio: body.avisoPrevio } : {}),
                 updatedAt: new Date().toISOString(),
               },
             }
@@ -528,7 +579,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             { _id: new ObjectId(reqId) },
             {
               $set: { status: 'ativo', updatedAt: new Date().toISOString() },
-              $unset: { dataDemissao: '', tipoDemissao: '', motivoDemissao: '' },
+              $unset: { dataDemissao: '', tipoDemissao: '', motivoDemissao: '', avisoPrevio: '', documentosDemissao: '' },
             }
           );
           if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
@@ -545,6 +596,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } catch (err) {
           console.error('[C_funcionariosCLT]', err);
           return res.status(500).json({ message: 'reativar: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // ADD DOCUMENTO DEMISSÃO
+      // -------------------------
+      else if (req.query.type === 'addDocumentoDemissao' && req.query.id) {
+        const reqId = req.query.id as string;
+        try {
+          const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+          const result = await collection.updateOne(
+            { _id: new ObjectId(reqId) },
+            {
+              $push: { documentosDemissao: body } as any,
+              $set: { updatedAt: new Date().toISOString() },
+            }
+          );
+          if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+          return res.status(200).json({ message: 'Documento adicionado.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'addDocumentoDemissao: Erro não identificado.' });
+        }
+      }
+
+      // -------------------------
+      // REMOVE DOCUMENTO DEMISSÃO
+      // -------------------------
+      else if (req.query.type === 'removeDocumentoDemissao' && req.query.id) {
+        const reqId = req.query.id as string;
+        try {
+          const { cloudFilename } = req.query;
+          const result = await collection.updateOne(
+            { _id: new ObjectId(reqId) },
+            {
+              $pull: { documentosDemissao: { cloudFilename } } as any,
+              $set: { updatedAt: new Date().toISOString() },
+            }
+          );
+          if (result.matchedCount === 0) return res.status(404).json({ message: 'Funcionário não encontrado.' });
+          return res.status(200).json({ message: 'Documento removido.' });
+        } catch (err) {
+          console.error('[C_funcionariosCLT]', err);
+          return res.status(500).json({ message: 'removeDocumentoDemissao: Erro não identificado.' });
         }
       }
 

@@ -4,12 +4,15 @@ import PermissionWrapper from '@/components/PermissionWrapper'
 import Preferencias from '@/components/Paginas/Configuracoes/Preferencias'
 import Senhas from '@/components/Paginas/Configuracoes/Senhas'
 import Biometria from '@/components/Paginas/Configuracoes/Biometria'
+import PainelCLT from '@/components/funcionarios/PainelCLT'
 import { Usuario_getDadosPerfil } from '@/actions/Usuario'
 import { getUserID } from '@/utils/Login'
+import S_funcionariosCLT from '@/services/S_funcionariosCLT'
+import { T_FuncionarioCLTComUsuario } from '@/types/T_funcionariosCLT'
 
-type Tab = 'preferencias' | 'senhas' | 'biometria'
+type Tab = 'preferencias' | 'senhas' | 'biometria' | 'clt'
 
-const TABS: { value: Tab; label: string; icon: string }[] = [
+const TABS_BASE: { value: Tab; label: string; icon: string }[] = [
   { value: 'preferencias', label: 'Perfil', icon: '👤' },
   { value: 'senhas', label: 'Senha', icon: '🔑' },
   { value: 'biometria', label: 'Biometria', icon: '🔐' },
@@ -18,12 +21,18 @@ const TABS: { value: Tab; label: string; icon: string }[] = [
 const Index = () => {
   const [tab, setTab] = useState<Tab>('preferencias')
   const [userInfo, setUserInfo] = useState<any>(null)
+  const [funcionarioCLT, setFuncionarioCLT] = useState<T_FuncionarioCLTComUsuario | null>(null)
   const userId = getUserID()
 
   useEffect(() => {
     if (!userId) return
     Usuario_getDadosPerfil(userId).then((data) => setUserInfo(data.result))
+    S_funcionariosCLT.getByUsuarioId(userId).then((data) => setFuncionarioCLT(data))
   }, [userId])
+
+  const tabs = funcionarioCLT
+    ? [...TABS_BASE, { value: 'clt' as Tab, label: 'Vínculo CLT', icon: '📋' }]
+    : TABS_BASE
 
   const displayName = userInfo
     ? `${userInfo.nome ?? ''} ${userInfo.sobrenome ?? ''}`.trim()
@@ -65,7 +74,7 @@ const Index = () => {
 
             {/* Tab nav */}
             <div className='flex border-b border-gray-100'>
-              {TABS.map((t) => (
+              {tabs.map((t) => (
                 <button
                   key={t.value}
                   onClick={() => setTab(t.value)}
@@ -85,6 +94,7 @@ const Index = () => {
               {tab === 'preferencias' && userInfo && <Preferencias userInfo={userInfo} />}
               {tab === 'senhas' && <Senhas />}
               {tab === 'biometria' && <Biometria />}
+              {tab === 'clt' && funcionarioCLT && <PainelCLT funcionario={funcionarioCLT} />}
             </div>
 
           </div>

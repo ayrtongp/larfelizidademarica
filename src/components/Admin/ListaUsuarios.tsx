@@ -164,7 +164,7 @@ const ModalGruposUsuario = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
       onClick={e => { if (e.target === backdropRef.current) onClose(); }}
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col max-h-[90vh]">
 
         {/* Header */}
         <div className="flex items-center gap-3 p-4 border-b">
@@ -190,7 +190,7 @@ const ModalGruposUsuario = ({
         </div>
 
         {/* Body */}
-        <div className="p-4 space-y-5">
+        <div className="p-4 space-y-5 overflow-y-auto flex-1">
 
           {/* Grupos ativos */}
           <div>
@@ -269,12 +269,12 @@ const ModalGruposUsuario = ({
                 onChange={e => setNovaFuncao(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddFuncao(); } }}
                 placeholder="Nova área (ex: Fisioterapeuta)"
-                className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-rose-400"
+                className="flex-1 min-w-0 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-rose-400"
               />
               <button
                 onClick={handleAddFuncao}
                 disabled={!novaFuncao.trim() || savingFuncao}
-                className="flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 disabled:opacity-40 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors whitespace-nowrap"
+                className="flex-shrink-0 flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 disabled:opacity-40 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors"
               >
                 <FaPlus size={10} />
                 Add
@@ -295,11 +295,11 @@ const ModalGruposUsuario = ({
                 Todos os grupos já estão vinculados.
               </p>
             ) : (
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <select
                   value={selectedGrupoId}
                   onChange={e => setSelectedGrupoId(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
                 >
                   <option value="">Selecione um grupo...</option>
                   {gruposDisponiveis.map(g => (
@@ -311,10 +311,10 @@ const ModalGruposUsuario = ({
                 <button
                   onClick={handleAdd}
                   disabled={!selectedGrupoId || saving}
-                  className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors whitespace-nowrap"
+                  className="w-full flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 >
                   <FaPlus size={10} />
-                  {saving ? 'Salvando...' : 'Adicionar'}
+                  {saving ? 'Salvando...' : 'Adicionar grupo'}
                 </button>
               </div>
             )}
@@ -333,6 +333,7 @@ const ListaUsuarios = () => {
   const [busca, setBusca] = useState('');
   const [toggling, setToggling] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<ListaData | null>(null);
+  const [confirmToggle, setConfirmToggle] = useState<ListaData | null>(null);
 
   async function getListaUsuarios() {
     const res = await fetch('/api/Controller/Usuario');
@@ -348,15 +349,22 @@ const ListaUsuarios = () => {
   }, []);
 
   async function toggleAtivo(user: ListaData) {
+    setConfirmToggle(user);
+  }
+
+  async function confirmarToggle() {
+    const user = confirmToggle;
+    if (!user) return;
+    setConfirmToggle(null);
+
     const novoAtivo = user.ativo === 'S' ? 'N' : 'S';
-    const acao = novoAtivo === 'S' ? 'ativar' : 'desativar';
-    if (!confirm(`Deseja ${acao} o usuário "${user.usuario}"?`)) return;
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('token') ?? '') : '';
 
     setToggling(user._id);
     try {
       const res = await fetch(
         `/api/admin/toggle-usuario-ativo?id=${user._id}&ativo=${novoAtivo}`,
-        { method: 'PUT' },
+        { method: 'PUT', headers: token ? { Authorization: `Bearer ${token}` } : {} },
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { notifyError(data.message || `Erro ${res.status}`); return; }
@@ -393,7 +401,43 @@ const ListaUsuarios = () => {
 
   return (
     <>
-      {/* Modal */}
+      {/* Modal de confirmação de toggle */}
+      {confirmToggle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${confirmToggle.ativo === 'S' ? 'bg-red-100' : 'bg-green-100'}`}>
+                <span className="text-lg">{confirmToggle.ativo === 'S' ? '🔒' : '🔓'}</span>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-800">{confirmToggle.nome} {confirmToggle.sobrenome}</p>
+                <p className="text-xs text-gray-400">@{confirmToggle.usuario}</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">
+              {confirmToggle.ativo === 'S'
+                ? 'Desativar este usuário? Ele não conseguirá mais acessar o portal.'
+                : 'Reativar este usuário? Ele voltará a ter acesso ao portal.'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmToggle(null)}
+                className="flex-1 py-2 text-sm rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarToggle}
+                className={`flex-1 py-2 text-sm rounded-xl font-medium text-white transition-colors ${confirmToggle.ativo === 'S' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'}`}
+              >
+                {confirmToggle.ativo === 'S' ? 'Desativar' : 'Ativar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de grupos */}
       {selectedUser && (
         <ModalGruposUsuario
           user={selectedUser}
@@ -541,8 +585,8 @@ const ToggleAtivoButton = ({
       title={isAtivo ? 'Clique para desativar' : 'Clique para ativar'}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all
         ${isAtivo
-          ? 'bg-green-100 text-green-700 border-green-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
-          : 'bg-red-100 text-red-600 border-red-200 hover:bg-green-50 hover:text-green-700 hover:border-green-200'
+          ? 'bg-green-100 text-green-700 border-green-200'
+          : 'bg-red-100 text-red-600 border-red-200'
         }
         ${loading ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
     >

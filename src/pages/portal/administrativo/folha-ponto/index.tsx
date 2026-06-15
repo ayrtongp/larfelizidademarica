@@ -43,8 +43,13 @@ export default function FolhaPontoPage() {
   const hoje = new Date();
   const anoAtual = hoje.getFullYear();
 
+  // filtroMes/filtroAno = mês de PAGAMENTO (ex: Junho)
   const [filtroMes, setFiltroMes] = useState(hoje.getMonth() + 1);
   const [filtroAno, setFiltroAno] = useState(anoAtual);
+
+  // mesPeriodo/anoPeriodo = mês de REFERÊNCIA das folhas (sempre o anterior: Maio)
+  const mesPeriodo = filtroMes === 1 ? 12 : filtroMes - 1;
+  const anoPeriodo = filtroMes === 1 ? filtroAno - 1 : filtroAno;
   const [resumo, setResumo] = useState<T_ResumoFolhaPonto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,14 +81,14 @@ export default function FolhaPontoPage() {
   const carregar = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await S_rhDocumentosPeriodo.getResumoMes(filtroMes, filtroAno);
+      const data = await S_rhDocumentosPeriodo.getResumoMes(mesPeriodo, anoPeriodo);
       setResumo(data);
     } catch {
       notifyError('Erro ao carregar resumo de folhas de ponto.');
     } finally {
       setLoading(false);
     }
-  }, [filtroMes, filtroAno]);
+  }, [mesPeriodo, anoPeriodo]);
 
   useEffect(() => { carregar(); }, [carregar]);
 
@@ -99,7 +104,7 @@ export default function FolhaPontoPage() {
     const token = typeof window !== 'undefined' ? (localStorage.getItem('token') ?? '') : '';
     setDownloadingZip(true);
     try {
-      const res = await fetch(`/api/proxy/rh-folha-zip?mes=${filtroMes}&ano=${filtroAno}`, {
+      const res = await fetch(`/api/proxy/rh-folha-zip?mes=${mesPeriodo}&ano=${anoPeriodo}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) {
@@ -110,7 +115,7 @@ export default function FolhaPontoPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `folhas-ponto-${MESES[filtroMes - 1]}-${filtroAno}.zip`;
+      a.download = `folhas-ponto-${MESES[mesPeriodo - 1]}-${anoPeriodo}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -124,11 +129,11 @@ export default function FolhaPontoPage() {
 
   // --- enviar para contabilidade ---
   const handleEnviarContabilidade = async () => {
-    if (!confirm(`Enviar as ${comDocumento.length} folha(s) de ${MESES[filtroMes - 1]}/${filtroAno} para o grupo da Contabilidade no WhatsApp?`)) return;
+    if (!confirm(`Enviar as ${comDocumento.length} folha(s) de ${MESES[mesPeriodo - 1]}/${anoPeriodo} para o grupo da Contabilidade no WhatsApp?`)) return;
     const token = typeof window !== 'undefined' ? (localStorage.getItem('token') ?? '') : '';
     setEnviandoContabilidade(true);
     try {
-      const res = await fetch(`/api/rh/folha-ponto-contabilidade?mes=${filtroMes}&ano=${filtroAno}`, {
+      const res = await fetch(`/api/rh/folha-ponto-contabilidade?mes=${mesPeriodo}&ano=${anoPeriodo}`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -146,7 +151,7 @@ export default function FolhaPontoPage() {
   const handleEnviarAviso = async () => {
     setEnviandoAviso(true);
     try {
-      const { pendentes: n } = await S_rhDocumentosPeriodo.enviarAviso(filtroMes, filtroAno);
+      const { pendentes: n } = await S_rhDocumentosPeriodo.enviarAviso(mesPeriodo, anoPeriodo);
       notifySuccess(n > 0 ? `Aviso enviado para ${n} funcionário(s)!` : 'Nenhum pendente no momento.');
       setModalAviso(false);
     } catch {
@@ -187,7 +192,7 @@ export default function FolhaPontoPage() {
         tipo: 'folha_ponto',
         funcionarioId: uploadTarget.funcionarioId,
         funcionarioNome: uploadTarget.nome,
-        periodo: { mes: filtroMes, ano: filtroAno },
+        periodo: { mes: mesPeriodo, ano: anoPeriodo },
         cloudURL: resultado.cloudURL,
         filename: resultado.filename,
         cloudFilename: resultado.cloudFilename,
@@ -291,7 +296,14 @@ export default function FolhaPontoPage() {
 
           {/* Header */}
           <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-            <h1 className="text-2xl font-bold text-gray-800">Folha de Ponto</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Folha de Ponto</h1>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Pagamento: <span className="font-medium text-gray-600">{MESES[filtroMes - 1]}/{filtroAno}</span>
+                <span className="mx-1.5">·</span>
+                Referente a: <span className="font-medium text-indigo-600">{MESES[mesPeriodo - 1]}/{anoPeriodo}</span>
+              </p>
+            </div>
             <div className="flex items-center gap-2 flex-wrap">
               <select
                 value={filtroMes}
@@ -464,14 +476,14 @@ export default function FolhaPontoPage() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-                  <span>📅 Período:</span>
-                  <span className="font-medium text-gray-700">{MESES[filtroMes - 1]} / {filtroAno}</span>
+                <div className="flex items-center gap-2 text-xs bg-gray-50 rounded-lg px-3 py-2">
+                  <span className="text-gray-500">📅 Folha referente a:</span>
+                  <span className="font-semibold text-indigo-700">{MESES[mesPeriodo - 1]} / {anoPeriodo}</span>
                 </div>
 
                 {docExisteNoPeriodoSelecionado && !confirmandoSubstituicao && (
                   <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    Já existe um arquivo para {MESES[filtroMes - 1]}/{filtroAno}. Confirme para substituir.
+                    Já existe um arquivo para {MESES[mesPeriodo - 1]}/{anoPeriodo}. Confirme para substituir.
                   </p>
                 )}
                 {confirmandoSubstituicao && (
@@ -590,7 +602,7 @@ export default function FolhaPontoPage() {
                 A seguinte mensagem será enviada para o grupo principal:
               </p>
               <pre className="text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 whitespace-pre-wrap text-gray-700 mb-5 font-sans leading-relaxed">
-                {buildMensagemPreview(pendentesAviso, filtroMes, filtroAno)}
+                {buildMensagemPreview(pendentesAviso, mesPeriodo, anoPeriodo)}
               </pre>
               <div className="flex justify-end gap-3">
                 <button

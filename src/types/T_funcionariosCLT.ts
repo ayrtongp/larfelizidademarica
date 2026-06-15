@@ -124,6 +124,29 @@ export interface T_Advertencia {
   createdAt?: string;
 }
 
+export type T_TipoDemissao = 'sem_justa_causa' | 'com_justa_causa' | 'pedido_demissao' | 'aposentadoria' | 'falecimento' | 'acordo' | 'outro';
+export type T_TipoAvisoPrevio = 'trabalhado' | 'indenizado' | 'dispensado';
+export type T_TipoDocumentoDemissao = 'aso_demissional' | 'aviso_previo' | 'termo_rescisao' | 'comprovante_pagamento' | 'outro';
+
+export interface T_AvisoPrevio {
+  tipo: T_TipoAvisoPrevio;
+  dataInicio?: string;
+  dataFim?: string;
+}
+
+export interface T_DocumentoDemissao {
+  tipo: T_TipoDocumentoDemissao;
+  descricao?: string;
+  cloudURL: string;
+  filename: string;
+  cloudFilename: string;
+  size: string;
+  format: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  uploadedByNome?: string;
+}
+
 export interface T_FuncionarioCLT {
   _id?: string;
   usuarioId: string;
@@ -141,8 +164,10 @@ export interface T_FuncionarioCLT {
   ferias?: T_Ferias[];
   advertencias?: T_Advertencia[];
   dataDemissao?: string;
-  tipoDemissao?: 'sem_justa_causa' | 'com_justa_causa' | 'pedido_demissao' | 'aposentadoria' | 'falecimento' | 'acordo' | 'outro';
+  tipoDemissao?: T_TipoDemissao;
   motivoDemissao?: string;
+  avisoPrevio?: T_AvisoPrevio;
+  documentosDemissao?: T_DocumentoDemissao[];
   observacoes?: string;
   createdBy?: string;
   createdAt?: string;

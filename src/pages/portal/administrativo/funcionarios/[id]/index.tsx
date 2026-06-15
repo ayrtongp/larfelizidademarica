@@ -370,10 +370,13 @@ const FuncionarioDetalhes = () => {
                   {classeAtiva === 'menuDemissao' && isAdmin && (
                     <Tab_Demissao
                       funcionarioId={funcionario._id!}
+                      funcionarioNome={`${funcionario.usuario?.nome ?? ''} ${funcionario.usuario?.sobrenome ?? ''}`.trim()}
                       status={funcionario.status}
                       dataDemissao={funcionario.dataDemissao}
                       tipoDemissao={funcionario.tipoDemissao}
                       motivoDemissao={funcionario.motivoDemissao}
+                      avisoPrevio={funcionario.avisoPrevio}
+                      documentosDemissao={funcionario.documentosDemissao}
                       onUpdate={(data) => setFuncionario((prev) => prev ? { ...prev, ...data } : prev)}
                     />
                   )}

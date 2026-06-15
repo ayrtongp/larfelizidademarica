@@ -97,11 +97,11 @@ export default function FolhaTabelaView({ itens, editando, onChange }: Props) {
   const totalLiquido = itens.reduce((s, i) => s + i.salarioLiquido, 0);
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-auto max-h-[calc(100vh-13rem)]">
       <table className="w-full text-sm border-collapse">
-        <thead>
+        <thead className="sticky top-0 z-20">
           <tr className="bg-gray-50">
-            <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 border-b border-gray-200 sticky left-0 bg-gray-50 z-10 min-w-[160px]">
+            <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 border-b border-gray-200 sticky left-0 bg-gray-50 z-30 min-w-[160px]">
               Colaborador
             </th>
 

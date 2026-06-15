@@ -83,6 +83,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const rhMenu = [
     { title: 'Agenda Geral', path: '/portal/administrativo/agenda' },
     { title: 'Funcionários CLT', path: '/portal/administrativo/funcionarios' },
+    { title: 'Férias', path: '/portal/administrativo/ferias' },
     { title: 'Prestadores', path: '/portal/administrativo/prestadores' },
     { title: 'Escala', path: '/portal/administrativo/escala' },
     { title: 'Folha de Ponto', path: '/portal/administrativo/folha-ponto' },

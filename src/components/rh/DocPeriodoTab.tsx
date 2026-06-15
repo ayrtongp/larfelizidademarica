@@ -17,9 +17,10 @@ interface Props {
   funcionarioId: string;
   funcionarioNome: string;
   tipo: TipoDocumentoPeriodo;
+  readonly?: boolean;
 }
 
-export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: Props) {
+export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo, readonly = false }: Props) {
   const anoAtual = new Date().getFullYear();
   const [docs, setDocs] = useState<T_RhDocumentoPeriodo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,12 +138,14 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: 
             {anosDisponiveis.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
-        <button
-          onClick={abrirModal}
-          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors"
-        >
-          + Enviar arquivo
-        </button>
+        {!readonly && (
+          <button
+            onClick={abrirModal}
+            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors"
+          >
+            + Enviar arquivo
+          </button>
+        )}
       </div>
 
       {/* Tabela */}
@@ -186,13 +189,15 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: 
                       >
                         Abrir
                       </button>
-                      <button
-                        onClick={() => handleRemover(doc)}
-                        disabled={removendoId === doc._id}
-                        className="text-red-400 hover:text-red-600 text-xs font-medium disabled:opacity-50"
-                      >
-                        {removendoId === doc._id ? '...' : 'Excluir'}
-                      </button>
+                      {!readonly && (
+                        <button
+                          onClick={() => handleRemover(doc)}
+                          disabled={removendoId === doc._id}
+                          className="text-red-400 hover:text-red-600 text-xs font-medium disabled:opacity-50"
+                        >
+                          {removendoId === doc._id ? '...' : 'Excluir'}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -203,7 +208,7 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo }: 
       )}
 
       {/* Modal de upload */}
-      {modalAberto && (
+      {modalAberto && !readonly && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5">
             <div className="flex items-center justify-between mb-4">
