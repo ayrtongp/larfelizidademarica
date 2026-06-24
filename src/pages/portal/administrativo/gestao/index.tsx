@@ -131,7 +131,7 @@ function Modal({ titulo, onClose, children }: { titulo: string; onClose: () => v
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h3 className="text-sm font-bold text-gray-800">{titulo}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <FaTimes />
           </button>
         </div>
@@ -160,6 +160,7 @@ function CardGestao({ titulo, subtitulo, icone, total, totalLabel, loading, erro
 
   return (
     <button
+      type="button"
       onClick={clicavel ? onClick : undefined}
       className={`rounded-xl border shadow-sm p-5 text-left w-full transition-transform ${cores.border} ${clicavel ? 'hover:scale-[1.02] cursor-pointer' : ''}`}
     >
