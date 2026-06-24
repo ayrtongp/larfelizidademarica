@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const agora = new Date();
       const cutoff = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
 
-      const semAnotacao = todos.filter(r => {
+      const semAnotacao = todos.filter((r: any) => {
         if (!r.ultimaAnotacaoAt) return true;
         const data = new Date(r.ultimaAnotacaoAt);
         return isNaN(data.getTime()) || data < cutoff;
@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({
         total: semAnotacao.length,
         totalAtivos: todos.length,
-        idosos: semAnotacao.map(r => ({
+        idosos: semAnotacao.map((r: any) => ({
           _id: r._id,
           nome: r.nome,
           apelido: r.apelido,
@@ -109,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const agora = new Date();
       const cutoff = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
 
-      const semSinal = todos.filter(r => {
+      const semSinal = todos.filter((r: any) => {
         if (!r.ultimoSinalAt) return true;
         const data = new Date(r.ultimoSinalAt);
         return isNaN(data.getTime()) || data < cutoff;
@@ -118,7 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({
         total: semSinal.length,
         totalAtivos: todos.length,
-        idosos: semSinal.map(r => ({
+        idosos: semSinal.map((r: any) => ({
           _id: r._id,
           nome: r.nome,
           apelido: r.apelido,
@@ -298,10 +298,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ];
 
       const porArea = await residentesCol.aggregate(pipeline).toArray();
-      const totalPendentes = porArea.reduce((acc, a) => acc + a.residentes.length, 0);
+      const totalPendentes = porArea.reduce((acc: number, a: any) => acc + a.residentes.length, 0);
       const totalAtivos = await residentesCol.countDocuments({
-        $or: [{ is_ativo: 'S' }, { is_ativo: true }],
-        $or: [{ tipo_contrato: 'Residência Fixa' }, { tipo_contrato: 'Centro Dia' }],
+        $and: [
+          { $or: [{ is_ativo: 'S' }, { is_ativo: true }] },
+          { $or: [{ tipo_contrato: 'Residência Fixa' }, { tipo_contrato: 'Centro Dia' }] },
+        ],
       });
 
       const porAreaMap: Record<string, any[]> = {};
@@ -394,7 +396,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({
         total: alertas.length,
         totalAtivos,
-        alertas: alertas.map(a => ({
+        alertas: alertas.map((a: any) => ({
           _id: a._id,
           nome: a.nome,
           apelido: a.apelido,
@@ -558,7 +560,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .sort({ nome: 1 })
         .toArray();
 
-      const semLogin = ativos.filter(u => {
+      const semLogin = ativos.filter((u: any) => {
         if (!u.lastLogin) return true;
         return u.lastLogin < cutoff;
       });
@@ -566,7 +568,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({
         total: semLogin.length,
         totalAtivos: ativos.length,
-        usuarios: semLogin.map(u => ({
+        usuarios: semLogin.map((u: any) => ({
           _id: u._id,
           nome: `${u.nome ?? ''} ${u.sobrenome ?? ''}`.trim(),
           funcao: u.funcao ?? '',

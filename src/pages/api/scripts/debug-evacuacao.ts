@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     detalhes.push({
       nome: r.apelido || r.nome,
-      ultimos: sinais.map(s => ({ evacuacao: s.evacuacao, createdAt: s.createdAt })),
+      ultimos: sinais.map((s: any) => ({ evacuacao: s.evacuacao, createdAt: s.createdAt })),
     });
   }
 

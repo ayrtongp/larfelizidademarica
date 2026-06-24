@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const col = db.collection('usuario');
 
   const amostra = await col.find({ ativo: 'S' }).limit(3).toArray();
-  const campos = amostra.map(u => ({
+  const campos = amostra.map((u: any) => ({
     nome: u.nome,
     campos: Object.keys(u).sort(),
   }));

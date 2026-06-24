@@ -175,7 +175,7 @@ export default function ContraquequesPage() {
       const res = await fetch('/api/rh/enviar-contracheques', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mes: mesRef, ano: anoRef, selecionados: [...selecionados] }),
+        body: JSON.stringify({ mes: mesRef, ano: anoRef, selecionados: Array.from(selecionados) }),
       });
       const data = await res.json();
       if (!res.ok) { notifyError(data.message || 'Erro ao enviar.'); return; }

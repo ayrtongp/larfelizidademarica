@@ -107,7 +107,7 @@ export default function CupomFiscalPage() {
         temperature: 0.1,
       });
 
-      const data = parseAIResponse(response.text);
+      const data = parseAIResponse(response.content);
       const itens: T_ItemCupom[] = (data.itens ?? []).map((item: any, i: number) => ({
         localId: uid(),
         descricaoOriginal: item.descricaoOriginal ?? '',
@@ -428,8 +428,8 @@ export default function CupomFiscalPage() {
           {step === 'cropping' && cropSrc && (
             <ImageCropModal
               imageSrc={cropSrc}
-              onCropDone={handleCropDone}
-              onCancel={() => { setCropSrc(null); setStep('upload'); }}
+              onCrop={handleCropDone}
+              onClose={() => { setCropSrc(null); setStep('upload'); }}
             />
           )}
 

@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let cpfMatch: string | undefined;
     let nomeJsonMatch: string | undefined;
 
-    for (const [nomeJson, cpf] of nomeJsonToCpf) {
+    for (const [nomeJson, cpf] of Array.from(nomeJsonToCpf.entries())) {
       const nomeJsonNorm = nomeJson
         .normalize('NFD').replace(/[̀-ͯ]/g, '')
         .replace(/[^A-Z ]/g, '').trim();
