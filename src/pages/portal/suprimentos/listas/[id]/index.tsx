@@ -149,6 +149,7 @@ const Detalhe = () => {
 
   const handleSalvarItens = async (novosItens: T_ItemLista[]) => {
     if (!id) return;
+    const itensAnteriores = [...itensLocais];
     setItensLocais(novosItens);
     setLista((prev) => prev ? { ...prev, itens: novosItens } : prev);
     try {
@@ -157,8 +158,21 @@ const Detalhe = () => {
     } catch (err) {
       console.error(err);
       notifyError('Erro ao salvar item.');
-      await carregarLista(id as string);
+      setItensLocais(itensAnteriores);
+      setLista((prev) => prev ? { ...prev, itens: itensAnteriores } : prev);
     }
+  };
+
+  const handleToggleComprado = (itemId: string, comprado: boolean) => {
+    if (!id) return;
+    setItensLocais(prev => prev.map(i => i._id === itemId ? { ...i, comprado } : i));
+    setLista(prev => prev ? { ...prev, itens: prev.itens.map(i => i._id === itemId ? { ...i, comprado } : i) } : prev);
+    S_listaCompras.toggleItemComprado(id as string, itemId, comprado).catch((err) => {
+      console.error(err);
+      notifyError('Erro ao marcar item.');
+      setItensLocais(prev => prev.map(i => i._id === itemId ? { ...i, comprado: !comprado } : i));
+      setLista(prev => prev ? { ...prev, itens: prev.itens.map(i => i._id === itemId ? { ...i, comprado: !comprado } : i) } : prev);
+    });
   };
 
   const handleSalvarInfo = async () => {
@@ -519,6 +533,7 @@ const Detalhe = () => {
                 somenteLeitura={isComprada}
                 podeMarcarComprado={lista.status === 'finalizada'}
                 onSave={handleSalvarItens}
+                onToggleComprado={handleToggleComprado}
               />
             </div>
 

@@ -448,7 +448,7 @@ export default function FolhaPontoPage() {
                             </button>
                           )}
                           <button
-                            onClick={() => router.push(`/portal/administrativo/funcionarios/${item.funcionarioId}?tab=folha_ponto`)}
+                            onClick={() => router.push(`/portal/rh/funcionarios/${item.funcionarioId}?tab=folha_ponto`)}
                             className="text-gray-500 hover:text-gray-700 text-xs font-medium"
                           >
                             Perfil

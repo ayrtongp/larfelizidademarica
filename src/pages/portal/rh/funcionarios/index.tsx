@@ -66,7 +66,7 @@ const FuncionariosPage = () => {
 
   const handleSuccess = (novoId: string) => {
     setShowModal(false);
-    router.push(`/portal/administrativo/funcionarios/${novoId}`);
+    router.push(`/portal/rh/funcionarios/${novoId}`);
   };
 
   return (

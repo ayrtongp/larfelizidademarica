@@ -1,14 +1,11 @@
-import Button_M3 from '@/components/Formularios/Button_M3'
 import { Card_M1 } from '@/components/Formularios/Card'
 import PermissionWrapper from '@/components/PermissionWrapper'
 import PortalBase from '@/components/Portal/PortalBase'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups'
-import { sendMessage } from '@/pages/api/WhatsApp'
 import Link from 'next/link'
 import React from 'react'
-import { BsPeopleFill } from 'react-icons/bs'
-import { FaBriefcase, FaFileContract, FaFolderOpen, FaUserShield, FaUserFriends, FaCalendarAlt, FaUsers } from 'react-icons/fa'
+import { FaChartBar, FaFileContract, FaFolderOpen, FaUserShield, FaCalendarAlt, FaUsers, FaRobot } from 'react-icons/fa'
 
 const Index = () => {
 
@@ -30,38 +27,20 @@ const Index = () => {
                         )}
 
                         <div className='col-span-6 sm:col-span-2'>
+                            <Link href={'/portal/administrativo/gestao'}>
+                                <Card_M1 title={'Gestão'} cursorPointer bgColor='bg-white' icon={<FaChartBar size={24} className="text-emerald-500 mb-3 inline-block" />} />
+                            </Link>
+                        </div>
+
+                        <div className='col-span-6 sm:col-span-2'>
                             <Link href={'/portal/administrativo/contratos'}>
                                 <Card_M1 title={'Contratos'} cursorPointer bgColor='bg-white' icon={<FaFileContract size={24} className="text-indigo-500 mb-3 inline-block" />} />
                             </Link>
                         </div>
 
                         <div className='col-span-6 sm:col-span-2'>
-                            <Link href={'/portal/administrativo/funcionarios'}>
-                                <Card_M1 title={'Funcionários'} cursorPointer bgColor='bg-white' icon={<BsPeopleFill size={24} className="text-indigo-500 mb-3 inline-block" />} />
-                            </Link>
-                        </div>
-
-                        <div className='col-span-6 sm:col-span-2'>
-                            <Link href={'/portal/administrativo/prestadores'}>
-                                <Card_M1 title={'Prestadores'} cursorPointer bgColor='bg-white' icon={<FaBriefcase size={24} className="text-indigo-500 mb-3 inline-block" />} />
-                            </Link>
-                        </div>
-
-                        <div className='col-span-6 sm:col-span-2'>
-                            <Link href={'/portal/administrativo/idosos'}>
-                                <Card_M1 title={'Idosos'} cursorPointer bgColor='bg-white' icon={<FaUserFriends size={24} className="text-indigo-500 mb-3 inline-block" />} />
-                            </Link>
-                        </div>
-
-                        <div className='col-span-6 sm:col-span-2'>
                             <Link href={'/portal/administrativo/arquivos'}>
                                 <Card_M1 title={'Arquivos'} cursorPointer bgColor='bg-white' icon={<FaFolderOpen size={24} className="text-indigo-500 mb-3 inline-block" />} />
-                            </Link>
-                        </div>
-
-                        <div className='col-span-6 sm:col-span-2'>
-                            <Link href={'/portal/administrativo/agenda'}>
-                                <Card_M1 title={'Agenda Geral'} cursorPointer bgColor='bg-white' icon={<FaCalendarAlt size={24} className="text-sky-500 mb-3 inline-block" />} />
                             </Link>
                         </div>
 
@@ -74,6 +53,12 @@ const Index = () => {
                         <div className='col-span-6 sm:col-span-2'>
                             <Link href={'/portal/administrativo/familia'}>
                                 <Card_M1 title={'Família'} cursorPointer bgColor='bg-white' icon={<FaUsers size={24} className="text-rose-500 mb-3 inline-block" />} />
+                            </Link>
+                        </div>
+
+                        <div className='col-span-6 sm:col-span-2'>
+                            <Link href={'/portal/administrativo/ai-studio'}>
+                                <Card_M1 title={'AI Studio'} cursorPointer bgColor='bg-white' icon={<FaRobot size={24} className="text-purple-500 mb-3 inline-block" />} />
                             </Link>
                         </div>
 

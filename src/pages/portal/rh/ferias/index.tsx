@@ -219,7 +219,7 @@ export default function MonitoramentoFerias() {
                           </td>
                           <td className="px-4 py-3 text-right">
                             <Link
-                              href={`/portal/administrativo/funcionarios/${f._id}`}
+                              href={`/portal/rh/funcionarios/${f._id}`}
                               className="text-indigo-600 hover:text-indigo-800 text-xs font-medium whitespace-nowrap"
                             >
                               Ver funcionário →

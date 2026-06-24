@@ -67,6 +67,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(401).json({ message: 'O usuário está desativado.' });
         }
 
+        await mainCollection.updateOne(
+          { _id: response._id },
+          { $set: { lastLogin: new Date().toISOString() } }
+        );
+
         const secret = process.env.JWT_SECRET as string;
         const token = jwt.sign({ userId: response._id }, secret, { expiresIn: '1h' });
         const funcoes: string[] = Array.isArray(response.funcoes) && response.funcoes.length > 0

@@ -72,7 +72,7 @@ const IdososPage = () => {
 
   const handleSuccess = (novoId: string) => {
     setShowModal(false);
-    router.push(`/portal/administrativo/idosos/${novoId}`);
+    router.push(`/portal/coordenacao/idosos/${novoId}`);
   };
 
   return (

@@ -31,8 +31,8 @@ const S_rhDocumentosPeriodo = {
     if (!res.ok) throw new Error('Erro ao remover documento');
   },
 
-  async getResumoMes(mes: number, ano: number): Promise<T_ResumoFolhaPonto[]> {
-    const res = await fetch(`${BASE}?type=getResumoMes&mes=${mes}&ano=${ano}`);
+  async getResumoMes(mes: number, ano: number, tipo: TipoDocumentoPeriodo = 'folha_ponto'): Promise<T_ResumoFolhaPonto[]> {
+    const res = await fetch(`${BASE}?type=getResumoMes&mes=${mes}&ano=${ano}&tipo=${tipo}`);
     if (!res.ok) throw new Error('Erro ao buscar resumo do mês');
     return res.json();
   },

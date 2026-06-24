@@ -13,7 +13,7 @@ import Item from './Item';
 import { BsMegaphone, BsMegaphoneFill } from 'react-icons/bs';
 import { useHasGroup } from '@/hooks/useHasGroup';
 import { useHasAnyGroup } from '@/hooks/useHasAnyGroup';
-import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups';
+import { ADMINISTRATIVO_GROUP_ID, SUPRIMENTOS_GROUP_ID } from '@/constants/accessGroups';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const router = useRouter();
@@ -27,6 +27,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   const { hasGroup: hasMedicina } = useHasGroup('medicina');
   const { hasGroup: hasEnfermagem } = useHasGroup('equipe_enfermagem');
   const { hasGroup: hasAdministrativo } = useHasAnyGroup([ADMINISTRATIVO_GROUP_ID]);
+  const { hasGroup: hasSuprimentos } = useHasAnyGroup([SUPRIMENTOS_GROUP_ID]);
   const [tarefasBadge, setTarefasBadge] = useState(0);
 
   useEffect(() => {
@@ -42,38 +43,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   }, [pathname]);
 
   const dashboardMenu = [
-    { title: 'Visão Geral', path: '/portal' },
+    { title: 'Página Principal', path: '/portal' },
     { title: 'Evoluções', path: '/portal/dashboard/evolucoes' },
   ]
 
-  const pessoalMenu = [
-    { title: 'Idosos', path: '/portal/pessoal/idosos' },
-    { title: 'Funcionários', path: '/portal/pessoal/funcionarios' },
-    { title: 'Prestadores', path: '/portal/pessoal/prestadores' },
-  ]
-
   const suprimentosMenu = [
-    { title: 'Página Princpal', path: '/portal/suprimentos' },
+    { title: 'Página Principal', path: '/portal/suprimentos' },
     { title: 'Pedidos', path: '/portal/suprimentos/pedidos' },
     { title: 'Listas de Compras', path: '/portal/suprimentos/listas' },
   ]
 
   const administrativoMenu = [
     { title: 'Página Principal',   path: '/portal/administrativo' },
+    { title: 'Gestão',             path: '/portal/administrativo/gestao' },
+    { title: 'Contratos',          path: '/portal/administrativo/contratos' },
     { title: 'Arquivos',           path: '/portal/administrativo/arquivos' },
     { title: 'Datas Importantes',  path: '/portal/administrativo/datas-importantes' },
     { title: 'Família',            path: '/portal/administrativo/familia' },
     { title: 'AI Studio',          path: '/portal/administrativo/ai-studio' },
-  ]
-
-  const ocorrenciasMenu = [
-    { title: 'Página Principal', path: '/portal/ocorrencias' },
-    { title: 'Nova Ocorrência', path: '/portal/ocorrencias/novo' },
-  ]
-
-  const insumosMenu = [
-    { title: 'Página Principal', path: '/portal/insumos' },
-    { title: 'Novo Insumo', path: '/portal/insumos/novo' },
   ]
 
   const configMenu = [
@@ -81,27 +68,31 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
   ]
 
   const rhMenu = [
-    { title: 'Agenda Geral', path: '/portal/administrativo/agenda' },
-    { title: 'Funcionários CLT', path: '/portal/administrativo/funcionarios' },
-    { title: 'Férias', path: '/portal/administrativo/ferias' },
-    { title: 'Prestadores', path: '/portal/administrativo/prestadores' },
-    { title: 'Escala', path: '/portal/administrativo/escala' },
-    { title: 'Folha de Ponto', path: '/portal/administrativo/folha-ponto' },
-    { title: 'Folha de Pagamento', path: '/portal/administrativo/folha-pagamento' },
+    { title: 'Página Principal', path: '/portal/rh' },
+    { title: 'Agenda Geral', path: '/portal/rh/agenda' },
+    { title: 'Funcionários CLT', path: '/portal/rh/funcionarios' },
+    { title: 'Férias', path: '/portal/rh/ferias' },
+    { title: 'Prestadores', path: '/portal/rh/prestadores' },
+    { title: 'Escala', path: '/portal/rh/escala' },
+    { title: 'Folha de Ponto', path: '/portal/rh/folha-ponto' },
+    { title: 'Folha de Pagamento', path: '/portal/rh/folha-pagamento' },
+    { title: 'Contracheques', path: '/portal/rh/contracheques' },
   ]
 
   const coordenacaoMenu = [
-    { title: 'Idosos', path: '/portal/administrativo/idosos' },
+    { title: 'Página Principal', path: '/portal/coordenacao' },
+    { title: 'Idosos', path: '/portal/coordenacao/idosos' },
     { title: 'Medicamentos', path: '/portal/servicos/medicamentos' },
   ]
 
   const saudeMenu = [
+    { title: 'Página Principal', path: '/portal/saude' },
     { title: 'Medições', path: '/portal/saude/medicoes' },
     { title: 'Clínico',  path: '/portal/saude/clinico'  },
   ]
 
   const financeiroMenu = [
-    { title: 'Visão Geral', path: '/portal/financeiro' },
+    { title: 'Página Principal', path: '/portal/financeiro' },
     { title: 'Contas a Receber', path: '/portal/financeiro/contas-receber' },
     { title: 'Contas a Pagar', path: '/portal/financeiro/contas-pagar' },
     { title: 'Movimentações', path: '/portal/financeiro/movimentacoes' },
@@ -279,7 +270,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                 </div>
 
                 {/* Suprimentos */}
-                <SidebarLinkGroup activecondition={suprimentosMenu.some((item) => pathname.includes(item.path))}>
+                {hasSuprimentos && <SidebarLinkGroup activecondition={suprimentosMenu.some((item) => pathname.includes(item.path))}>
                   {(handleClick: any, open: any) => {
                     return (
                       <React.Fragment>
@@ -320,7 +311,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                       </React.Fragment>
                     );
                   }}
-                </SidebarLinkGroup>
+                </SidebarLinkGroup>}
 
                 {/* Tarefas */}
                 <div>
@@ -354,7 +345,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                           onClick={(e) => { e.preventDefault(); sidebarExpanded ? handleClick() : setSidebarExpanded(true); }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <FaUserTie size={22} className={`fill-current ${pathname.includes('/portal/administrativo/funcionarios') ? 'text-indigo-500' : 'text-slate-500'}`} />
+                              <FaUserTie size={22} className={`fill-current ${pathname.includes('/portal/rh') ? 'text-indigo-500' : 'text-slate-500'}`} />
                               <span className={`text-sm font-medium ml-3 ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>
                                 RH
                               </span>
@@ -393,7 +384,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
                           onClick={(e) => { e.preventDefault(); sidebarExpanded ? handleClick() : setSidebarExpanded(true); }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <FaUserFriends size={22} className={`fill-current ${pathname.includes('/portal/administrativo/idosos') ? 'text-indigo-500' : 'text-slate-500'}`} />
+                              <FaUserFriends size={22} className={`fill-current ${pathname.includes('/portal/coordenacao') ? 'text-indigo-500' : 'text-slate-500'}`} />
                               <span className={`text-sm font-medium ml-3 ${sidebarExpanded ? `lg:opacity-100` : `lg:opacity-0`} 2xl:opacity-100 duration-200`}>
                                 Coordenação
                               </span>

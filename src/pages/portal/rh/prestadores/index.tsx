@@ -65,7 +65,7 @@ const PrestadoresPage = () => {
 
   const handleSuccess = (novoId: string) => {
     setShowModal(false);
-    router.push(`/portal/administrativo/prestadores/${novoId}`);
+    router.push(`/portal/rh/prestadores/${novoId}`);
   };
 
   return (

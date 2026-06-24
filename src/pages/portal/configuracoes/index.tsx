@@ -45,7 +45,7 @@ const Index = () => {
   return (
     <PermissionWrapper href='/portal'>
       <PortalBase>
-        <div className='col-span-full p-4 space-y-5 max-w-3xl mx-auto w-full'>
+        <div className={`col-span-full p-4 space-y-5 w-full ${tab === 'clt' ? 'max-w-[98%]' : 'max-w-3xl'} mx-auto`}>
 
           {/* Identity card */}
           <div className='bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex items-center gap-5'>

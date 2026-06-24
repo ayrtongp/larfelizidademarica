@@ -243,6 +243,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
+      // PUT toggleItemComprado (atômico, sem substituir o array inteiro)
+      if (req.query.type === 'toggleItemComprado') {
+        try {
+          const { itemId, comprado } = body;
+          if (!itemId || typeof comprado !== 'boolean') {
+            return res.status(400).json({ message: 'itemId e comprado são obrigatórios.' });
+          }
+          const result = await collection.updateOne(
+            { _id: new ObjectId(id), 'itens._id': itemId },
+            { $set: { 'itens.$.comprado': comprado, updatedAt: new Date().toISOString() } }
+          );
+          if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'Lista ou item não encontrado.' });
+          }
+          return res.status(200).json({ message: 'Item atualizado.' });
+        } catch (err) {
+          console.error('[C_listaCompras] toggleItemComprado:', err);
+          return res.status(500).json({ message: 'Erro ao atualizar item.' });
+        }
+      }
+
       return res.status(400).json({ message: 'PUT: type não identificado.' });
     }
 

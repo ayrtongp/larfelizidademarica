@@ -89,7 +89,7 @@ const IdosoTable: React.FC<Props> = ({ idosos }) => {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={`/portal/administrativo/idosos/${i._id}`}
+                  <Link href={`/portal/coordenacao/idosos/${i._id}`}
                     className="text-indigo-600 hover:text-indigo-800 font-medium text-xs">
                     Ver
                   </Link>

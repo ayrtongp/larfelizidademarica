@@ -80,7 +80,7 @@ const PrestadorTable: React.FC<Props> = ({ prestadores }) => {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={`/portal/administrativo/prestadores/${p._id}`}
+                  <Link href={`/portal/rh/prestadores/${p._id}`}
                     className="text-indigo-600 hover:text-indigo-800 font-medium text-xs">
                     Ver
                   </Link>

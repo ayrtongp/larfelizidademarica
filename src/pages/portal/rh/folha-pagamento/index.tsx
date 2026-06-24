@@ -116,7 +116,7 @@ export default function FolhaPagamentoPage() {
                   {folhas
                     .sort((a, b) => b.periodo.mes - a.periodo.mes)
                     .map(folha => (
-                      <tr key={folha._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/portal/administrativo/folha-pagamento/${folha._id}`)}>
+                      <tr key={folha._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/portal/rh/folha-pagamento/${folha._id}`)}>
                         <td className="px-5 py-3.5 font-medium text-gray-800">
                           {MESES[folha.periodo.mes - 1]}/{folha.periodo.ano}
                           {folha.cloudURL && (
@@ -135,7 +135,7 @@ export default function FolhaPagamentoPage() {
                         <td className="px-5 py-3.5 text-right" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-3">
                             <button
-                              onClick={() => router.push(`/portal/administrativo/folha-pagamento/${folha._id}`)}
+                              onClick={() => router.push(`/portal/rh/folha-pagamento/${folha._id}`)}
                               className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
                             >
                               Ver

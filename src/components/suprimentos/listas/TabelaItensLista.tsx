@@ -8,6 +8,7 @@ interface Props {
   somenteLeitura: boolean;
   podeMarcarComprado: boolean;
   onSave: (itens: T_ItemLista[]) => Promise<void>;
+  onToggleComprado: (itemId: string, comprado: boolean) => void;
 }
 
 const categoriaLabel = (val?: string) =>
@@ -16,7 +17,7 @@ const categoriaLabel = (val?: string) =>
 const unidadeLabel = (val: string) =>
   UNIDADES_ITEM.find((u) => u.value === val)?.label ?? val;
 
-const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarComprado, onSave }) => {
+const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarComprado, onSave, onToggleComprado }) => {
   const [showForm, setShowForm] = useState(false);
   const [editando, setEditando] = useState<T_ItemLista | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -25,15 +26,10 @@ const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarCo
   const totalEstimado = itens.reduce((acc, i) => acc + (i.precoEstimado ?? 0) * i.quantidade, 0);
   const comprados = itens.filter((i) => i.comprado).length;
 
-  const toggleComprado = async (id: string) => {
-    if (savingId) return;
-    const novosItens = itens.map((i) => i._id === id ? { ...i, comprado: !i.comprado } : i);
-    setSavingId(id);
-    try {
-      await onSave(novosItens);
-    } finally {
-      setSavingId(null);
-    }
+  const toggleComprado = (id: string) => {
+    const item = itens.find(i => i._id === id);
+    if (!item) return;
+    onToggleComprado(id, !item.comprado);
   };
 
   const handleSaveItem = async (item: T_ItemLista) => {
@@ -122,21 +118,14 @@ const TabelaItensLista: React.FC<Props> = ({ itens, somenteLeitura, podeMarcarCo
                   className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-indigo-50 ${item.comprado ? 'opacity-60' : ''}`}
                 >
                   <td className="px-3 py-3 text-center">
-                    {savingId === item._id && podeMarcarComprado ? (
-                      <svg className="w-4 h-4 animate-spin text-gray-400 mx-auto" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
-                      </svg>
-                    ) : (
-                      <input
-                        type="checkbox"
-                        checked={item.comprado}
-                        onChange={() => toggleComprado(item._id)}
-                        disabled={!podeMarcarComprado || savingId !== null}
-                        title={!podeMarcarComprado ? 'Disponível apenas na fase de compra (lista finalizada)' : undefined}
-                        className={`w-4 h-4 rounded accent-green-500 ${podeMarcarComprado && !savingId ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'}`}
-                      />
-                    )}
+                    <input
+                      type="checkbox"
+                      checked={item.comprado}
+                      onChange={() => toggleComprado(item._id)}
+                      disabled={!podeMarcarComprado}
+                      title={!podeMarcarComprado ? 'Disponível apenas na fase de compra (lista finalizada)' : undefined}
+                      className={`w-4 h-4 rounded accent-green-500 ${podeMarcarComprado ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'}`}
+                    />
                   </td>
                   <td className="px-3 py-3">
                     <span className={`font-medium text-gray-800 ${item.comprado ? 'line-through' : ''}`}>

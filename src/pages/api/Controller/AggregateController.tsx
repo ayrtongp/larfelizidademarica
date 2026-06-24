@@ -37,30 +37,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
         if (req.query.type == "evolucao_getLast50") {
           const skip = parseInt(req.query.skip as unknown as string)
           const limit = parseInt(req.query.limit as unknown as string)
-          const result = await residentesCollection.aggregate([
+          const dataInicio = req.query.dataInicio as string | undefined;
+          const dataFim = req.query.dataFim as string | undefined;
+          const area = req.query.area as string | undefined;
+
+          const evolucaoMatch: Record<string, any> = {};
+          if (dataInicio || dataFim) {
+            evolucaoMatch['evolucoes.dataEvolucao'] = {};
+            if (dataInicio) evolucaoMatch['evolucoes.dataEvolucao'].$gte = dataInicio;
+            if (dataFim) evolucaoMatch['evolucoes.dataEvolucao'].$lte = dataFim;
+          }
+          if (area) {
+            evolucaoMatch['evolucoes.area'] = area;
+          }
+          const hasFilter = Object.keys(evolucaoMatch).length > 0;
+
+          const basePipeline: any[] = [
             { $addFields: { residente_id: { $toString: "$_id", }, }, },
             { $lookup: { from: "evolucao", localField: "residente_id", foreignField: "residente_id", as: "evolucoes", }, },
             { $unwind: "$evolucoes" },
+            ...(hasFilter ? [{ $match: evolucaoMatch }] : []),
             {
               $project: {
                 _id: 1, apelido: 1, createdAt: "$evolucoes.createdAt", usuario_nome: "$evolucoes.usuario_nome",
                 dataEvolucao: "$evolucoes.dataEvolucao", categoria: "$evolucoes.categoria", area: "$evolucoes.area", descricao: "$evolucoes.descricao",
               }
             },
-            { $addFields: { createdAtDate: { $dateFromString: { dateString: "$createdAt" } } } }, // Convert string to date
-            { $sort: { createdAtDate: -1 } }, // Sort by createdAtDate in descending order
-          ]).skip(skip).limit(limit).toArray();
+            { $addFields: { createdAtDate: { $dateFromString: { dateString: "$createdAt" } } } },
+            { $sort: { createdAtDate: -1 } },
+          ];
+
+          const result = await residentesCollection.aggregate([...basePipeline]).skip(skip).limit(limit).toArray();
 
           // Count pipeline
           const countPipeline = [
             { $addFields: { residente_id: { $toString: "$_id" } } },
             { $lookup: { from: "evolucao", localField: "residente_id", foreignField: "residente_id", as: "evolucoes" } },
             { $unwind: "$evolucoes" },
-            {
-              $project: {
-                _id: 1,
-              }
-            },
+            ...(hasFilter ? [{ $match: evolucaoMatch }] : []),
+            { $project: { _id: 1 } },
             { $count: "totalCount" },
           ];
 
@@ -69,6 +84,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse,
           return res.status(200).json({ data: result, count: countResult });
         }
 
+
+        if (req.query.type == "evolucao_areas") {
+          const evolucaoCol = db.collection('evolucao');
+          const areas = await evolucaoCol.distinct('area');
+          return res.status(200).json(areas.filter(Boolean).sort());
+        }
 
         if (req.query.type == "getTable") {
           const result = await residentesCollection.aggregate([

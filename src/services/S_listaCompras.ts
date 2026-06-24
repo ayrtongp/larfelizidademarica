@@ -72,6 +72,15 @@ const S_listaCompras = {
     await handleResponse(res);
   },
 
+  toggleItemComprado: async (listaId: string, itemId: string, comprado: boolean): Promise<void> => {
+    const res = await fetch(`${BASE}?type=toggleItemComprado&id=${listaId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId, comprado }),
+    });
+    await handleResponse(res);
+  },
+
   updateItens: async (id: string, itens: T_ItemLista[], realizadoPor: string): Promise<void> => {
     const res = await fetch(`${BASE}?type=updateItens&id=${id}`, {
       method: 'PUT',

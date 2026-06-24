@@ -33,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const mes = Number(req.query.mes);
           const ano = Number(req.query.ano);
           if (!mes || !ano) return res.status(400).json({ error: 'mes e ano são obrigatórios' });
+          const tipoDoc = (req.query.tipo as string) || 'folha_ponto';
 
           const colFuncionarios = db.collection('funcionarios_clt');
           const funcionariosAtivos = await colFuncionarios.aggregate([
@@ -45,11 +46,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               'contrato.cargo': 1,
               'contrato.setor': 1,
               nomeCompleto: { $concat: [{ $ifNull: ['$u.nome', ''] }, ' ', { $ifNull: ['$u.sobrenome', ''] }] },
+              'u.foto_cdn': 1,
+              'u.foto_base64': 1,
             }},
           ]).toArray();
 
           const documentos = await collection
-            .find({ tipo: 'folha_ponto', 'periodo.mes': mes, 'periodo.ano': ano })
+            .find({ tipo: tipoDoc, 'periodo.mes': mes, 'periodo.ano': ano })
             .toArray();
 
           const docPorFuncionario = new Map(documentos.map((d: any) => [d.funcionarioId, d]));
@@ -59,6 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             nome: ((f.nomeCompleto as string) ?? '').trim(),
             cargo: f.contrato?.cargo ?? '',
             setor: f.contrato?.setor ?? '',
+            foto: f.u?.foto_cdn || f.u?.foto_base64 || null,
             enviado: docPorFuncionario.has(String(f._id)),
             documento: docPorFuncionario.get(String(f._id)) ?? undefined,
           }));
