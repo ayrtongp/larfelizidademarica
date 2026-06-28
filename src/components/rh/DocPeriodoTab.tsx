@@ -140,6 +140,7 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo, re
         </div>
         {!readonly && (
           <button
+            type="button"
             onClick={abrirModal}
             className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors"
           >
@@ -184,6 +185,7 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo, re
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
+                        type="button"
                         onClick={() => abrirArquivoR2(doc.r2FileId ?? doc.cloudFilename)}
                         className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
                       >
@@ -191,6 +193,7 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo, re
                       </button>
                       {!readonly && (
                         <button
+                          type="button"
                           onClick={() => handleRemover(doc)}
                           disabled={removendoId === doc._id}
                           className="text-red-400 hover:text-red-600 text-xs font-medium disabled:opacity-50"
@@ -213,7 +216,7 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo, re
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-gray-800">Enviar documento</h3>
-              <button onClick={() => setModalAberto(false)} className="text-gray-400 hover:text-gray-600 text-xs">cancelar</button>
+              <button type="button" onClick={() => setModalAberto(false)} className="text-gray-400 hover:text-gray-600 text-xs">cancelar</button>
             </div>
 
             <div className="space-y-3">
@@ -294,6 +297,7 @@ export default function DocPeriodoTab({ funcionarioId, funcionarioNome, tipo, re
             </div>
 
             <button
+              type="button"
               onClick={handleConfirmar}
               disabled={!uploadFile || salvando}
               className={`mt-4 w-full py-2 text-sm font-medium rounded-lg transition-colors ${

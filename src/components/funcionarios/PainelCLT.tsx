@@ -79,6 +79,7 @@ export default function PainelCLT({ funcionario }: Props) {
           { id: 'documentos', label: 'Documentos' },
         ] as { id: Secao; label: string }[]).map(s => (
           <button
+            type="button"
             key={s.id}
             onClick={() => setSecao(s.id)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px
@@ -160,6 +161,7 @@ export default function PainelCLT({ funcionario }: Props) {
               { id: 'folha_ponto', label: 'Folha de Ponto' },
             ] as { id: 'contracheque' | 'folha_ponto'; label: string }[]).map(t => (
               <button
+                type="button"
                 key={t.id}
                 onClick={() => setDocTipo(t.id)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors

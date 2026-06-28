@@ -141,6 +141,7 @@ const DataTable: React.FC = () => {
             </div>
             {(dataInicio || dataFim || areaFiltro) && (
               <button
+                type="button"
                 onClick={handleLimparFiltros}
                 className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm rounded-lg transition-colors"
               >
@@ -174,7 +175,7 @@ const DataTable: React.FC = () => {
               <p className="my-1 text-lg font-bold">Descrição:</p>
               <p style={{ whiteSpace: 'pre-wrap' }}>{stripHtml(arrayModal.descricao ?? '')}</p>
             </div>
-            <button onClick={closeModal} className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+            <button type="button" onClick={closeModal} className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
               Fechar
             </button>
           </div>

@@ -11,6 +11,7 @@ import GridM1 from '../GridM1'
 import Date_M3 from '../Formularios/Date_M3'
 import DynamicGridM1 from '../Formularios/DynamicGridM1'
 import { getUserID } from '@/utils/Login'
+import { getUserDetails } from '@/utils/Functions'
 
 interface Props {
   residenteData: Residente;
@@ -166,6 +167,28 @@ const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
     const updated = { ...composicaoData, [field]: value };
     setComposicaoData(updated);
     setBodyUpdate((prev: any) => ({ ...prev, composicaoFamiliarData: updated }));
+  };
+
+  const createDemandaRow = () => {
+    const user = getUserDetails();
+    const nome = typeof user === 'object' ? `${user.nome ?? ''} ${user.sobrenome ?? ''}`.trim() : '';
+    return {
+      demandaIdentificada: '',
+      encaminhamentos: '',
+      metaAtendimento: '',
+      profissionaisResponsaveis: '',
+      acompanhamento: '',
+      criadoPor: nome,
+      criadoEm: new Date().toISOString(),
+    };
+  };
+
+  const renderDemandaMeta = (row: Record<string, string>) => {
+    if (!row.criadoPor && !row.criadoEm) return null;
+    const data = row.criadoEm
+      ? new Date(row.criadoEm).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : '';
+    return `${row.criadoPor || 'Desconhecido'}${data ? ` · ${data}` : ''}`;
   };
 
   const handleChangePlanejamento = (field: keyof PlanejamentoAtendimento, value: any) => {
@@ -427,6 +450,8 @@ const FormDadosIdoso = ({ residenteData, isEGPP = true }: Props) => {
               addLabel='Adicionar demanda'
               emptyMessage='Nenhuma demanda cadastrada.'
               rowLabel='Demanda'
+              createRow={createDemandaRow}
+              renderRowMeta={renderDemandaMeta}
             />
           </div>
 

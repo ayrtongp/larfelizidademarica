@@ -403,11 +403,11 @@ export default function CupomFiscalPage() {
                 <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileSelect} className="hidden" />
                 <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={handleFileSelect} className="hidden" />
 
-                <button onClick={() => cameraInputRef.current?.click()}
+                <button type="button" onClick={() => cameraInputRef.current?.click()}
                   className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-xl transition-colors">
                   <FaCamera /> Tirar foto
                 </button>
-                <button onClick={() => fileInputRef.current?.click()}
+                <button type="button" onClick={() => fileInputRef.current?.click()}
                   className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-xl transition-colors">
                   <FaUpload /> Selecionar arquivo
                 </button>
@@ -415,7 +415,7 @@ export default function CupomFiscalPage() {
 
               {imageFile && (
                 <div className="flex justify-center">
-                  <button onClick={handleInterpretar}
+                  <button type="button" onClick={handleInterpretar}
                     className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
                     <FaRobot /> Interpretar cupom
                   </button>
@@ -529,7 +529,7 @@ export default function CupomFiscalPage() {
                             </select>
                           </td>
                           <td className="px-3 py-2 text-center">
-                            <button onClick={() => removeItem(item.localId)} className="text-red-400 hover:text-red-600">
+                            <button type="button" onClick={() => removeItem(item.localId)} className="text-red-400 hover:text-red-600">
                               <FaTrash size={12} />
                             </button>
                           </td>
@@ -540,7 +540,7 @@ export default function CupomFiscalPage() {
                 </div>
 
                 <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-                  <button onClick={addItem} className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                  <button type="button" onClick={addItem} className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium">
                     <FaPlus size={10} /> Adicionar item
                   </button>
                   <div className="text-sm text-gray-600 flex items-center gap-4">
@@ -578,23 +578,23 @@ export default function CupomFiscalPage() {
 
               {/* Botões de ação */}
               <div className="flex flex-wrap gap-3">
-                <button onClick={handleSalvar} disabled={step === 'saving'}
+                <button type="button" onClick={handleSalvar} disabled={step === 'saving'}
                   className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50">
                   <FaSave /> {step === 'saving' ? 'Salvando...' : 'Salvar no banco'}
                 </button>
-                <button onClick={exportarExcel}
+                <button type="button" onClick={exportarExcel}
                   className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-xl transition-colors">
                   <FaFileExcel className="text-green-600" /> Exportar Excel
                 </button>
-                <button onClick={copiarJSON}
+                <button type="button" onClick={copiarJSON}
                   className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-xl transition-colors">
                   <FaCopy className="text-indigo-500" /> Copiar JSON
                 </button>
-                <button onClick={gerarPNG}
+                <button type="button" onClick={gerarPNG}
                   className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-xl transition-colors">
                   <FaImage className="text-purple-500" /> Gerar imagem
                 </button>
-                <button onClick={resetar}
+                <button type="button" onClick={resetar}
                   className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-xl transition-colors ml-auto">
                   <FaRedo /> Nova leitura
                 </button>
@@ -608,7 +608,7 @@ export default function CupomFiscalPage() {
               <FaCheckCircle className="text-5xl text-green-500 mx-auto" />
               <p className="text-lg font-semibold text-gray-800">Cupom salvo com sucesso!</p>
               <p className="text-xs text-gray-400">ID: {savedId}</p>
-              <button onClick={resetar}
+              <button type="button" onClick={resetar}
                 className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-xl transition-colors">
                 <FaRedo /> Nova leitura
               </button>

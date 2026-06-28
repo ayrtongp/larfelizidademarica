@@ -212,6 +212,7 @@ export default function ContraquequesPage() {
               </select>
               {enviados > 0 && (
                 <button
+                  type="button"
                   onClick={abrirModalEmail}
                   className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition-colors whitespace-nowrap"
                 >
@@ -292,6 +293,7 @@ export default function ContraquequesPage() {
                         <div className="flex items-center justify-end gap-2">
                           {r.enviado && r.documento && (
                             <button
+                              type="button"
                               onClick={() => abrirArquivoR2(r.documento!.r2FileId ?? r.documento!.cloudFilename)}
                               className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
                             >
@@ -299,6 +301,7 @@ export default function ContraquequesPage() {
                             </button>
                           )}
                           <button
+                            type="button"
                             onClick={() => abrirUpload(r)}
                             className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
                           >
@@ -306,6 +309,7 @@ export default function ContraquequesPage() {
                           </button>
                           {r.enviado && r.documento?._id && (
                             <button
+                              type="button"
                               onClick={() => handleRemover(r)}
                               disabled={removendoId === r.documento!._id}
                               className="text-red-400 hover:text-red-600 text-xs font-medium disabled:opacity-50"
@@ -332,7 +336,7 @@ export default function ContraquequesPage() {
                   <h3 className="text-sm font-bold text-gray-800">Enviar contracheque</h3>
                   <p className="text-xs text-gray-400 mt-0.5">{uploadTarget.nome} — Ref. {MESES[mesRef - 1]}/{anoRef}</p>
                 </div>
-                <button onClick={() => setUploadTarget(null)} className="text-gray-400 hover:text-gray-600 text-xs">cancelar</button>
+                <button type="button" onClick={() => setUploadTarget(null)} className="text-gray-400 hover:text-gray-600 text-xs">cancelar</button>
               </div>
 
               <div className="space-y-3">
@@ -367,7 +371,7 @@ export default function ContraquequesPage() {
                 </div>
               </div>
 
-              <button onClick={handleUpload} disabled={!uploadFile || salvando}
+              <button type="button" onClick={handleUpload} disabled={!uploadFile || salvando}
                 className={`mt-4 w-full py-2 text-sm font-medium rounded-lg transition-colors ${
                   uploadFile && !salvando ? 'text-white bg-indigo-600 hover:bg-indigo-700' : 'text-gray-400 bg-gray-100 cursor-not-allowed'
                 }`}>
@@ -387,7 +391,7 @@ export default function ContraquequesPage() {
                   <p className="text-xs text-gray-400">Ref. {MESES[mesRef - 1]}/{anoRef}</p>
                 </div>
                 {!enviandoEmails && (
-                  <button onClick={() => setModalEmail(false)} className="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+                  <button type="button" onClick={() => setModalEmail(false)} className="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
                 )}
               </div>
 
@@ -463,15 +467,15 @@ export default function ContraquequesPage() {
               {/* Footer */}
               <div className="px-5 py-3 border-t border-gray-100 flex justify-end gap-2">
                 {resultadoEnvio ? (
-                  <button onClick={() => setModalEmail(false)} className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200">
+                  <button type="button" onClick={() => setModalEmail(false)} className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200">
                     Fechar
                   </button>
                 ) : (
                   <>
-                    <button onClick={() => setModalEmail(false)} disabled={enviandoEmails} className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 disabled:opacity-50">
+                    <button type="button" onClick={() => setModalEmail(false)} disabled={enviandoEmails} className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 disabled:opacity-50">
                       Cancelar
                     </button>
-                    <button onClick={confirmarEnvioEmails} disabled={enviandoEmails || selecionados.size === 0}
+                    <button type="button" onClick={confirmarEnvioEmails} disabled={enviandoEmails || selecionados.size === 0}
                       className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50">
                       {enviandoEmails ? 'Enviando...' : `Confirmar envio (${selecionados.size})`}
                     </button>

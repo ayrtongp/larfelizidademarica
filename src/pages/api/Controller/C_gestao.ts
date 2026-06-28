@@ -546,6 +546,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
+  // Estoque da empresa abaixo do mínimo
+  if (req.query.type === 'estoqueBaixo') {
+    try {
+      const estoqueCol = db.collection('estoque_empresa');
+
+      const todos = await estoqueCol.find({ estoqueMinimo: { $gt: 0 } }).toArray();
+      const abaixo = todos
+        .filter((d: any) => d.quantidade < d.estoqueMinimo)
+        .map((d: any) => ({ nome: d.nome, categoria: d.categoria, saldo: d.quantidade, minimo: d.estoqueMinimo }))
+        .sort((a: any, b: any) => a.saldo - b.saldo);
+
+      const totalItens = await estoqueCol.countDocuments({});
+
+      return res.status(200).json({
+        total: abaixo.length,
+        totalInsumos: totalItens,
+        itens: abaixo,
+      });
+    } catch (err) {
+      console.error('[C_gestao] estoqueBaixo:', err);
+      return res.status(500).json({ message: 'Erro ao consultar estoque.' });
+    }
+  }
+
   // Usuários ativos sem login há mais de 3 dias
   if (req.query.type === 'semLogin3d') {
     try {

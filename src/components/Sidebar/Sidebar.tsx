@@ -49,6 +49,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
 
   const suprimentosMenu = [
     { title: 'Página Principal', path: '/portal/suprimentos' },
+    { title: 'Estoque', path: '/portal/suprimentos/estoque' },
     { title: 'Pedidos', path: '/portal/suprimentos/pedidos' },
     { title: 'Listas de Compras', path: '/portal/suprimentos/listas' },
   ]

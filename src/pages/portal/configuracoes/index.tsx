@@ -76,6 +76,7 @@ const Index = () => {
             <div className='flex border-b border-gray-100'>
               {tabs.map((t) => (
                 <button
+                  type="button"
                   key={t.value}
                   onClick={() => setTab(t.value)}
                   className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 transition-colors

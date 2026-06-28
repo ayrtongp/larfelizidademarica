@@ -16,6 +16,8 @@ interface Props {
   addLabel?: string;
   emptyMessage?: string;
   rowLabel?: string;
+  createRow?: () => Record<string, string>;
+  renderRowMeta?: (row: Record<string, string>) => React.ReactNode;
 }
 
 const emptyRow = (columns: DGColumn[]): Record<string, string> =>
@@ -29,8 +31,10 @@ const DynamicGridM1: React.FC<Props> = ({
   addLabel = 'Adicionar linha',
   emptyMessage = 'Nenhum registro adicionado.',
   rowLabel = 'Item',
+  createRow,
+  renderRowMeta,
 }) => {
-  const addRow = () => onChange([...rows, emptyRow(columns)]);
+  const addRow = () => onChange([...rows, createRow ? createRow() : emptyRow(columns)]);
   const removeRow = (i: number) => onChange(rows.filter((_, idx) => idx !== i));
   const handleChange = (i: number, key: string, value: string) =>
     onChange(rows.map((row, idx) => (idx === i ? { ...row, [key]: value } : row)));
@@ -46,9 +50,16 @@ const DynamicGridM1: React.FC<Props> = ({
       {rows.map((row, index) => (
         <div key={index} className="border border-gray-200 rounded-md p-3 bg-gray-50">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-gray-500">
-              {rowLabel} #{index + 1}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold text-gray-500">
+                {rowLabel} #{index + 1}
+              </span>
+              {renderRowMeta && (
+                <span className="text-[11px] text-gray-400 mt-0.5">
+                  {renderRowMeta(row)}
+                </span>
+              )}
+            </div>
             {!disabled && (
               <button
                 type="button"

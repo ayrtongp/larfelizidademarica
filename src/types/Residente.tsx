@@ -109,6 +109,8 @@ export interface DemandaNecessidade {
   metaAtendimento: string;
   profissionaisResponsaveis: string;
   acompanhamento: string;
+  criadoPor?: string;
+  criadoEm?: string;
 }
 
 export interface AtividadeProposta {

@@ -118,6 +118,7 @@ export default function MonitoramentoFerias() {
             <div className="flex flex-wrap gap-2">
               {FILTROS.map(f => (
                 <button
+                  type="button"
                   key={f.value}
                   onClick={() => setFiltro(f.value)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border

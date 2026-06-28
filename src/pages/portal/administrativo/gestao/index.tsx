@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PermissionWrapper from '@/components/PermissionWrapper';
 import PortalBase from '@/components/Portal/PortalBase';
 import { ADMINISTRATIVO_GROUP_ID } from '@/constants/accessGroups';
-import { FaClipboardList, FaHeartbeat, FaMoneyCheckAlt, FaCalendarCheck, FaNotesMedical, FaExclamationTriangle, FaBandAid, FaUserClock, FaTimes } from 'react-icons/fa';
+import { FaClipboardList, FaHeartbeat, FaMoneyCheckAlt, FaCalendarCheck, FaNotesMedical, FaExclamationTriangle, FaBandAid, FaUserClock, FaBoxes, FaTimes } from 'react-icons/fa';
 
 // ── Tipos ──────────────────────────────────────────
 
@@ -36,6 +36,19 @@ interface DadosContracheque {
   total: number;
   totalAtivos: number;
   funcionarios: FuncionarioAlerta[];
+}
+
+interface EstoqueBaixoItem {
+  nome: string;
+  categoria: string;
+  saldo: number;
+  minimo: number;
+}
+
+interface DadosEstoqueBaixo {
+  total: number;
+  totalInsumos: number;
+  itens: EstoqueBaixoItem[];
 }
 
 interface UsuarioSemLogin {
@@ -414,7 +427,28 @@ function ListaUsuariosSemLogin({ usuarios }: { usuarios: UsuarioSemLogin[] }) {
   );
 }
 
-type ModalAberto = null | 'anotacao' | 'sinais' | 'contracheque' | 'folhaPonto' | 'evolucao' | 'evacuacao' | 'feridas' | 'login';
+// ── Lista de estoque baixo para modal ──────────────
+
+function ListaEstoqueBaixo({ itens }: { itens: EstoqueBaixoItem[] }) {
+  return (
+    <>
+      {itens.map((item, i) => (
+        <div key={i} className="flex items-center justify-between px-5 py-3 border-b border-gray-50 last:border-0">
+          <div>
+            <p className="text-sm font-medium text-gray-800">{item.nome}</p>
+            <p className="text-xs text-gray-400">{item.categoria}</p>
+          </div>
+          <div className="text-right">
+            <span className={`text-sm font-bold ${item.saldo <= 0 ? 'text-red-600' : 'text-yellow-600'}`}>{item.saldo}</span>
+            <p className="text-xs text-gray-400">mín. {item.minimo}</p>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+type ModalAberto = null | 'anotacao' | 'sinais' | 'contracheque' | 'folhaPonto' | 'evolucao' | 'evacuacao' | 'feridas' | 'login' | 'estoque';
 
 export default function Gestao() {
   const [dadosAnotacao, setDadosAnotacao] = useState<DadosIdoso24h | null>(null);
@@ -425,6 +459,7 @@ export default function Gestao() {
   const [dadosFeridas, setDadosFeridas] = useState<DadosFeridas | null>(null);
   const [dadosFolhaPonto, setDadosFolhaPonto] = useState<DadosContracheque | null>(null);
   const [dadosLogin, setDadosLogin] = useState<DadosSemLogin | null>(null);
+  const [dadosEstoque, setDadosEstoque] = useState<DadosEstoqueBaixo | null>(null);
   const [loadingAnot, setLoadingAnot] = useState(true);
   const [loadingSinais, setLoadingSinais] = useState(true);
   const [loadingCC, setLoadingCC] = useState(true);
@@ -433,6 +468,7 @@ export default function Gestao() {
   const [loadingFP, setLoadingFP] = useState(true);
   const [loadingFeridas, setLoadingFeridas] = useState(true);
   const [loadingLogin, setLoadingLogin] = useState(true);
+  const [loadingEstoque, setLoadingEstoque] = useState(true);
   const [modal, setModal] = useState<ModalAberto>(null);
 
   useEffect(() => {
@@ -483,6 +519,12 @@ export default function Gestao() {
       .then(setDadosLogin)
       .catch(() => {})
       .finally(() => setLoadingLogin(false));
+
+    fetch('/api/Controller/C_gestao?type=estoqueBaixo')
+      .then(r => r.ok ? r.json() : null)
+      .then(setDadosEstoque)
+      .catch(() => {})
+      .finally(() => setLoadingEstoque(false));
   }, []);
 
   return (
@@ -575,6 +617,17 @@ export default function Gestao() {
             />
 
             <CardGestao
+              titulo="Estoque baixo"
+              subtitulo="Insumos abaixo do mínimo"
+              icone={<FaBoxes className="text-indigo-500" />}
+              total={dadosEstoque?.total ?? null}
+              totalLabel={`de ${dadosEstoque?.totalInsumos ?? '—'} insumos`}
+              loading={loadingEstoque}
+              erro={!loadingEstoque && !dadosEstoque}
+              onClick={() => setModal('estoque')}
+            />
+
+            <CardGestao
               titulo="Feridas abertas"
               subtitulo="Monitoramento de lesões ativas"
               icone={<FaBandAid className="text-rose-500" />}
@@ -622,6 +675,12 @@ export default function Gestao() {
         {modal === 'evacuacao' && dadosEvacuacao && (
           <Modal titulo={`Evacuação ausente — ${dadosEvacuacao.total} idoso${dadosEvacuacao.total !== 1 ? 's' : ''}`} onClose={() => setModal(null)}>
             <ListaEvacuacao alertas={dadosEvacuacao.alertas} />
+          </Modal>
+        )}
+
+        {modal === 'estoque' && dadosEstoque && (
+          <Modal titulo={`Estoque baixo — ${dadosEstoque.total} insumo${dadosEstoque.total !== 1 ? 's' : ''}`} onClose={() => setModal(null)}>
+            <ListaEstoqueBaixo itens={dadosEstoque.itens} />
           </Modal>
         )}
 

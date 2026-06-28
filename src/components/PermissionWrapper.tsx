@@ -3,7 +3,7 @@ import Link from 'next/link';
 import CheckToken from './CheckToken';
 import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsuario';
 import { getUserID } from '@/utils/Login';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface dataItem {
   portal_servicos: {
@@ -23,6 +23,8 @@ const PermissionWrapper = ({ href, children, groups }: Props) => {
   const shouldCheckGroups = Array.isArray(groups) && groups.length > 0;
   const [hasGroups, setHasGroups] = useState<boolean>(!shouldCheckGroups);
   const [loadingGroups, setLoadingGroups] = useState<boolean>(shouldCheckGroups);
+
+  const groupsKey = useMemo(() => JSON.stringify(groups ?? []), [groups]);
 
   useEffect(() => {
     let active = true;
@@ -66,7 +68,7 @@ const PermissionWrapper = ({ href, children, groups }: Props) => {
     return () => {
       active = false;
     };
-  }, [groups, shouldCheckGroups]);
+  }, [groupsKey, shouldCheckGroups]);
 
   if (logged) {
     const items: dataItem[] = data as dataItem[];
