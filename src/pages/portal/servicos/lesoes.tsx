@@ -371,8 +371,8 @@ const Index = () => {
                                     )}
 
                                     <div className="sm:col-span-2 flex justify-end gap-3 pt-2 border-t border-gray-50">
-                                        <Button_M3 label='Limpar' bgColor='gray' onClick={handleClear} />
-                                        <Button_M3 label='Salvar Lesão' onClick={handleSave} />
+                                        <Button_M3 type='button' label='Limpar' bgColor='gray' onClick={handleClear} />
+                                        <Button_M3 type='button' label='Salvar Lesão' onClick={handleSave} />
                                     </div>
                                 </form>
                             </div>
