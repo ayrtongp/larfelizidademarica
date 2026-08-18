@@ -1,4 +1,5 @@
 import { T_AIImage, T_AIImageMimeType, T_AIRequest, T_AIResponse } from '@/types/T_ai';
+import { withApiAuth } from '@/utils/apiAuth';
 
 const MAX_PX = 800;
 const JPEG_QUALITY = 0.75;
@@ -36,7 +37,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_URLDO ?? 'https://lobster-app-gbru2.
 async function complete(req: T_AIRequest): Promise<T_AIResponse> {
   const res = await fetch(`${BACKEND_URL}/ai/complete`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+      headers: withApiAuth({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(req),
   });
 

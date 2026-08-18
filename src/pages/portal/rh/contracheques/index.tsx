@@ -6,6 +6,7 @@ import { T_ResumoFolhaPonto } from '@/types/T_rhDocumentosPeriodo';
 import { notifyError, notifySuccess } from '@/utils/Functions';
 import { uploadArquivoPasta, abrirArquivoR2, deleteArquivoPastaSubPasta } from '@/actions/DO_UploadFile';
 import { getUserID, updateProfile } from '@/utils/Login';
+import { withApiAuth } from '@/utils/apiAuth';
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -143,7 +144,9 @@ export default function ContraquequesPage() {
     setSelecionados(new Set());
     setLoadingPreview(true);
     try {
-      const res = await fetch(`/api/rh/enviar-contracheques?mes=${mesRef}&ano=${anoRef}`);
+      const res = await fetch(`/api/rh/enviar-contracheques?mes=${mesRef}&ano=${anoRef}`, {
+        headers: withApiAuth(),
+      });
       const data = await res.json();
       setPreviewData(data);
       const iniciais = new Set<string>(
@@ -174,7 +177,7 @@ export default function ContraquequesPage() {
     try {
       const res = await fetch('/api/rh/enviar-contracheques', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuth({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ mes: mesRef, ano: anoRef, selecionados: Array.from(selecionados) }),
       });
       const data = await res.json();

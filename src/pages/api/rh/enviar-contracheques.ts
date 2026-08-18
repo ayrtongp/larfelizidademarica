@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import { ObjectId } from 'mongodb';
+import { requireAnyGroup } from '@/utils/authMiddleware';
 
 const RESEND_API_KEY = (process.env.RESEND_API_KEY ?? '').split(/\s/)[0];
 const EXPRESS_URL = process.env.NEXT_PUBLIC_URLDO ?? 'https://lobster-app-gbru2.ondigitalocean.app';
@@ -79,6 +80,7 @@ async function resolverDestinatarios(db: any, mes: number, ano: number) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!await requireAnyGroup(req, res, ['rh'])) return;
   const { db } = await connect();
 
   // GET — preview: lista destinatários com status do email
@@ -125,7 +127,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const dest of aptos) {
       let pdfBuffer: Buffer;
       try {
-        const urlRes = await fetch(`${EXPRESS_URL}/r2_files/${encodeURIComponent(dest.r2FileId)}`);
+        const urlRes = await fetch(`${EXPRESS_URL}/r2_files/${encodeURIComponent(dest.r2FileId)}`, {
+          headers: { Authorization: req.headers.authorization! },
+        });
         if (!urlRes.ok) throw new Error('URL do arquivo não encontrada');
         const { url } = await urlRes.json();
         const fileRes = await fetch(url);

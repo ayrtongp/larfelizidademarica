@@ -18,6 +18,7 @@ import ClinicalSummary from '@/components/idosos/ClinicalSummary';
 import GestaoArquivos from '@/components/Arquivos/GestaoArquivos';
 import Prescricao from '@/components/Residentes/Prescricao';
 import { notifyError, notifySuccess } from '@/utils/Functions';
+import { withApiAuth } from '@/utils/apiAuth';
 import {
   FaUser, FaFileContract, FaUsers, FaBook, FaFolder, FaSignOutAlt, FaPills, FaHeartbeat,
 } from 'react-icons/fa';
@@ -107,7 +108,11 @@ const IdosoDetalhes = () => {
       form.append('createdBy', getUserID());
       form.append('isPublic', 'true');
 
-      const uploadRes = await fetch(`${EXPRESS_URL}/r2_upload`, { method: 'POST', body: form });
+      const uploadRes = await fetch(`${EXPRESS_URL}/r2_upload`, {
+        method: 'POST',
+        body: form,
+        headers: withApiAuth(),
+      });
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok || !uploadData.ok) { notifyError(uploadData.error || 'Erro ao enviar foto.'); return; }
 

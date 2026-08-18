@@ -9,6 +9,7 @@ import Modalpadrao from '@/components/ModalPadrao';
 import Arquivos_TableView from './Arquivos_TableView';
 import Arquivos_GridView from './Arquivos_GridView';
 import { FaList, FaTh } from 'react-icons/fa';
+import { withApiAuth } from '@/utils/apiAuth';
 
 const EXPRESS_URL = process.env.NEXT_PUBLIC_URLDO ?? "https://lobster-app-gbru2.ondigitalocean.app";
 
@@ -61,7 +62,10 @@ const GestaoArquivos = ({ entityId, entityName }: Props) => {
     async function handleDelete(id: string) {
         if (!confirm('Deseja excluir este arquivo? Esta ação não pode ser desfeita.')) return;
         try {
-            const res = await fetch(`${EXPRESS_URL}/r2_files/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${EXPRESS_URL}/r2_files/${id}`, {
+                method: 'DELETE',
+                headers: withApiAuth(),
+            });
             const data = await res.json();
             if (!res.ok || !data.ok) {
                 notifyError(data.error || 'Erro ao excluir arquivo.');

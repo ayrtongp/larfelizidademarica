@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { requireAuth } from '@/utils/authMiddleware';
+import { requireAnyGroup } from '@/utils/authMiddleware';
 import connect from '@/utils/Database';
 import { ObjectId } from 'mongodb';
 import { zipSync, strToU8 } from 'fflate';
@@ -22,7 +22,7 @@ export const config = { api: { responseLimit: false } };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(405).end();
-  if (!requireAuth(req, res)) return;
+  if (!await requireAnyGroup(req, res, ['rh'])) return;
 
   const mes = Number(req.query.mes);
   const ano = Number(req.query.ano);
@@ -68,7 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       try {
         // Obtém URL assinada do Express
-        const urlRes = await fetch(`${EXPRESS_URL}/r2_files/${encodeURIComponent(r2Id)}`);
+        const urlRes = await fetch(`${EXPRESS_URL}/r2_files/${encodeURIComponent(r2Id)}`, {
+          headers: { Authorization: req.headers.authorization! },
+        });
         if (!urlRes.ok) return;
         const { url } = await urlRes.json();
         if (!url) return;

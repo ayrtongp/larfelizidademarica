@@ -23,6 +23,7 @@ import GruposUsuario_getGruposUsuario from '@/actions/GruposUsuario_getGruposUsu
 import Prescricao from '@/components/Residentes/Prescricao'
 import AvatarCropper from '@/components/AvatarCropper'
 import { useHasGroup } from '@/hooks/useHasGroup'
+import { withApiAuth } from '@/utils/apiAuth'
 
 interface objProps {
   className: string;
@@ -135,7 +136,11 @@ const ResidenteDetalhes = () => {
       form.append('createdBy', loggedUserId);
       form.append('isPublic', 'true');
 
-      const uploadRes = await fetch(`${EXPRESS_URL}/r2_upload`, { method: 'POST', body: form });
+      const uploadRes = await fetch(`${EXPRESS_URL}/r2_upload`, {
+        method: 'POST',
+        body: form,
+        headers: withApiAuth(),
+      });
       const uploadData = await uploadRes.json();
 
       if (!uploadRes.ok || !uploadData.ok) {

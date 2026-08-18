@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../../utils/Database';
 import fs from 'fs';
 import path from 'path';
+import { requireAnyGroup } from '@/utils/authMiddleware';
 
 export const config = { api: { bodyParser: false } };
 
@@ -18,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Use POST para executar.' });
   }
+  if (!await requireAnyGroup(req, res, ['rh'])) return;
 
   const { db } = await connect();
   const funcionariosCol = db.collection('funcionarios_clt');
@@ -137,7 +139,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const uploadRes = await fetch(`${EXPRESS_URL}/r2_upload`, {
         method: 'POST',
-        headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          Authorization: req.headers.authorization!,
+        },
         body: fullBody,
       });
 

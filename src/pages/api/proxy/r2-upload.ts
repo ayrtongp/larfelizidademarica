@@ -58,7 +58,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const expressRes = await fetch(`${EXPRESS_URL}/r2_upload`, {
             method: 'POST',
-            headers: { 'Content-Type': fullContentType },
+            headers: {
+                'Content-Type': fullContentType,
+                Authorization: req.headers.authorization!,
+            },
             body: rawBody,
         });
 

@@ -14,6 +14,7 @@ import File_M4 from "../Formularios/File_M4";
 import type { InfoProps } from "@/types/Arquivos_InfoProps";
 import { notifyError } from "@/utils/Functions";
 import File_Photo from "../Formularios/File_Photo";
+import { getApiToken } from "@/utils/apiAuth";
 
 // Tipos básicos
 export type I_Foto = {
@@ -39,6 +40,7 @@ async function fetchFotosExternas(
     cursor?: string,
     token?: string
 ): Promise<{ items: I_Foto[]; nextCursor?: string }> {
+    const authToken = token ?? getApiToken();
     const url = new URL(`${API_BASE}/fotos`);
     url.searchParams.set("residenteId", residenteId);
     url.searchParams.set("limit", String(PAGE_SIZE));
@@ -47,7 +49,7 @@ async function fetchFotosExternas(
     const res = await fetch(url.toString(), {
         method: "GET",
         headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         },
         // credentials: "include", // habilite se o back usar cookies
         // mode: "cors",

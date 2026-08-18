@@ -1,4 +1,5 @@
 import { getUserID } from '@/utils/Login';
+import { withApiAuth } from '@/utils/apiAuth';
 
 const EXPRESS_URL = process.env.NEXT_PUBLIC_URLDO ?? 'https://lobster-app-gbru2.ondigitalocean.app';
 
@@ -92,7 +93,13 @@ export async function deleteArquivoPastaSubPasta(_folderPath: string, r2FileId: 
   try {
     const response = await fetch(
       `${EXPRESS_URL}/r2_delete?id=${encodeURIComponent(r2FileId)}`,
-      { method: 'DELETE', mode: 'cors', credentials: 'omit', cache: 'no-store' }
+      {
+        method: 'DELETE',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        headers: withApiAuth(),
+      }
     );
 
     if (!response.ok) {
