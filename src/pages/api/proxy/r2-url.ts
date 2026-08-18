@@ -14,7 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!id) return res.status(400).json({ ok: false, error: 'id obrigatório' });
 
   try {
-    const expressRes = await fetch(`${EXPRESS_URL}/r2_files/${encodeURIComponent(id)}`);
+    const expressRes = await fetch(`${EXPRESS_URL}/r2_files/${encodeURIComponent(id)}`, {
+      headers: { Authorization: req.headers.authorization! },
+    });
 
     if (!expressRes.ok) {
       const body = await expressRes.json().catch(() => ({}));

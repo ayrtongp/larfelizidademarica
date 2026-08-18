@@ -6,6 +6,7 @@ import { getUserDetails, notifyError, notifySuccess } from '@/utils/Functions';
 import { Arquivos_POST_novoArquivo } from '@/actions/Arquivos';
 import { uploadArquivoPasta } from '@/actions/DO_UploadFile';
 import type { InfoProps } from '@/types/Arquivos_InfoProps';
+import { withApiAuth } from '@/utils/apiAuth';
 
 interface Props {
   infoProps: InfoProps;
@@ -94,7 +95,7 @@ const File_M4: React.FC<Props> = ({
         const res = await fetch(uploadUrl, {
           method: 'POST',
           body: form,
-          headers, // não defina Content-Type manualmente
+          headers: withApiAuth(headers), // não defina Content-Type manualmente
         });
         const payload = await res.json().catch(() => ({}));
         const uploadFailed = payload?.status === 'ERROR' || payload?.ok === false || !!payload?.error;

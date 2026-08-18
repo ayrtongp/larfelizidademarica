@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FaCamera, FaImages, FaTrash, FaPaperPlane } from "react-icons/fa";
+import { withApiAuth } from "@/utils/apiAuth";
 
 /**
  * Componente exclusivo para tirar foto / escolher da galeria
@@ -142,7 +143,7 @@ const File_Photo: React.FC<Props> = ({
             xhr.open("POST", uploadUrl, true);
 
             // headers (sem definir Content-Type; o XHR faz o boundary)
-            if (headers) Object.entries(headers).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+            Object.entries(withApiAuth(headers)).forEach(([k, v]) => xhr.setRequestHeader(k, v));
 
             xhr.upload.onprogress = (ev) => {
                 if (ev.lengthComputable) {

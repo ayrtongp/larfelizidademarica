@@ -7,6 +7,7 @@ import File_M4 from '../Formularios/File_M4'
 import { InfoProps } from '@/types/Arquivos_InfoProps'
 import { I_Arquivo } from '@/types/Arquivos'
 import { notifyError, notifySuccess } from '@/utils/Functions'
+import { withApiAuth } from '@/utils/apiAuth'
 
 const EXPRESS_URL = process.env.NEXT_PUBLIC_URLDO ?? "https://lobster-app-gbru2.ondigitalocean.app";
 
@@ -58,7 +59,10 @@ const Residente_Files = ({ residenteData }: Props) => {
     async function handleDelete(id: string) {
         if (!confirm('Deseja excluir este arquivo? Esta ação não pode ser desfeita.')) return;
         try {
-            const res = await fetch(`${EXPRESS_URL}/r2_files/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${EXPRESS_URL}/r2_files/${id}`, {
+                method: 'DELETE',
+                headers: withApiAuth(),
+            });
             const data = await res.json();
             if (!res.ok || !data.ok) {
                 notifyError(data.error || 'Erro ao excluir arquivo.');
@@ -105,7 +109,7 @@ const Residente_Files = ({ residenteData }: Props) => {
                                 folders={`public/usuario/${residenteData._id}/arquivos`}
                                 infoProps={infoProps}
                                 triggerEffect={handleTriggerEffect}
-                                uploadUrl={process.env.NEXT_PUBLIC_UPLOAD_URL ?? "https://lobster-app-gbru2.ondigitalocean.app/r2_upload"}
+                                uploadUrl="/api/proxy/r2-upload"
                                 extraFields={{
                                     collection: "arquivos",
                                     resource: "arquivos",
