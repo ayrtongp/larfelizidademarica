@@ -7,6 +7,29 @@ import { useRouter } from "next/router";
 import { notifyError, notifySuccess } from "@/utils/Functions";
 import GruposUsuario_getGruposUsuario from "@/actions/GruposUsuario_getGruposUsuario";
 
+function mensagemErroLogin(error: any): string {
+  const status = error?.response?.status;
+  const mensagem = error?.response?.data?.message;
+
+  if (typeof mensagem === 'string' && mensagem.trim()) {
+    return mensagem;
+  }
+
+  if (status === 429) {
+    return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
+  }
+
+  if (status >= 500) {
+    return 'O serviço de login encontrou um erro. Tente novamente em instantes.';
+  }
+
+  if (!error?.response) {
+    return 'Não foi possível conectar ao serviço de login. Verifique sua conexão e tente novamente.';
+  }
+
+  return 'Não foi possível realizar o login. Confira o usuário e a senha e tente novamente.';
+}
+
 const LoginPage = () => {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
@@ -36,8 +59,8 @@ const LoginPage = () => {
       const response = await axios.post('/api/Controller/LoginController', { usuario, senha });
       const { token, userInfo } = response.data;
       await finalizarLogin(token, userInfo);
-    } catch {
-      notifyError('Falha ao realizar o login, contate um administrador');
+    } catch (error: any) {
+      notifyError(mensagemErroLogin(error));
     } finally {
       setLoading(false);
     }
