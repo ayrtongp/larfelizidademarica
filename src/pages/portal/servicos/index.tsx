@@ -7,7 +7,7 @@ import { useHasGroup } from '@/hooks/useHasGroup'
 import { getUserID } from '@/utils/Login'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import { FaCameraRetro, FaFirstAid, FaNotesMedical, FaPills } from 'react-icons/fa'
+import { FaCameraRetro, FaFirstAid, FaNotesMedical, FaPills, FaShoppingCart } from 'react-icons/fa'
 
 const Index = () => {
 
@@ -29,6 +29,12 @@ const Index = () => {
             title: 'Fotos',
             icon: <FaCameraRetro size={24} className="text-indigo-500 mb-3 inline-block" />,
             href: '/portal/servicos/fotos'
+        },
+        {
+            name: 'solicitacaoCompras',
+            title: 'Solicitação de Compras',
+            icon: <FaShoppingCart size={24} className="text-indigo-500 mb-3 inline-block" />,
+            href: '/portal/servicos/solicitacao-compras'
         },
     ]
 

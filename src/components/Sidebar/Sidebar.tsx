@@ -51,6 +51,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
     { title: 'Página Principal', path: '/portal/suprimentos' },
     { title: 'Estoque', path: '/portal/suprimentos/estoque' },
     { title: 'Pedidos', path: '/portal/suprimentos/pedidos' },
+    { title: 'Solicitações de compras', path: '/portal/suprimentos/solicitacoes' },
     { title: 'Listas de Compras', path: '/portal/suprimentos/listas' },
   ]
 
