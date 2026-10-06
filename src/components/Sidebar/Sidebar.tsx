@@ -58,6 +58,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: any) => {
     { title: 'Página Principal',   path: '/portal/administrativo' },
     { title: 'Gestão',             path: '/portal/administrativo/gestao' },
     { title: 'Contratos',          path: '/portal/administrativo/contratos' },
+    { title: 'Arquivos da Empresa', path: '/portal/administrativo/arquivos-empresa' },
     { title: 'Arquivos',           path: '/portal/administrativo/arquivos' },
     { title: 'Datas Importantes',  path: '/portal/administrativo/datas-importantes' },
     { title: 'Família',            path: '/portal/administrativo/familia' },
